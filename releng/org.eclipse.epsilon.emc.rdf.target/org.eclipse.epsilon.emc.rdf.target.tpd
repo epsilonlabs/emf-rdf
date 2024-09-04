@@ -95,6 +95,12 @@ location "https://download.eclipse.org/mylyn/updates/release/4.3.0/" {
 	org.eclipse.mylyn.wikitext.markdown.ui lazy
 }
 
+// This driver targets the 2.5.0 stable release of Epsilon
+location "http://download.eclipse.org/epsilon/updates/2.5/" {
+	org.eclipse.epsilon.eol.engine lazy
+	org.eclipse.epsilon.core.feature.feature.group lazy
+}
+
 maven MavenDependencies scope=compile,test,runtime dependencyDepth=infinite missingManifest=generate includeSources {
 	dependency {
 		groupId="net.sourceforge.plantuml"
