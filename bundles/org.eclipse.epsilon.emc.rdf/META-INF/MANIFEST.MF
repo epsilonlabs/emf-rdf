@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Epsilon Model Connectivity driver for RDF
+Bundle-SymbolicName: org.eclipse.epsilon.emc.rdf
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: Eclipse.org
+Automatic-Module-Name: org.eclipse.epsilon.emc.rdf
+Bundle-RequiredExecutionEnvironment: JavaSE-17
