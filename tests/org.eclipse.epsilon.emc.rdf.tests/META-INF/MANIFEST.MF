@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Tests for EMC RDF driver
+Bundle-SymbolicName: org.eclipse.epsilon.emc.rdf.tests
+Bundle-Version: 1.0.0.qualifier
+Require-Bundle: org.junit;bundle-version="4.0.0",
+ org.eclipse.epsilon.emc.rdf,
+ org.eclipse.epsilon.eol.engine
+Bundle-Vendor: Eclipse.org
+Automatic-Module-Name: org.eclipse.epsilon.emc.rdf.tests
+Bundle-RequiredExecutionEnvironment: JavaSE-17
