@@ -1,17 +1,15 @@
 package org.eclipse.epsilon.emc.rdf;
 
-import org.apache.jena.rdf.model.Statement;
+public abstract class RDFModelElement {
 
-public class RDFModelElement {
+	protected final RDFModel owningModel;
 
-	private Statement statement;
-
-	public RDFModelElement(Statement stmt) {
-		this.statement = stmt;
+	public RDFModelElement(RDFModel rdfModel) {
+		this.owningModel = rdfModel;
 	}
 
-	public Statement getStatement() {
-		return statement;
+	public RDFModel getModel() {
+		return owningModel;
 	}
 
 }

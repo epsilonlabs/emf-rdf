@@ -5,8 +5,8 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.rdf.model.ResIterator;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.RDFDataMgr;
 import org.eclipse.epsilon.common.util.StringProperties;
 import org.eclipse.epsilon.eol.exceptions.EolRuntimeException;
@@ -96,11 +96,11 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 
 	@Override
 	protected Collection<RDFModelElement> allContentsFromModel() {
-		// TODO Auto-generated method stub
 		final List<RDFModelElement> elems = new ArrayList<>();
-		for (StmtIterator it = model.listStatements(); it.hasNext(); ) {
-			Statement stmt = it.next();
-			elems.add(new RDFModelElement(stmt));
+
+		for (ResIterator it = model.listSubjects(); it.hasNext(); ) {
+			Resource stmt = it.next();
+			elems.add(new RDFResource(stmt, this));	
 		}
 		
 		return elems;
@@ -121,7 +121,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	}
 
 	@Override
-	protected RDFModelElement createInstanceInModel(String type)
+	protected RDFResource createInstanceInModel(String type)
 			throws EolModelElementTypeNotFoundException, EolNotInstantiableModelElementTypeException {
 		// TODO Auto-generated method stub
 		return null;

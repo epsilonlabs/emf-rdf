@@ -14,7 +14,7 @@ public class RDFModelTest {
 			model.setUri("resources/spiderman.ttl");
 			model.load();
 
-			assertEquals("allContents should produce one element per statement", 7, model.allContents().size());
+			assertEquals("allContents should produce one element per resource", 2, model.allContents().size());
 		}
 	}
 
