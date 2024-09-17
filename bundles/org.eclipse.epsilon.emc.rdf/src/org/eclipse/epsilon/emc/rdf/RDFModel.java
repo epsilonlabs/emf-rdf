@@ -42,8 +42,11 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	}
 
 	@Override
-	public Object getElementById(String id) {
-		// TODO Auto-generated method stub
+	public Object getElementById(String iri) {
+		Resource res = model.getResource(iri);
+		if (res != null) {
+			return new RDFResource(res, this);
+		}
 		return null;
 	}
 

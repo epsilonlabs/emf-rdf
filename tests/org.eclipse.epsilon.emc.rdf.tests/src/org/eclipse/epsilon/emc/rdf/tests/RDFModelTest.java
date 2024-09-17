@@ -4,12 +4,14 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.epsilon.emc.rdf.RDFLiteral;
 import org.eclipse.epsilon.emc.rdf.RDFModel;
 import org.eclipse.epsilon.emc.rdf.RDFModelElement;
+import org.eclipse.epsilon.emc.rdf.RDFResource;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelLoadingException;
 import org.eclipse.epsilon.eol.execute.context.EolContext;
 import org.eclipse.epsilon.eol.execute.introspection.IPropertyGetter;
@@ -17,15 +19,31 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+@SuppressWarnings("unchecked")
 public class RDFModelTest {
+	private static final String SPIDERMAN_URI = "http://example.org/#spiderman";
+	private static final String SPIDERMAN_NAME = "Spiderman";
+	private static final String SPIDERMAN_NAME_RU = "Человек-паук";
+	private static final Set<String> SPIDERMAN_NAMES = new HashSet<>(Arrays.asList(SPIDERMAN_NAME, SPIDERMAN_NAME_RU));
+
+	private static final Set<String> ALL_NAMES = new HashSet<>();
+	static {
+		ALL_NAMES.add("Green Goblin");
+		ALL_NAMES.addAll(SPIDERMAN_NAMES);
+	}
 
 	private RDFModel model;
+	private IPropertyGetter pGetter;
+	private EolContext context;
 
 	@Before
 	public void setup() throws EolModelLoadingException {
 		this.model = new RDFModel();
 		model.setUri("resources/spiderman.ttl");
 		model.load();
+
+		this.pGetter = model.getPropertyGetter();
+		this.context = new EolContext();
 	}
 
 	@After
@@ -40,20 +58,45 @@ public class RDFModelTest {
 		assertEquals("allContents should produce one element per resource", 2, model.allContents().size());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void getNamesWithoutPrefix() throws Exception {
-		IPropertyGetter pGetter = model.getPropertyGetter();
-
-		EolContext ctx = new EolContext();
 		Set<String> names = new HashSet<>();
 		for (RDFModelElement o : model.allContents()) {
-			for (RDFLiteral l : (Collection<RDFLiteral>) pGetter.invoke(o, "name", ctx)) {
-				names.add((String) pGetter.invoke(l, "value", ctx));
+			for (RDFLiteral l : (Collection<RDFLiteral>) pGetter.invoke(o, "name", context)) {
+				names.add((String) pGetter.invoke(l, "value", context));
 			}
 		}
-
-		assertEquals(new HashSet<>(Arrays.asList("Spiderman", "Green Goblin", "Человек-паук")), names);
+		assertEquals(ALL_NAMES, names);
 	}
 
+	@Test
+	public void getNamesWithPrefix() throws Exception {
+		RDFResource res = (RDFResource) model.getElementById(SPIDERMAN_URI);
+		Set<String> names = new HashSet<>();
+		for (RDFLiteral l : (Collection<RDFLiteral>) pGetter.invoke(res, "foaf:name", context)) {
+			names.add((String) pGetter.invoke(l, "value", context));
+		}
+		assertEquals(SPIDERMAN_NAMES, names);
+	}
+
+	@Test
+	public void getNamesWithoutPrefixWithLanguageTag() throws Exception {
+		RDFResource res = (RDFResource) model.getElementById(SPIDERMAN_URI);
+		Set<String> names = new HashSet<>();
+		for (RDFLiteral l : (Collection<RDFLiteral>) pGetter.invoke(res, "name@ru", context)) {
+			names.add((String) pGetter.invoke(l, "value", context));
+		}
+		assertEquals(Collections.singleton(SPIDERMAN_NAME_RU), names);
+	}
+
+	@Test
+	public void getNamesWithPrefixAndLanguageTag() throws Exception {
+		RDFResource res = (RDFResource) model.getElementById(SPIDERMAN_URI);
+		Set<String> names = new HashSet<>();
+		for (RDFLiteral l : (Collection<RDFLiteral>) pGetter.invoke(res, "foaf:name@ru", context)) {
+			names.add((String) pGetter.invoke(l, "value", context));
+		}
+		assertEquals(Collections.singleton(SPIDERMAN_NAME_RU), names);
+	}
+	
 }
