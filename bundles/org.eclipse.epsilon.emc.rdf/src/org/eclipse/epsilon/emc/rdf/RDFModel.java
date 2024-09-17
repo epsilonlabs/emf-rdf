@@ -25,6 +25,10 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 
 	private Model model;
 
+	public RDFModel() {
+		this.propertyGetter = new RDFPropertyGetter(this);
+	}
+
 	@Override
 	public Object getEnumerationValue(String enumeration, String label) throws EolEnumerationValueNotFoundException {
 		// TODO Auto-generated method stub
