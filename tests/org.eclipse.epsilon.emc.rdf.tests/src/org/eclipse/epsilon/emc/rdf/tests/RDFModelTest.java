@@ -26,7 +26,10 @@ public class RDFModelTest {
 	private static final String SPIDERMAN_NAME_RU = "Человек-паук";
 	private static final Set<String> SPIDERMAN_NAMES = new HashSet<>(Arrays.asList(SPIDERMAN_NAME, SPIDERMAN_NAME_RU));
 
+	private static final String GREEN_GOBLIN_URI = "http://example.org/#green-goblin";
+
 	private static final Set<String> ALL_NAMES = new HashSet<>();
+	private static final Set<String> ALL_PERSON_URIS = new HashSet<>(Arrays.asList(SPIDERMAN_URI, GREEN_GOBLIN_URI));
 	static {
 		ALL_NAMES.add("Green Goblin");
 		ALL_NAMES.addAll(SPIDERMAN_NAMES);
@@ -98,5 +101,18 @@ public class RDFModelTest {
 		}
 		assertEquals(Collections.singleton(SPIDERMAN_NAME_RU), names);
 	}
-	
+
+	@Test
+	public void getEnemiesOfSpiderman() throws Exception {
+		RDFResource res = (RDFResource) model.getElementById(SPIDERMAN_URI);
+
+		Set<String> uris = new HashSet<>();
+		for (RDFResource r : (Collection<RDFResource>) pGetter.invoke(res, "rel:enemyOf", context)) {
+			Object uri = pGetter.invoke(r, "uri", context);
+			uris.add((String) uri);
+		}
+
+		assertEquals(Collections.singleton(GREEN_GOBLIN_URI), uris);
+	}
+
 }

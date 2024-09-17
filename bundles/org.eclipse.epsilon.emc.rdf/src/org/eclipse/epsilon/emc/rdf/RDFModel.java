@@ -123,15 +123,13 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	@Override
 	protected Collection<RDFModelElement> getAllOfKindFromModel(String kind)
 			throws EolModelElementTypeNotFoundException {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO investigate type hierarchies in RDF-related technologies
+		return getAllOfTypeFromModel(kind);
 	}
 
 	@Override
-	protected RDFResource createInstanceInModel(String type)
-			throws EolModelElementTypeNotFoundException, EolNotInstantiableModelElementTypeException {
-		// TODO Auto-generated method stub
-		return null;
+	protected RDFResource createInstanceInModel(String type) throws EolModelElementTypeNotFoundException, EolNotInstantiableModelElementTypeException {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

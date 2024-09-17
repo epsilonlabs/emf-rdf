@@ -58,9 +58,15 @@ public class RDFResource extends RDFModelElement {
 		return values;
 	}
 
+	public String getUri() {
+		return resource.getURI();
+	}
+
 	protected Object convertToModelObject(RDFNode node) {
 		if (node instanceof Literal) {
 			return new RDFLiteral((Literal) node, this.owningModel);
+		} else if (node instanceof Resource) {
+			return new RDFResource((Resource) node, this.owningModel);
 		}
 		throw new IllegalArgumentException("Cannot convert " + node + " to a model object");
 	}
