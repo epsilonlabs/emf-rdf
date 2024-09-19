@@ -5,9 +5,12 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.NodeIterator;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.vocabulary.RDF;
 import org.eclipse.epsilon.common.util.StringProperties;
 import org.eclipse.epsilon.eol.exceptions.EolRuntimeException;
 import org.eclipse.epsilon.eol.exceptions.models.EolEnumerationValueNotFoundException;
@@ -116,7 +119,28 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	@Override
 	protected Collection<RDFModelElement> getAllOfTypeFromModel(String type)
 			throws EolModelElementTypeNotFoundException {
-		// TODO Auto-generated method stub
+		Resource typeR = getTypeResourceByName(type);
+
+		ResIterator itInstances = model.listResourcesWithProperty(RDF.type, typeR);
+		List<RDFModelElement> instances = new ArrayList<>();
+		while (itInstances.hasNext()) {
+			instances.add(new RDFResource(itInstances.next(), this));
+		}
+
+		return instances;
+	}
+
+	protected Resource getTypeResourceByName(String type) {
+		NodeIterator itAvailableTypes = model.listObjectsOfProperty(RDF.type);
+		while (itAvailableTypes.hasNext()) {
+			RDFNode typeNode = itAvailableTypes.next();
+			if (typeNode instanceof Resource) {
+				Resource typeResource = (Resource) typeNode;
+				if (type.equals(typeResource.getLocalName())) {
+					return typeResource;
+				}
+			}
+		}
 		return null;
 	}
 
@@ -142,7 +166,6 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 			if (uri == null) {
 				throw new IllegalStateException("No file path has been set");
 			}
-
 			model = RDFDataMgr.loadModel(uri);			
 		} catch (Exception ex) {
 			throw new EolModelLoadingException(ex, this);
@@ -161,8 +184,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 
 	@Override
 	protected Object getCacheKeyForType(String type) throws EolModelElementTypeNotFoundException {
-		// TODO Auto-generated method stub
-		return null;
+		return getTypeResourceByName(type);
 	}
 
 	@Override

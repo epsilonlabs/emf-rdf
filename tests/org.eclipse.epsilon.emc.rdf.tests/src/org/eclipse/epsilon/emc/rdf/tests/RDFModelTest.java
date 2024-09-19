@@ -115,4 +115,12 @@ public class RDFModelTest {
 		assertEquals(Collections.singleton(GREEN_GOBLIN_URI), uris);
 	}
 
+	@Test
+	public void getAllPeopleWithoutPrefix() throws Exception {
+		Set<String> uris = new HashSet<>();
+		for (Object o : model.getAllOfType("Person")) {
+			uris.add((String) pGetter.invoke(o, "uri", context));
+		}
+		assertEquals(ALL_PERSON_URIS, uris);
+	}
 }
