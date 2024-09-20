@@ -1,11 +1,11 @@
 package org.eclipse.epsilon.emc.rdf;
 
-class RDFPropertyName {
+public class RDFQualifiedName {
 	final String prefix;
 	final String localName;
 	final String languageTag;
 
-	public RDFPropertyName(String prefix, String localName, String languageTag) {
+	public RDFQualifiedName(String prefix, String localName, String languageTag) {
 		this.prefix = prefix;
 		this.localName = localName;
 		this.languageTag = languageTag;
@@ -15,7 +15,7 @@ class RDFPropertyName {
 	 * Parses a property name, which may be in the form
 	 * {@code (prefix:)?localName(@language)?}.
 	 */
-	public static RDFPropertyName fromString(String property) {
+	public static RDFQualifiedName fromString(String property) {
 		int colonIdx = property.indexOf(':');
 		String prefix = null;
 		if (colonIdx != -1) {
@@ -30,6 +30,6 @@ class RDFPropertyName {
 			property = property.substring(0, atIdx);
 		}
 
-		return new RDFPropertyName(prefix, property, languageTag);
+		return new RDFQualifiedName(prefix, property, languageTag);
 	}
 }

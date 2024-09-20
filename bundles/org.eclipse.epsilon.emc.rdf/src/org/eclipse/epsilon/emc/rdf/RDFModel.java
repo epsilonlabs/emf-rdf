@@ -130,18 +130,22 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		return instances;
 	}
 
-	protected Resource getTypeResourceByName(String type) {
+	protected Resource getTypeResourceByName(String type) throws EolModelElementTypeNotFoundException {
 		NodeIterator itAvailableTypes = model.listObjectsOfProperty(RDF.type);
+
+		RDFQualifiedName qName = RDFQualifiedName.fromString(type);
+		String nsURI = qName.prefix == null ? null : model.getNsPrefixURI(qName.prefix);
 		while (itAvailableTypes.hasNext()) {
 			RDFNode typeNode = itAvailableTypes.next();
 			if (typeNode instanceof Resource) {
 				Resource typeResource = (Resource) typeNode;
-				if (type.equals(typeResource.getLocalName())) {
+				if ((nsURI == null || nsURI.equals(typeResource.getNameSpace())) && qName.localName.equals(typeResource.getLocalName())) {
 					return typeResource;
 				}
 			}
 		}
-		return null;
+
+		throw new EolModelElementTypeNotFoundException(this.getName(), type);
 	}
 
 	@Override

@@ -12,6 +12,7 @@ import org.eclipse.epsilon.emc.rdf.RDFLiteral;
 import org.eclipse.epsilon.emc.rdf.RDFModel;
 import org.eclipse.epsilon.emc.rdf.RDFModelElement;
 import org.eclipse.epsilon.emc.rdf.RDFResource;
+import org.eclipse.epsilon.eol.exceptions.models.EolModelElementTypeNotFoundException;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelLoadingException;
 import org.eclipse.epsilon.eol.execute.context.EolContext;
 import org.eclipse.epsilon.eol.execute.introspection.IPropertyGetter;
@@ -123,4 +124,19 @@ public class RDFModelTest {
 		}
 		assertEquals(ALL_PERSON_URIS, uris);
 	}
+
+	@Test(expected=EolModelElementTypeNotFoundException.class)
+	public void getAllInstancesOfMissingType() throws Exception {
+		model.getAllOfType("NoSuchTypeExists");
+	}
+
+	@Test
+	public void getAllPeopleWithPrefix() throws Exception {
+		Set<String> uris = new HashSet<>();
+		for (Object o : model.getAllOfType("foaf:Person")) {
+			uris.add((String) pGetter.invoke(o, "uri", context));
+		}
+		assertEquals(ALL_PERSON_URIS, uris);
+	}
+
 }

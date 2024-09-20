@@ -26,7 +26,7 @@ public class RDFResource extends RDFModelElement {
 	}
 
 	public List<Object> getProperty(String property, IEolContext context) {
-		final RDFPropertyName pName = RDFPropertyName.fromString(property);
+		final RDFQualifiedName pName = RDFQualifiedName.fromString(property);
 
 		// Filter statements by prefix and local name
 		ExtendedIterator<Statement> itStatements = null;
