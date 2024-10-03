@@ -2,7 +2,9 @@ package org.eclipse.epsilon.emc.rdf;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.NodeIterator;
@@ -24,9 +26,19 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 
 	public static final String PROPERTY_URI = "file";
 
-	protected String uri;
+	/**
+	 * One of the keys used to construct the first argument to
+	 * {@link #load(StringProperties, String)}.
+	 *
+	 * This key should be set to a comma-separated list of prefix=uri pairs that
+	 * should be added to the prefix->URI map of the loaded RDF resource. These
+	 * pairs will take precedence over existing pairs in the resource.
+	 */
+	public static final String PROPERTY_PREFIXES = "prefixes";
 
-	private Model model;
+	protected final Map<String, String> customPrefixesMap = new HashMap<>();
+	protected String uri;
+	protected Model model;
 
 	public RDFModel() {
 		this.propertyGetter = new RDFPropertyGetter(this);
@@ -34,8 +46,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 
 	@Override
 	public Object getEnumerationValue(String enumeration, String label) throws EolEnumerationValueNotFoundException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -87,7 +98,28 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	public void load(StringProperties properties, IRelativePathResolver resolver) throws EolModelLoadingException {
 		super.load(properties, resolver);
 
+		/*
+		 * This method assumes that the StringProperties replaces all previous
+		 * configuration of this RDFModel. This is the same as in other popular
+		 * EMC drivers (e.g. the EmfModel class).
+		 */
+
 		this.uri = properties.getProperty(PROPERTY_URI);
+
+		this.customPrefixesMap.clear();
+		String sPrefixes = properties.getProperty(PROPERTY_PREFIXES, "").strip();
+		if (sPrefixes.length() > 0) {
+			for (String sItem : sPrefixes.split(",")) {
+				int idxEquals = sItem.indexOf('=');
+				if (idxEquals == -1) {
+					throw new IllegalArgumentException(String.format("Entry '%s' does not follow the prefix=uri format", sItem));
+				}
+
+				String sPrefix = sItem.substring(0, idxEquals);
+				String sURI = sItem.substring(idxEquals + 1);
+				customPrefixesMap.put(sPrefix, sURI);
+			}
+		}
 
 		load();
 	}
@@ -133,13 +165,12 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	protected Resource getTypeResourceByName(String type) throws EolModelElementTypeNotFoundException {
 		NodeIterator itAvailableTypes = model.listObjectsOfProperty(RDF.type);
 
-		RDFQualifiedName qName = RDFQualifiedName.fromString(type);
-		String nsURI = qName.prefix == null ? null : model.getNsPrefixURI(qName.prefix);
+		RDFQualifiedName qName = RDFQualifiedName.from(type, this::getNamespaceURI);
 		while (itAvailableTypes.hasNext()) {
 			RDFNode typeNode = itAvailableTypes.next();
 			if (typeNode instanceof Resource) {
 				Resource typeResource = (Resource) typeNode;
-				if ((nsURI == null || nsURI.equals(typeResource.getNameSpace())) && qName.localName.equals(typeResource.getLocalName())) {
+				if ((qName.namespaceURI == null || qName.namespaceURI.equals(typeResource.getNameSpace())) && qName.localName.equals(typeResource.getLocalName())) {
 					return typeResource;
 				}
 			}
@@ -170,7 +201,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 			if (uri == null) {
 				throw new IllegalStateException("No file path has been set");
 			}
-			model = RDFDataMgr.loadModel(uri);			
+			model = RDFDataMgr.loadModel(uri);
 		} catch (Exception ex) {
 			throw new EolModelLoadingException(ex, this);
 		}
@@ -205,4 +236,26 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		this.uri = uri;
 	}
 
+	public Map<String, String> getCustomPrefixesMap() {
+		return this.customPrefixesMap;
+	}
+
+	/**
+	 * <p>
+	 * Returns the URI associated to a prefix.
+	 * </p>
+	 *
+	 * <p>
+	 * The prefix may be defined in the loaded RDF resource, or it may have been
+	 * specified by modifying {@load #getCustomPrefixesMap()} or calling
+	 * {@link #load(StringProperties)} with {@link #PROPERTY_PREFIXES} being set.
+	 * </p>
+	 */
+	public String getNamespaceURI(String prefix) {
+		String uri = customPrefixesMap.get(prefix);
+		if (uri == null) {
+			return model.getNsPrefixURI(prefix);
+		}
+		return uri;
+	}
 }
