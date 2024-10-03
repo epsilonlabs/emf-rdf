@@ -8,8 +8,10 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.RDF;
 import org.eclipse.epsilon.eol.execute.context.IEolContext;
 
 public class RDFResource extends RDFModelElement {
@@ -58,11 +60,20 @@ public class RDFResource extends RDFModelElement {
 		return values;
 	}
 
+	public List<RDFResource> getTypes() {
+		List<RDFResource> types = new ArrayList<>();
+		for (StmtIterator itStmt = resource.listProperties(RDF.type); itStmt.hasNext(); ) {
+			RDFNode node = itStmt.next().getObject();
+			types.add(new RDFResource((Resource) node, this.owningModel));
+		}
+		return types;
+	}
+
 	public String getUri() {
 		return resource.getURI();
 	}
 
-	protected Object convertToModelObject(RDFNode node) {
+	protected RDFModelElement convertToModelObject(RDFNode node) {
 		if (node instanceof Literal) {
 			return new RDFLiteral((Literal) node, this.owningModel);
 		} else if (node instanceof Resource) {

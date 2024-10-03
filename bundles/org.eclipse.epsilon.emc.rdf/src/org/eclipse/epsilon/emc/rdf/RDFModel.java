@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.NodeIterator;
@@ -24,7 +25,7 @@ import org.eclipse.epsilon.eol.models.IRelativePathResolver;
 
 public class RDFModel extends CachedModel<RDFModelElement> {
 
-	public static final String PROPERTY_URI = "file";
+	public static final String PROPERTY_URI = "uri";
 
 	/**
 	 * One of the keys used to construct the first argument to
@@ -51,8 +52,23 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 
 	@Override
 	public String getTypeNameOf(Object instance) {
-		// TODO Auto-generated method stub
+		if (instance instanceof RDFResource) {
+			RDFResource res = (RDFResource) instance;
+			List<RDFResource> types = res.getTypes();
+			if (!types.isEmpty()) {
+				RDFResource firstType = types.get(0);
+				return getQualifiedTypeName(firstType);
+			}
+		}
+
+		// TODO Generic names in case there isn't an RDF.type relationship?
 		return null;
+	}
+
+	private String getQualifiedTypeName(RDFResource typeResource) {
+		return String.format("%s:%s",
+			getPrefix(typeResource.getResource().getNameSpace()),
+			typeResource.getResource().getLocalName());
 	}
 
 	@Override
@@ -66,7 +82,9 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 
 	@Override
 	public String getElementId(Object instance) {
-		// TODO Auto-generated method stub
+		if (instance instanceof RDFResource) {
+			return ((RDFResource) instance).getUri();
+		}
 		return null;
 	}
 
@@ -77,8 +95,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 
 	@Override
 	public boolean owns(Object instance) {
-		// TODO Auto-generated method stub
-		return false;
+		return instance instanceof RDFModelElement && ((RDFModelElement) instance).getModel() == this;
 	}
 
 	@Override
@@ -88,8 +105,12 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 
 	@Override
 	public boolean hasType(String type) {
-		// TODO Auto-generated method stub
-		return false;
+		try {
+			getTypeResourceByName(type);
+			return true;
+		} catch (EolModelElementTypeNotFoundException e) {
+			return false;
+		}
 	}
 
 	@Override
@@ -179,6 +200,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	protected Collection<RDFModelElement> getAllOfKindFromModel(String kind)
 			throws EolModelElementTypeNotFoundException {
 		// TODO investigate type hierarchies in RDF-related technologies
+		// TODO investigate generic RDF-based types (Resource.all? Statement.all? Property.all?)
 		return getAllOfTypeFromModel(kind);
 	}
 
@@ -220,8 +242,16 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 
 	@Override
 	protected Collection<String> getAllTypeNamesOf(Object instance) {
-		// TODO Auto-generated method stub
-		return null;
+		List<String> types = new ArrayList<>();
+
+		if (instance instanceof RDFResource) {
+			RDFResource res = (RDFResource) instance;
+			for (RDFResource t : res.getTypes()) {
+				types.add(getQualifiedTypeName(t));
+			}
+		}
+
+		return types;
 	}
 
 	public String getUri() {
@@ -253,5 +283,24 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 			return model.getNsPrefixURI(prefix);
 		}
 		return uri;
+	}
+
+	/**
+	 * <p>
+	 * Returns a prefix associated with a namespace URI, if it exists.
+	 * </p>
+	 *
+	 * <p>
+	 * The custom prefixes will take priority over the ones in the loaded RDF
+	 * resource.
+	 * </p>
+	 */
+	public String getPrefix(String namespaceURI) {
+		for (Entry<String, String> entry : customPrefixesMap.entrySet()) {
+			if (entry.getValue().equals(namespaceURI)) {
+				return entry.getKey();
+			}
+		}
+		return model.getNsURIPrefix(namespaceURI);
 	}
 }

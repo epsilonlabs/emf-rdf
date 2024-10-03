@@ -1,4 +1,4 @@
-package org.eclipse.epsilon.emc.rdf.tests;
+package org.eclipse.epsilon.emc.rdf;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

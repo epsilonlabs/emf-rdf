@@ -1,6 +1,8 @@
-package org.eclipse.epsilon.emc.rdf.tests;
+package org.eclipse.epsilon.emc.rdf;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -106,6 +108,8 @@ public class RDFModelTest {
 	@Test
 	public void getEnemiesOfSpiderman() throws Exception {
 		RDFResource res = (RDFResource) model.getElementById(SPIDERMAN_URI);
+		assertEquals("The getElementById and getElementId methods should match each other",
+			SPIDERMAN_URI, model.getElementId(res));
 
 		Set<String> uris = new HashSet<>();
 		for (RDFResource r : (Collection<RDFResource>) pGetter.invoke(res, "rel:enemyOf", context)) {
@@ -137,6 +141,28 @@ public class RDFModelTest {
 			uris.add((String) pGetter.invoke(o, "uri", context));
 		}
 		assertEquals(ALL_PERSON_URIS, uris);
+	}
+
+	@Test
+	public void knownTypes() {
+		assertTrue("The model should confirm that it knows the foaf:Person type", model.hasType("foaf:Person"));
+		assertFalse("The model should deny that it knows the foaf:SomethingElse type", model.hasType("foaf:SomethingElse"));
+	}
+
+	@Test
+	public void getPersonInformation() throws Exception {
+		RDFModelElement firstPerson = model.getAllOfType("foaf:Person").iterator().next();
+		assertTrue("The model should own the person", model.owns(firstPerson));
+		assertFalse("The model should not own an unrelated object", model.owns(1234));
+
+		assertEquals("The model should report the first type of the resource",
+			"foaf:Person",
+			model.getTypeNameOf(firstPerson));
+
+		// This may be revised later, if generic types are introduced
+		assertEquals("The model should only report the Person type for that person",
+			Collections.singletonList("foaf:Person"),
+			model.getAllTypeNamesOf(firstPerson));
 	}
 
 }
