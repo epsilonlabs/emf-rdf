@@ -180,16 +180,29 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	}
 
 	protected Resource getTypeResourceByName(String type) throws EolModelElementTypeNotFoundException {
-		NodeIterator itAvailableTypes = model.listObjectsOfProperty(RDF.type);
-
 		RDFQualifiedName qName = RDFQualifiedName.from(type, this::getNamespaceURI);
-		while (itAvailableTypes.hasNext()) {
-			RDFNode typeNode = itAvailableTypes.next();
-			if (typeNode instanceof Resource) {
-				Resource typeResource = (Resource) typeNode;
-				if ((qName.namespaceURI == null || qName.namespaceURI.equals(typeResource.getNameSpace())) && qName.localName.equals(typeResource.getLocalName())) {
-					return typeResource;
+
+		if (qName.namespaceURI == null) {
+			// A namespace URI hasn't been found: we need to iterate through all known types
+			NodeIterator itAvailableTypes = model.listObjectsOfProperty(RDF.type);
+			while (itAvailableTypes.hasNext()) {
+				RDFNode typeNode = itAvailableTypes.next();
+				if (typeNode instanceof Resource) {
+					Resource typeResource = (Resource) typeNode;
+					if ((qName.namespaceURI == null || qName.namespaceURI.equals(typeResource.getNameSpace())) && qName.localName.equals(typeResource.getLocalName())) {
+						return typeResource;
+					}
 				}
+			}
+		} else {
+			// We known both namespace URI and local name: ask directly for it
+			Resource typeResource = model.getResource(qName.namespaceURI + qName.localName);
+
+			// Note: Jena will happily create the resource if it doesn't exist already, so
+			// we at least check that there is at least one instance of it.
+			ResIterator itInstances = model.listSubjectsWithProperty(RDF.type, typeResource);
+			if (itInstances.hasNext()) {
+				return typeResource;
 			}
 		}
 
