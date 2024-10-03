@@ -72,8 +72,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 
 	@Override
 	public void setElementId(Object instance, String newId) {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -84,7 +83,6 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 
 	@Override
 	public boolean isInstantiable(String type) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -126,14 +124,12 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 
 	@Override
 	public boolean store(String location) {
-		// TODO Auto-generated method stub
-		return false;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public boolean store() {
-		// TODO Auto-generated method stub
-		return false;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
