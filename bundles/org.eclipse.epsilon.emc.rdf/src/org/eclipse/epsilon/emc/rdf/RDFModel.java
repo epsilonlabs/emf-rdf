@@ -73,7 +73,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	}
 
 	@Override
-	public Object getElementById(String iri) {
+	public RDFResource getElementById(String iri) {
 		Resource res = model.getResource(iri);
 		if (res != null) {
 			return new RDFResource(res, this);

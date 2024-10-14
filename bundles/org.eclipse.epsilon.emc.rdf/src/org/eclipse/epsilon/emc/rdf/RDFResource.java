@@ -1,7 +1,9 @@
 package org.eclipse.epsilon.emc.rdf;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
@@ -13,6 +15,9 @@ import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.epsilon.eol.execute.context.IEolContext;
+
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
 
 public class RDFResource extends RDFModelElement {
 
@@ -27,7 +32,7 @@ public class RDFResource extends RDFModelElement {
 		return resource;
 	}
 
-	public List<Object> getProperty(String property, IEolContext context) {
+	public Collection<Object> getProperty(String property, IEolContext context) {
 		final RDFQualifiedName pName = RDFQualifiedName.from(property, this.owningModel::getNamespaceURI);
 
 		// Filter statements by prefix and local name
@@ -52,12 +57,33 @@ public class RDFResource extends RDFModelElement {
 			});
 		}
 
-		final List<Object> values = new ArrayList<>();
-		while (itStatements.hasNext()) {
-			Statement stmt = itStatements.next();
-			values.add(convertToModelObject(stmt.getObject()));
+		if (pName.prefix == null) {
+			// If no prefix was specified, watch out for ambiguity and issue warning in that case
+			ListMultimap<String, Object> values = MultimapBuilder.hashKeys().arrayListValues().build();
+			while (itStatements.hasNext()) {
+				Statement stmt = itStatements.next();
+				values.put(stmt.getPredicate().getURI(), convertToModelObject(stmt.getObject()));
+			}
+
+			final Set<String> distinctKeys = values.keySet();
+			if (distinctKeys.size() > 1) {
+				context.getWarningStream().println(String.format(
+					"Ambiguous access to property '%s': multiple prefixes found (%s)",
+					property,
+					String.join(", ", distinctKeys)
+				));
+			}
+
+			return values.values();
+		} else {
+			// Prefix was specified: we don't have to worry about ambiguity
+			final List<Object> values = new ArrayList<>();
+			while (itStatements.hasNext()) {
+				Statement stmt = itStatements.next();
+				values.add(convertToModelObject(stmt.getObject()));
+			}
+			return values;
 		}
-		return values;
 	}
 
 	public List<RDFResource> getTypes() {
