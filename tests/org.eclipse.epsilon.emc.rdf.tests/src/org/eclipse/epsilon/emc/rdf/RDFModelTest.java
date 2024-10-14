@@ -10,10 +10,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.eclipse.epsilon.emc.rdf.RDFLiteral;
-import org.eclipse.epsilon.emc.rdf.RDFModel;
-import org.eclipse.epsilon.emc.rdf.RDFModelElement;
-import org.eclipse.epsilon.emc.rdf.RDFResource;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelElementTypeNotFoundException;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelLoadingException;
 import org.eclipse.epsilon.eol.execute.context.EolContext;
@@ -163,6 +159,12 @@ public class RDFModelTest {
 		assertEquals("The model should only report the Person type for that person",
 			Collections.singletonList("foaf:Person"),
 			model.getAllTypeNamesOf(firstPerson));
+	}
+
+	@Test(expected=EolModelElementTypeNotFoundException.class)
+	public void jenaDoesNotFetchRelatedVocabulary() throws Exception {
+		// By itself, Jena will not fetch the related FOAF vocabulary referenced in the Turtles example
+		model.getAllOfType("Class");
 	}
 
 }

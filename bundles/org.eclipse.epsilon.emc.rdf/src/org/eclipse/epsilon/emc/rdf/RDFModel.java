@@ -3,6 +3,7 @@ package org.eclipse.epsilon.emc.rdf;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -25,7 +26,7 @@ import org.eclipse.epsilon.eol.models.IRelativePathResolver;
 
 public class RDFModel extends CachedModel<RDFModelElement> {
 
-	public static final String PROPERTY_URI = "uri";
+	public static final String PROPERTY_URIS = "uris";
 
 	/**
 	 * One of the keys used to construct the first argument to
@@ -38,7 +39,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	public static final String PROPERTY_PREFIXES = "prefixes";
 
 	protected final Map<String, String> customPrefixesMap = new HashMap<>();
-	protected String uri;
+	protected final List<String> uris = new ArrayList<>();
 	protected Model model;
 
 	public RDFModel() {
@@ -122,15 +123,17 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		 * configuration of this RDFModel. This is the same as in other popular
 		 * EMC drivers (e.g. the EmfModel class).
 		 */
-
-		this.uri = properties.getProperty(PROPERTY_URI);
+		this.uris.clear();
+		for (String uri : properties.getProperty(PROPERTY_URIS).split(",")) {
+			this.uris.add(uri.strip());
+		}
 
 		this.customPrefixesMap.clear();
 		String sPrefixes = properties.getProperty(PROPERTY_PREFIXES, "").strip();
 		if (sPrefixes.length() > 0) {
 			for (String sItem : sPrefixes.split(",")) {
 				int idxEquals = sItem.indexOf('=');
-				if (idxEquals == -1) {
+				if (idxEquals <= 0 || idxEquals == sItem.length() - 1) {
 					throw new IllegalArgumentException(String.format("Entry '%s' does not follow the prefix=uri format", sItem));
 				}
 
@@ -229,10 +232,16 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		}
 
 		try {
-			if (uri == null) {
+			if (uris.isEmpty()) {
 				throw new IllegalStateException("No file path has been set");
 			}
-			model = RDFDataMgr.loadModel(uri);
+
+			// Read all the URIs into an integrated model
+			Iterator<String> itUri = uris.iterator();
+			model = RDFDataMgr.loadModel(itUri.next());
+			while (itUri.hasNext()) {
+				model.read(itUri.next());
+			}
 		} catch (Exception ex) {
 			throw new EolModelLoadingException(ex, this);
 		}
@@ -267,12 +276,13 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		return types;
 	}
 
-	public String getUri() {
-		return uri;
+	public List<String> getUris() {
+		return uris;
 	}
 
 	public void setUri(String uri) {
-		this.uri = uri;
+		this.uris.clear();
+		this.uris.add(uri);
 	}
 
 	public Map<String, String> getCustomPrefixesMap() {
