@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.epsilon.common.dt.modelType">
+      <modelType
+            class="org.eclipse.epsilon.emc.rdf.RDFModel"
+            dialog="org.eclipse.epsilon.emc.rdf.dt.RDFModelConfigurationDialog"
+            icon="icons/sw-cube.png"
+            label="RDF Model"
+            stable="false"
+            type="RDF">
+      </modelType>
+   </extension>
+
+</plugin>
