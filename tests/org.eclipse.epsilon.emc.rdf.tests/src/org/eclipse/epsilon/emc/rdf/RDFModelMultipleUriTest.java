@@ -2,6 +2,8 @@ package org.eclipse.epsilon.emc.rdf;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.File;
+
 import org.junit.Test;
 
 public class RDFModelMultipleUriTest {
@@ -12,12 +14,15 @@ public class RDFModelMultipleUriTest {
 	@Test
 	public void classIsAvailable() throws Exception {
 		try (RDFModel model = new RDFModel()) {
-			model.getUris().add(SPIDERMAN_TTL);
-			model.getUris().add(FOAF_RDFXML);
+			model.getUris().add(getAbsoluteURI(SPIDERMAN_TTL));
+			model.getUris().add(getAbsoluteURI(FOAF_RDFXML));
 			model.load();
 
 			assertEquals("The FOAF vocabulary has 13 classes", 13, model.getAllOfType("Class").size());
 		}
 	}
 
+	private String getAbsoluteURI(String path) {
+		return new File(path).getAbsoluteFile().toURI().toString();
+	}
 }

@@ -263,7 +263,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	}
 
 	@Override
-	protected Collection<String> getAllTypeNamesOf(Object instance) {
+	public Collection<String> getAllTypeNamesOf(Object instance) {
 		List<String> types = new ArrayList<>();
 
 		if (instance instanceof RDFResource) {
