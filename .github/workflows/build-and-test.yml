@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  tycho-build:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
@@ -24,5 +24,7 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
-    - name: Build with Maven and Tycho
+    - name: Build with Tycho
       run: mvn --batch-mode -U -T 1C clean install
+    - name: Build with plain Maven
+      run: mvn --batch-mode -f pom-plain.xml clean install
