@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature id="org.eclipse.epsilon.emc.rdf.dt.feature">
+      <category name="org.eclipse.epsilon.emc.rdf.category"/>
+   </feature>
+   <feature id="org.eclipse.epsilon.emc.rdf.feature">
+      <category name="org.eclipse.epsilon.emc.rdf.category"/>
+   </feature>
+   <category-def name="org.eclipse.epsilon.emc.rdf.category" label="Epsilon RDF Integration"/>
+</site>
