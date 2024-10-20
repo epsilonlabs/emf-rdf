@@ -1,0 +1,4 @@
+Person.all.println('People: ');
+
+var goblin = Model.getElementById('http://example.org/#green-goblin');
+goblin.enemyOf.println('Green Goblin is an enemy of: ');
