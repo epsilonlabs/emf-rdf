@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-22.04
     permissions:
       contents: read
+      packages: write
     steps:
     - uses: actions/checkout@v4
     - name: Set up Maven 3.9.5
@@ -30,6 +31,8 @@ jobs:
         path: releng/org.eclipse.epsilon.emc.rdf.updatesite/target/repository
     - name: Deploy Maven artifact
       run: mvn -B -f pom-plain.xml clean deploy
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   upload-site:
     needs: build
     # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
