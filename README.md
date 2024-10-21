@@ -13,13 +13,27 @@ For now, the driver has these limitations:
 * Does *not* support modifying or saving RDF documents.
 * Does *not* integrate the OWL or RDFS support in Jena.
 
-## Installation and examples
+## Installation
 
-Install the features from this update site into your Eclipse IDE:
+### Eclipse IDE
+
+Install the features from this update site:
 
 https://epsilonlabs.github.io/emc-rdf/updates/
 
 Example projects are available from the [`examples`](./examples) folder of this repository.
+
+### Maven
+
+The RDF driver is available as a Maven dependency from [Github Packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry):
+
+```
+<dependency>
+  <groupId>org.eclipse.epsilon</groupId>
+  <artifactId>org.eclipse.epsilon.emc.rdf</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+</dependency>
+```
 
 ## Features
 
