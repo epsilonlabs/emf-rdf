@@ -54,6 +54,11 @@ jobs:
       run: |
         echo '<html><body>The <a href="updates">updates</a> folder has the emc-rdf update site.</body></html>' > _site/index.html
         echo "<html><body>This is an Eclipse update site.</body></html>" > _site/updates/index.html
+    - name: Create Zipped Update Site
+      shell: bash
+      run: |
+        cd _site
+        zip -r updates.zip updates/
     - name: Upload Github Pages Artifact
       uses: actions/upload-pages-artifact@v3
     - name: Deploy to GitHub Pages
