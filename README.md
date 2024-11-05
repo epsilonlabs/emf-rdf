@@ -21,6 +21,8 @@ Install the features from this update site:
 
 https://epsilonlabs.github.io/emc-rdf/updates/
 
+Alternatively, you can download a [zipped version](https://epsilonlabs.github.io/emc-rdf/updates.zip) of the update site.
+
 Example projects are available from the [`examples`](./examples) folder of this repository.
 
 ### Maven
