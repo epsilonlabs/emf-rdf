@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: EMC RDF Driver Target Platform with Latest Epsilon
-Bundle-SymbolicName: org.eclipse.epsilon.emc.rdf.target
+Bundle-Name: EMC RDF Driver Target Platform with Epsilon 2.1
+Bundle-SymbolicName: org.eclipse.epsilon.emc.rdf.target.epsilon21
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: University of York
 Automatic-Module-Name: org.eclipse.epsilon.target

@@ -26,5 +26,7 @@ jobs:
         cache: maven
     - name: Build with Tycho
       run: mvn --batch-mode -U -T 1C clean install
+    - name: Build with Tycho and older Epsilon
+      run: mvn --batch-mode -P epsilon-oldest-stable -U -T 1C clean test
     - name: Build with plain Maven
       run: mvn --batch-mode -f pom-plain.xml clean install

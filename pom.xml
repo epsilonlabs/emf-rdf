@@ -86,7 +86,7 @@
           <target>
             <artifact>
               <groupId>${project.groupId}</groupId>
-              <artifactId>org.eclipse.epsilon.emc.rdf.target</artifactId>
+              <artifactId>${target.artifactId}</artifactId>
               <version>${project.version}</version>
             </artifact>
           </target>
@@ -137,5 +137,23 @@
         </plugins>
     </pluginManagement>
   </build>
+
+  <profiles>
+    <profile>
+      <id>epsilon-latest-stable</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <target.artifactId>org.eclipse.epsilon.emc.rdf.target</target.artifactId>
+      </properties>
+    </profile>
+    <profile>
+      <id>epsilon-oldest-stable</id>
+      <properties>
+        <target.artifactId>org.eclipse.epsilon.emc.rdf.target.epsilon21</target.artifactId>
+      </properties>
+    </profile>
+  </profiles>
 
 </project>
