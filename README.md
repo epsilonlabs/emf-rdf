@@ -13,6 +13,8 @@ For now, the driver has these limitations:
 * Does *not* support modifying or saving RDF documents.
 * Does *not* integrate the OWL or RDFS support in Jena.
 
+The driver requires Epsilon 2.1 or newer: it will not work on Epsilon 1.x due to breaking API changes from 1.x to 2.x.
+
 ## Installation
 
 ### Eclipse IDE
