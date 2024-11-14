@@ -70,14 +70,15 @@ To obtain a specific RDF resource by its URL:
 var goblin = Model.getElementById('http://example.org/#green-goblin');
 ```
 
-To list all the resources that have an `rdf:type` predicate with a certain object acting as their type, use `Type.all`:
+To list all the resources that have an `rdf:type` predicate with a certain object acting as their type, use `Prefix::Type.all`:
 
 ```
-`foaf:Person`.all.println('All people: ');
+foaf::Person.all.println('All people: ');
 ```
 
-Note the above use of `foaf:Person`, using both the prefix and the local name, and the use of backticks to escape the name.
-If there is no risk of ambiguity, you can just use the local name:
+You could also use `` `foaf:Person` `` to follow a more RDF-like style, but you would need backticks to escape the name.
+
+If there is no risk of ambiguity, you can just use the type name:
 
 ```
 Person.all.println('All people: ');
@@ -94,7 +95,7 @@ For example:
 goblin.`rel:enemyOf`.println('Enemies of the Green Goblin: ');
 ```
 
-Note that currently `resource.p` will always return a collection, as we do not leverage yet the RDFS descriptions that could indicate the cardinality of `p`.
+If we need to specify a prefix, we can use `` x.`prefix:localName` `` or `` x.`prefix::localName` `` (the EOL grammar requires backticks for colons inside property names, whether it's `:` or `::`).
 
 If there is no risk of ambiguity, you can also drop the prefix:
 
@@ -104,6 +105,8 @@ goblin.enemyOf.println('Enemies of the Green Goblin: ');
 
 If there are predicates with the same local name but different namespace URIs in the graph formed by all the loaded documents in a model, a warning will be issued.
 In this case, you should be using a prefix to avoid the ambiguity.
+
+**Note:** currently `resource.p` will always return a collection, as we do not leverage yet the RDFS descriptions that could indicate the cardinality of `p`.
 
 ### Values of predicates
 

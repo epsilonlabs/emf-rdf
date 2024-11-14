@@ -14,12 +14,16 @@ package org.eclipse.epsilon.emc.rdf;
 
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 /**
  * Represents a partially or fully-qualified name for an RDF resource, with an
  * optional namespace URI. Instances are created using {@link #from(String, Map)}.
  */
 public class RDFQualifiedName {
+
+	protected static final Pattern COLON_SPLITTER = Pattern.compile(":{1,2}");
+
 	final String prefix;
 	final String namespaceURI;
 	final String localName;
@@ -33,30 +37,37 @@ public class RDFQualifiedName {
 	}
 
 	/**
-	 * Parses a property name, which may be in the form
+	 * Parses a property name, which matches
 	 * {@code (prefix:)?localName(@language)?}.
 	 */
 	public static RDFQualifiedName from(String property, Function<String, String> prefixToURIMapper) {
-		int colonIdx = property.indexOf(':');
-		String prefix = null, nsURI = null;
-		if (colonIdx != -1) {
-			prefix = property.substring(0, colonIdx);
-			nsURI = prefixToURIMapper.apply(prefix);
+		String[] parts = COLON_SPLITTER.split(property);
+		if (parts.length > 1) {
+			String nsURI = prefixToURIMapper.apply(parts[0]);
 			if (nsURI == null) {
-				throw new IllegalArgumentException(String.format("Unknown prefix '%s'", prefix));
+				throw new IllegalArgumentException(String.format("Unknown prefix '%s'", parts[0]));
 			}
-
-			property = property.substring(colonIdx + 1);
+			return from(parts[0], nsURI, parts[1]);
 		}
 
-		int atIdx = property.indexOf('@');
-		String languageTag = null;
-		if (atIdx != -1) {
-			languageTag = property.substring(atIdx + 1);
-			property = property.substring(0, atIdx);
+		return from(null, null, property);
+	}
+
+	/**
+	 * Parses a property where the prefix (if any) has already been resolved to
+	 * a namespace URI, and the local name matches {@code localName(@language)?}.  
+	 */
+	public static RDFQualifiedName from(String prefix, String nsURI, String localNameWithOptionalTag) {
+		int atIdx = localNameWithOptionalTag.indexOf('@');
+		String localName = null, languageTag = null;
+		if (atIdx == -1) {
+			localName = localNameWithOptionalTag;
+		} else {
+			languageTag = localNameWithOptionalTag.substring(atIdx + 1);
+			localName = localNameWithOptionalTag.substring(0, atIdx);
 		}
 
-		return new RDFQualifiedName(prefix, nsURI, property, languageTag);
+		return new RDFQualifiedName(prefix, nsURI, localName, languageTag);
 	}
 
 	public RDFQualifiedName withLocalName(String newLocalName) {

@@ -89,6 +89,13 @@ public class RDFModelTest {
 	}
 
 	@Test
+	public void getNamesWithDoubleColonPrefix() throws Exception {
+		RDFResource res = (RDFResource) model.getElementById(SPIDERMAN_URI);
+		Set<String> names = new HashSet<>((Collection<String>) pGetter.invoke(res, "foaf::name", context));
+		assertEquals(SPIDERMAN_NAMES, names);
+	}
+
+	@Test
 	public void getNameLiteralsWithPrefix() throws Exception {
 		RDFResource res = (RDFResource) model.getElementById(SPIDERMAN_URI);
 		Set<String> names = new HashSet<>();
@@ -145,6 +152,15 @@ public class RDFModelTest {
 	public void getAllPeopleWithPrefix() throws Exception {
 		Set<String> uris = new HashSet<>();
 		for (Object o : model.getAllOfType("foaf:Person")) {
+			uris.add((String) pGetter.invoke(o, "uri", context));
+		}
+		assertEquals(ALL_PERSON_URIS, uris);
+	}
+
+	@Test
+	public void getAllPeopleWithPrefixDoubleColon() throws Exception {
+		Set<String> uris = new HashSet<>();
+		for (Object o : model.getAllOfType("foaf::Person")) {
 			uris.add((String) pGetter.invoke(o, "uri", context));
 		}
 		assertEquals(ALL_PERSON_URIS, uris);
