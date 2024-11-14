@@ -33,6 +33,12 @@ import com.google.common.collect.MultimapBuilder;
 
 public class RDFResource extends RDFModelElement {
 
+	protected static final String LITERAL_SUFFIX = "_literal";
+	
+	enum LiteralMode {
+		RAW, VALUES_ONLY
+	}
+
 	private Resource resource;
 
 	public RDFResource(Resource resource, RDFModel rdfModel) {
@@ -47,6 +53,17 @@ public class RDFResource extends RDFModelElement {
 	public Collection<Object> getProperty(String property, IEolContext context) {
 		final RDFQualifiedName pName = RDFQualifiedName.from(property, this.owningModel::getNamespaceURI);
 
+		Collection<Object> value = getProperty(pName, context, LiteralMode.VALUES_ONLY);
+		if (value.isEmpty() && pName.localName.endsWith(LITERAL_SUFFIX)) {
+			final String localNameWithoutSuffix = pName.localName.substring(0, pName.localName.length() - LITERAL_SUFFIX.length());
+			RDFQualifiedName withoutLiteral = pName.withLocalName(localNameWithoutSuffix);
+			return getProperty(withoutLiteral, context, LiteralMode.RAW);
+		}
+
+		return value;
+	}
+
+	public Collection<Object> getProperty(RDFQualifiedName pName, IEolContext context, LiteralMode literalMode) {
 		// Filter statements by prefix and local name
 		ExtendedIterator<Statement> itStatements = null;
 		if (pName.prefix == null) {
@@ -74,14 +91,15 @@ public class RDFResource extends RDFModelElement {
 			ListMultimap<String, Object> values = MultimapBuilder.hashKeys().arrayListValues().build();
 			while (itStatements.hasNext()) {
 				Statement stmt = itStatements.next();
-				values.put(stmt.getPredicate().getURI(), convertToModelObject(stmt.getObject()));
+				values.put(stmt.getPredicate().getURI(),
+						convertToModelObject(stmt.getObject(), literalMode));
 			}
 
 			final Set<String> distinctKeys = values.keySet();
 			if (distinctKeys.size() > 1) {
 				context.getWarningStream().println(String.format(
 					"Ambiguous access to property '%s': multiple prefixes found (%s)",
-					property,
+					pName,
 					String.join(", ", distinctKeys)
 				));
 			}
@@ -92,7 +110,7 @@ public class RDFResource extends RDFModelElement {
 			final List<Object> values = new ArrayList<>();
 			while (itStatements.hasNext()) {
 				Statement stmt = itStatements.next();
-				values.add(convertToModelObject(stmt.getObject()));
+				values.add(convertToModelObject(stmt.getObject(), literalMode));
 			}
 			return values;
 		}
@@ -111,9 +129,14 @@ public class RDFResource extends RDFModelElement {
 		return resource.getURI();
 	}
 
-	protected RDFModelElement convertToModelObject(RDFNode node) {
+	protected Object convertToModelObject(RDFNode node, LiteralMode lMode) {
 		if (node instanceof Literal) {
-			return new RDFLiteral((Literal) node, this.owningModel);
+			switch (lMode) {
+			case RAW:
+				return new RDFLiteral((Literal) node, this.owningModel);
+			case VALUES_ONLY:
+				return ((Literal) node).getValue();
+			}
 		} else if (node instanceof Resource) {
 			return new RDFResource((Resource) node, this.owningModel);
 		}

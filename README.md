@@ -105,6 +105,10 @@ goblin.enemyOf.println('Enemies of the Green Goblin: ');
 If there are predicates with the same local name but different namespace URIs in the graph formed by all the loaded documents in a model, a warning will be issued.
 In this case, you should be using a prefix to avoid the ambiguity.
 
+### Values of predicates
+
+The values in `resource.p` will be either other resources, or the values of the associated literals (without filtering by language tags).
+
 It is possible to mention a language suffix, to limit the results to literals with that language.
 For instance:
 
@@ -112,3 +116,19 @@ For instance:
 var spider = Model.getElementById('http://example.org/#spiderman');
 spider.`name@ru`.println('Name of Spiderman in Russian: ');
 ```
+
+### Accessing literal objects
+
+If you would like to access the `RDFLiteral` objects rather than just their values, use a `_literal` suffix as part of the local name (before any language tags).
+For instance, we could change the above example to:
+
+```
+var spider = Model.getElementById('http://example.org/#spiderman');
+spider.`name_literal@ru`.println('Name literal of Spiderman in Russian: ');
+```
+
+`RDFLiteral` objects have several properties:
+
+* `value`: the raw value of the literal (usually a String, but it can be different for typed literals - see [Apache Jena typed literals](https://jena.apache.org/documentation/notes/typed-literals.html)).
+* `language`: the language tag for the literal (if any).
+* `datatypeURI`: the datatype URI for the literal.

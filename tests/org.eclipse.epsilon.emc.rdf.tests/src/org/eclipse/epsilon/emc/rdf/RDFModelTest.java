@@ -76,9 +76,7 @@ public class RDFModelTest {
 	public void getNamesWithoutPrefix() throws Exception {
 		Set<String> names = new HashSet<>();
 		for (RDFModelElement o : model.allContents()) {
-			for (RDFLiteral l : (Collection<RDFLiteral>) pGetter.invoke(o, "name", context)) {
-				names.add((String) pGetter.invoke(l, "value", context));
-			}
+			names.addAll((Collection<String>) pGetter.invoke(o, "name", context));
 		}
 		assertEquals(ALL_NAMES, names);
 	}
@@ -86,9 +84,16 @@ public class RDFModelTest {
 	@Test
 	public void getNamesWithPrefix() throws Exception {
 		RDFResource res = (RDFResource) model.getElementById(SPIDERMAN_URI);
+		Set<String> names = new HashSet<>((Collection<String>) pGetter.invoke(res, "foaf:name", context));
+		assertEquals(SPIDERMAN_NAMES, names);
+	}
+
+	@Test
+	public void getNameLiteralsWithPrefix() throws Exception {
+		RDFResource res = (RDFResource) model.getElementById(SPIDERMAN_URI);
 		Set<String> names = new HashSet<>();
-		for (RDFLiteral l : (Collection<RDFLiteral>) pGetter.invoke(res, "foaf:name", context)) {
-			names.add((String) pGetter.invoke(l, "value", context));
+		for (RDFLiteral l : (Collection<RDFLiteral>) pGetter.invoke(res, "foaf:name_literal", context)) {
+			names.add((String) l.getValue());
 		}
 		assertEquals(SPIDERMAN_NAMES, names);
 	}
@@ -96,20 +101,14 @@ public class RDFModelTest {
 	@Test
 	public void getNamesWithoutPrefixWithLanguageTag() throws Exception {
 		RDFResource res = (RDFResource) model.getElementById(SPIDERMAN_URI);
-		Set<String> names = new HashSet<>();
-		for (RDFLiteral l : (Collection<RDFLiteral>) pGetter.invoke(res, "name@ru", context)) {
-			names.add((String) pGetter.invoke(l, "value", context));
-		}
+		Set<String> names = new HashSet<>((Collection<String>) pGetter.invoke(res, "name@ru", context));
 		assertEquals(Collections.singleton(SPIDERMAN_NAME_RU), names);
 	}
 
 	@Test
 	public void getNamesWithPrefixAndLanguageTag() throws Exception {
 		RDFResource res = (RDFResource) model.getElementById(SPIDERMAN_URI);
-		Set<String> names = new HashSet<>();
-		for (RDFLiteral l : (Collection<RDFLiteral>) pGetter.invoke(res, "foaf:name@ru", context)) {
-			names.add((String) pGetter.invoke(l, "value", context));
-		}
+		Set<String> names = new HashSet<>((Collection<String>) pGetter.invoke(res, "foaf:name@ru", context));
 		assertEquals(Collections.singleton(SPIDERMAN_NAME_RU), names);
 	}
 

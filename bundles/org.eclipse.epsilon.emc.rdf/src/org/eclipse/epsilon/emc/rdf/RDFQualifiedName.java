@@ -58,4 +58,15 @@ public class RDFQualifiedName {
 
 		return new RDFQualifiedName(prefix, nsURI, property, languageTag);
 	}
+
+	public RDFQualifiedName withLocalName(String newLocalName) {
+		return new RDFQualifiedName(prefix, namespaceURI, newLocalName, languageTag);
+	}
+
+	@Override
+	public String toString() {
+		return "RDFQualifiedName [prefix=" + prefix + ", namespaceURI=" + namespaceURI + ", localName=" + localName
+				+ ", languageTag=" + languageTag + "]";
+	}
+
 }
