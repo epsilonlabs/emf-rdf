@@ -54,6 +54,7 @@
         <version>3.6.0</version>
         <configuration>
           <shadedArtifactAttached>false</shadedArtifactAttached>
+          <createSourcesJar>true</createSourcesJar>
 
           <transformers>
             <!-- Add a transformer to exclude any other manifest files (possibly from dependencies). -->
