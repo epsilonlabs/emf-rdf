@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?pde?>
 <!-- generated with https://github.com/eclipse-cbi/targetplatform-dsl -->
-<target name="EMC RDF Target Platform with Epsilon 2.1" sequenceNumber="1730829899">
+<target name="EMC RDF Target Platform with Epsilon 2.1" sequenceNumber="1732188951">
   <locations>
     <location includeMode="planner" includeAllPlatforms="false" includeSource="true" includeConfigurePhase="true" type="InstallableUnit">
       <unit id="org.eclipse.license.feature.group" version="0.0.0"/>
@@ -136,45 +136,9 @@
           <type>jar</type>
         </dependency>
         <dependency>
-          <groupId>org.apache.jena</groupId>
-          <artifactId>jena-rdfpatch</artifactId>
-          <version>5.1.0</version>
-          <type>jar</type>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.jena</groupId>
-          <artifactId>jena-ontapi</artifactId>
-          <version>5.1.0</version>
-          <type>jar</type>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.jena</groupId>
-          <artifactId>jena-shacl</artifactId>
-          <version>5.1.0</version>
-          <type>jar</type>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.jena</groupId>
-          <artifactId>jena-shex</artifactId>
-          <version>5.1.0</version>
-          <type>jar</type>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.jena</groupId>
-          <artifactId>jena-tdb1</artifactId>
-          <version>5.1.0</version>
-          <type>jar</type>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.jena</groupId>
-          <artifactId>jena-tdb2</artifactId>
-          <version>5.1.0</version>
-          <type>jar</type>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.jena</groupId>
-          <artifactId>jena-rdfconnection</artifactId>
-          <version>5.1.0</version>
+          <groupId>org.eclipse.epsilon</groupId>
+          <artifactId>jena-uberjar</artifactId>
+          <version>5.1.0-SNAPSHOT</version>
           <type>jar</type>
         </dependency>
       </dependencies>

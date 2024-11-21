@@ -281,23 +281,7 @@ No third-party beneficiary rights are created under this Agreement.
          version="0.0.0"/>
 
    <plugin
-         id="wrapped.org.apache.jena.jena-arq"
-         version="0.0.0"/>
-
-   <plugin
-         id="wrapped.org.apache.jena.jena-base"
-         version="0.0.0"/>
-
-   <plugin
-         id="wrapped.org.apache.jena.jena-core"
-         version="0.0.0"/>
-
-   <plugin
-         id="wrapped.org.apache.jena.jena-iri"
-         version="0.0.0"/>
-
-   <plugin
-         id="org.apache.thrift"
+         id="org.eclipse.epsilon.emc.rdf.jena"
          version="0.0.0"/>
 
 </feature>

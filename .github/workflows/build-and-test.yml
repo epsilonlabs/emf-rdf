@@ -24,9 +24,41 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
+    - name: Build Jena uberjar
+      run: cd jena-uberjar && mvn install
     - name: Build with Tycho
-      run: mvn --batch-mode -U -T 1C clean install
-    - name: Build with Tycho and older Epsilon
-      run: mvn --batch-mode -P epsilon-oldest-stable -U -T 1C clean test
+      run: mvn --batch-mode -U -T 1C clean install integration-test
+  build-maven:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Maven 3.9.5
+      uses: stCarolas/setup-maven@d6af6abeda15e98926a57b5aa970a96bb37f97d1
+      with:
+        maven-version: 3.9.5
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
     - name: Build with plain Maven
       run: mvn --batch-mode -f pom-plain.xml clean install
+  build-epsilon21:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Maven 3.9.5
+      uses: stCarolas/setup-maven@d6af6abeda15e98926a57b5aa970a96bb37f97d1
+      with:
+        maven-version: 3.9.5
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+    - name: Build Jena uberjar
+      run: cd jena-uberjar && mvn install
+    - name: Build with Tycho and older Epsilon
+      run: mvn --batch-mode -P epsilon-oldest-stable -U -T 1C clean test

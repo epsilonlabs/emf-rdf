@@ -29,3 +29,6 @@ replay_pid*
 # Maven output
 target/
 target-plain/
+
+# VS Code settings
+.vscode/

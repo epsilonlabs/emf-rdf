@@ -100,6 +100,16 @@ location "http://download.eclipse.org/epsilon/updates/2.5/" {
 	org.eclipse.epsilon.eol.engine lazy
 	org.eclipse.epsilon.eol.dt lazy
 	org.eclipse.epsilon.core.feature.feature.group lazy
+
+    /*
+     * These are for the examples - not really needed for the driver.
+     * The 2.1 target platform won't have them, to ensure we don't
+     * depend on them by mistake.
+     */
+	org.eclipse.epsilon.egl.engine lazy
+	org.eclipse.epsilon.egl.dt lazy
+	org.eclipse.epsilon.pinset.engine lazy
+	org.eclipse.epsilon.pinset.dt lazy
 }
 
 maven MavenDependencies scope=compile,test,runtime dependencyDepth=infinite missingManifest=generate includeSources {
@@ -129,48 +139,10 @@ maven MavenDependencies scope=compile,test,runtime dependencyDepth=infinite miss
         version="4.1.2"
     }
 
-    /*
-     * Specific for RDF support: https://jena.apache.org/download/maven.html
-     *
-     * Note that we cannot use POM dependencies (e.g. apache-jena-libs). We
-     * can only use JAR ones, so we manually pull in the dependencies listed
-     * there:
-     *
-     * https://central.sonatype.com/artifact/org.apache.jena/apache-jena-libs
-     */
+    // Jena Uber-JAR is needed to ensure its ServiceLoader finds all it needs
     dependency {
-        groupId="org.apache.jena"
-        artifactId="jena-rdfpatch"
-        version="5.1.0"
-    }
-    dependency {
-        groupId="org.apache.jena"
-        artifactId="jena-ontapi"
-        version="5.1.0"
-    }
-    dependency {
-        groupId="org.apache.jena"
-        artifactId="jena-shacl"
-        version="5.1.0"
-    }
-    dependency {
-        groupId="org.apache.jena"
-        artifactId="jena-shex"
-        version="5.1.0"
-    }
-    dependency {
-        groupId="org.apache.jena"
-        artifactId="jena-tdb1"
-        version="5.1.0"
-    }
-    dependency {
-        groupId="org.apache.jena"
-        artifactId="jena-tdb2"
-        version="5.1.0"
-    }
-    dependency {
-        groupId="org.apache.jena"
-        artifactId="jena-rdfconnection"
-        version="5.1.0"
+        groupId="org.eclipse.epsilon"
+        artifactId="jena-uberjar"
+        version="5.1.0-SNAPSHOT"
     }
 }
