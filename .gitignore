@@ -32,3 +32,8 @@ target-plain/
 
 # VS Code settings
 .vscode/
+
+# Tycho temporary files
+*.polyglot*
+*.tycho
+*.META-INF_MANIFEST.MF
