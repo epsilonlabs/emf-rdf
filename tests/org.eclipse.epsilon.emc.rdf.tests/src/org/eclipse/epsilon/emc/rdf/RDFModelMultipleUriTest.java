@@ -21,13 +21,24 @@ import org.junit.Test;
 public class RDFModelMultipleUriTest {
 
 	private static final String SPIDERMAN_TTL = "resources/spiderman.ttl";
-	private static final String FOAF_RDFXML = "resources/foaf.rdfxml";
+	private static final String FOAF_RDFXML = "resources/foaf.rdf";
 
 	@Test
-	public void classIsAvailable() throws Exception {
+	public void ttlThenRDFXML() throws Exception {
 		try (RDFModel model = new RDFModel()) {
 			model.getUris().add(getAbsoluteURI(SPIDERMAN_TTL));
 			model.getUris().add(getAbsoluteURI(FOAF_RDFXML));
+			model.load();
+
+			assertEquals("The FOAF vocabulary has 13 classes", 13, model.getAllOfType("Class").size());
+		}
+	}
+
+	@Test
+	public void rdfXMLThenTTL() throws Exception {
+		try (RDFModel model = new RDFModel()) {
+			model.getUris().add(getAbsoluteURI(FOAF_RDFXML));
+			model.getUris().add(getAbsoluteURI(SPIDERMAN_TTL));
 			model.load();
 
 			assertEquals("The FOAF vocabulary has 13 classes", 13, model.getAllOfType("Class").size());
