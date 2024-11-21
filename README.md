@@ -2,6 +2,9 @@
 
 This is a prototype of an [Epsilon Model Connectivity](https://eclipse.dev/epsilon/doc/emc/) driver for RDF and related technologies, based on [Apache Jena](https://jena.apache.org/).
 
+This document provides instructions for users.
+For instructions on how to set up a development environment, please see [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+
 ## Features and limitations
 
 Currently, the driver can:
