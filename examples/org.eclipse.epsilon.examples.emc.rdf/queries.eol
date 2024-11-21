@@ -1,8 +1,0 @@
-Person.all.println('People: ');
-
-var goblin = Model.getElementById('http://example.org/#green-goblin');
-goblin.enemyOf.println('Green Goblin is an enemy of: ');
-
-var spider = Model.getElementById('http://example.org/#spiderman');
-spider.name.println('Names of Spiderman: ');
-spider.`name@ru`.println('Name of Spiderman in Russian: ');

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.epsilon.eol.eclipse.dt.launching.EolLaunchConfigurationDelegate">
+    <stringAttribute key="implementation_name" value="Parallel"/>
+    <listAttribute key="models">
+        <listEntry value="uris=file\:/Volumes/Sources/emc-rdf/examples/org.eclipse.epsilon.examples.emc.rdf.turtles/foaf.rdf,file\:/Volumes/Sources/emc-rdf/examples/org.eclipse.epsilon.examples.emc.rdf.turtles/spiderman.ttl&#10;prefixes=&#10;aliases=&#10;name=Model&#10;type=RDF"/>
+    </listAttribute>
+    <booleanAttribute key="org.eclipse.debug.core.ATTR_FORCE_SYSTEM_CONSOLE_ENCODING" value="false"/>
+    <intAttribute key="parallelism" value="11"/>
+    <listAttribute key="parameters"/>
+    <stringAttribute key="source" value="/org.eclipse.epsilon.examples.emc.rdf.turtles/example.eol"/>
+</launchConfiguration>

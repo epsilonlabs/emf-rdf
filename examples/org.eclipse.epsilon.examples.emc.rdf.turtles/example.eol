@@ -1,0 +1,12 @@
+foaf::Person.all.println();
+
+var goblin = Model.getElementById('http://example.org/#green-goblin');
+
+goblin.enemyOf.println('Enemies of Green Goblin (without prefix): ');
+
+goblin.enemyOf.name.flatten.println('All names of the enemies of the Green Goblin: ');
+goblin.enemyOf.`name_literal@ru`.flatten.println('All Russian name literals of the enemies of the Green Goblin: ');
+
+goblin.`rel:enemyOf`.println('Enemies of Green Goblin (with prefix): ');
+
+Class.all.label.flatten.println('Labels of classes in FOAF: ');
