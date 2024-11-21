@@ -19,7 +19,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.epsilon.common.dt.launching.dialogs.AbstractModelConfigurationDialog;
+import org.eclipse.epsilon.common.dt.launching.dialogs.BrowseWorkspaceUtil;
 import org.eclipse.epsilon.common.dt.util.DialogUtil;
 import org.eclipse.epsilon.emc.rdf.RDFModel;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -265,7 +268,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		urlList = new TableViewer(groupContent, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.MULTI);
 
 		TableViewerColumn urlColumn = new TableViewerColumn(urlList, SWT.NONE);
-		urlColumn.getColumn().setWidth(600);
+		urlColumn.getColumn().setWidth(800);
 		urlColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
@@ -293,6 +296,21 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 			public void widgetSelected(SelectionEvent e) {
 				urls.add(new URLTableEntry(SAMPLE_URL));
 				urlList.refresh();
+			}
+		});
+
+		final Button addFromWorkspaceButton = new Button(urlButtons, SWT.NONE);
+		addFromWorkspaceButton.setText("Browse Workspace...");
+		addFromWorkspaceButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				IFile file = BrowseWorkspaceUtil.browseFile(getShell(),
+						"Browse workspace", "Select file with RDF content", "*.rdf", null);
+
+				if (file != null) {
+					urls.add(new URLTableEntry(file.getLocationURI().toString()));
+					urlList.refresh();
+				}
 			}
 		});
 
