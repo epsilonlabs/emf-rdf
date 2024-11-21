@@ -27,7 +27,9 @@ jobs:
     - name: Build Jena uberjar
       run: cd jena-uberjar && mvn install
     - name: Build with Tycho
-      run: mvn --batch-mode -U -T 1C clean install integration-test
+      run: mvn --batch-mode -U -T 1C clean install
+    - name: Run tests in OSGi environment
+      run: mvn --batch-mode -U -T 1C integration-test
   build-maven:
     runs-on: ubuntu-22.04
     steps:
@@ -62,3 +64,5 @@ jobs:
       run: cd jena-uberjar && mvn install
     - name: Build with Tycho and older Epsilon
       run: mvn --batch-mode -P epsilon-oldest-stable -U -T 1C clean test
+    - name: Run tests in OSGi environment
+      run: mvn --batch-mode -U -T 1C integration-test
