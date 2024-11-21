@@ -25,6 +25,9 @@
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
     <jena.version>5.1.0</jena.version>
+
+    <!-- From https://github.com/apache/jena/blob/8cf11043838e312ab6ee82737de664e62d155cd1/pom.xml#L63 -->
+    <log4j2.version>2.23.1</log4j2.version>
   </properties>
 
   <dependencies>
@@ -33,6 +36,11 @@
       <artifactId>apache-jena-libs</artifactId>
       <type>pom</type>
       <version>${jena.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j2-impl</artifactId>
+      <version>${log4j2.version}</version>
     </dependency>
   </dependencies>
 
