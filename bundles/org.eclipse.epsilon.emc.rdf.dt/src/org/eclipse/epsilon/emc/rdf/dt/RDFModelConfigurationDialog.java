@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.epsilon.common.dt.launching.dialogs.AbstractModelConfigurationDialog;
 import org.eclipse.epsilon.common.dt.launching.dialogs.BrowseWorkspaceUtil;
 import org.eclipse.epsilon.common.dt.util.DialogUtil;
