@@ -316,13 +316,13 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		});
 				
 		final Button addFromFileSystemButton = new Button(urlButtons, SWT.NONE);
-		addFromFileSystemButton.setText("Browse File system...");
+		addFromFileSystemButton.setText("Browse Filesystem...");
 		addFromFileSystemButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				FileDialog fileDialog = new FileDialog(getShell(), SWT.OPEN);
 				fileDialog.setText("Select an RDF file to add");
-				fileDialog.setFilterExtensions(new String[] { ".rdf", ".*" });
+				fileDialog.setFilterExtensions(new String[] { ".rdf", ".ttl", ".*" });
 				if (lastPath != null)
 					fileDialog.setFilterPath(lastPath);
 
