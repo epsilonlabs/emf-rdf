@@ -322,7 +322,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 			public void widgetSelected(SelectionEvent e) {
 				FileDialog fileDialog = new FileDialog(getShell(), SWT.OPEN);
 				fileDialog.setText("Select an RDF file to add");
-				fileDialog.setFilterExtensions(new String[] { ".rdf", ".ttl", ".*" });
+				fileDialog.setFilterExtensions(new String[] { ".rdf", ".ttl", ".nt", ".nq", ".trig", ".owl", ".jsonld", ".trdf", ".rt", ".rpb", ".pbrdf", ".rj", ".trix", ".*" });
 				if (lastPath != null)
 					fileDialog.setFilterPath(lastPath);
 
