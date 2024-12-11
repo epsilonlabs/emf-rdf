@@ -39,6 +39,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.FileDialog;
 
 public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialog {
 
@@ -261,6 +262,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		return groupContent;
 	}
 
+	private String lastPath = null;
 	private Composite createRDFUrlsGroup(Composite parent) {
 		final Composite groupContent = DialogUtil.createGroupContainer(parent, "URLs to load", 2);
 
@@ -312,7 +314,27 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 				}
 			}
 		});
+				
+		final Button addFromFileSystemButton = new Button(urlButtons, SWT.NONE);
+		addFromFileSystemButton.setText("Browse Filesystem...");
+		addFromFileSystemButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				FileDialog fileDialog = new FileDialog(getShell(), SWT.OPEN);
+				fileDialog.setText("Select an RDF file to add");
+				fileDialog.setFilterExtensions(new String[] { ".rdf", ".ttl", ".nt", ".nq", ".trig", ".owl", ".jsonld", ".trdf", ".rt", ".rpb", ".pbrdf", ".rj", ".trix", ".*" });
+				if (lastPath != null)
+					fileDialog.setFilterPath(lastPath);
 
+				String selectedFile = fileDialog.open();
+				if (selectedFile != null) {
+					urls.add(new URLTableEntry("file:" + selectedFile));
+					urlList.refresh();
+				}
+				lastPath = fileDialog.getFilterPath();
+			}
+		});
+		
 		final Button removeUrlButton = new Button(urlButtons, SWT.NONE);
 		removeUrlButton.setText("Remove");
 		removeUrlButton.addSelectionListener(new SelectionAdapter() {
