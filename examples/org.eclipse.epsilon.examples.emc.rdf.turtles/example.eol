@@ -4,7 +4,15 @@ var goblin = Model.getElementById('http://example.org/#green-goblin');
 
 goblin.enemyOf.println('Enemies of Green Goblin (without prefix): ');
 
+// All the ways to access the names of the enemies of Green Goblin
+//
+// Q. Do we want some setting of "preferred language" for the RDF driver, instead of showing values for all languages?
+
 goblin.enemyOf.name.flatten.println('All names of the enemies of the Green Goblin: ');
+goblin.enemyOf.`name@`.flatten.println('All names in the default language of the enemies of the Green Goblin: ');
+goblin.enemyOf.`name@ru`.flatten.println('All Russian names of the enemies of the Green Goblin: ');
+goblin.enemyOf.name_literal.flatten.println('All name literals of the enemies of the Green Goblin: ');
+goblin.enemyOf.`name_literal@`.flatten.println('All name literals in the default language of the enemies of the Green Goblin: ');
 goblin.enemyOf.`name_literal@ru`.flatten.println('All Russian name literals of the enemies of the Green Goblin: ');
 
 goblin.`rel:enemyOf`.println('Enemies of Green Goblin (with prefix): ');
