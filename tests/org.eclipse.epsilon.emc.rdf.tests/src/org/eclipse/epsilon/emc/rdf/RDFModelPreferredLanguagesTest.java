@@ -30,6 +30,7 @@ import org.eclipse.epsilon.eol.execute.introspection.IPropertyGetter;
 import org.junit.After;
 import org.junit.Test;
 
+@SuppressWarnings("unchecked")
 public class RDFModelPreferredLanguagesTest {
 	
 	private RDFModel model;
@@ -38,8 +39,8 @@ public class RDFModelPreferredLanguagesTest {
 	
 	private static final String SPIDERMAN_MULTILANG_TTL = "resources/spiderman-multiLang.ttl";
 	
-	private static final String LANGUAGE_PREFERENCE_INVALID_STRING = "e n,en-us,123,ja,ru";
-	private static final String LANGUAGE_PREFERENCE_JA_STRING = "en,en-us,ja,ru";
+	private static final String LANGUAGE_PREFERENCE_INVALID_STRING = "e n,en-us,123,ja";
+	private static final String LANGUAGE_PREFERENCE_JA_STRING = "en,en-us,ja";
 	private static final String LANGUAGE_PREFERENCE_EN_STRING = "en";
 	
 	private static final String SPIDERMAN_URI = "http://example.org/#spiderman";
@@ -124,7 +125,7 @@ public class RDFModelPreferredLanguagesTest {
 		setupModel(LANGUAGE_PREFERENCE_EN_STRING);
 		RDFResource res = (RDFResource) model.getElementById(SPIDERMAN_URI);
 		Set<String> names = new HashSet<>((Collection<String>) pGetter.invoke(res, "name", context));
-		assertEquals("Should return untagged when language preference cant be matched",Collections.singleton(SPIDERMAN_NAME), names);
+		assertEquals("Should return untagged when language preference can't be matched",Collections.singleton(SPIDERMAN_NAME), names);
 	}
 	
 	@Test
@@ -132,7 +133,7 @@ public class RDFModelPreferredLanguagesTest {
 		setupModel(LANGUAGE_PREFERENCE_EN_STRING);
 		RDFResource res = (RDFResource) model.getElementById(SPIDERMAN_URI);
 		Set<String> names = new HashSet<>((Collection<String>) pGetter.invoke(res, "foaf:name", context));
-		assertEquals("Should return untagged when language preference cant be matched",Collections.singleton(SPIDERMAN_NAME), names);
+		assertEquals("Should return untagged when language preference can't be matched",Collections.singleton(SPIDERMAN_NAME), names);
 	}
 	
 	@Test
@@ -143,7 +144,7 @@ public class RDFModelPreferredLanguagesTest {
 		for (RDFLiteral l : (Collection<RDFLiteral>) pGetter.invoke(res, "foaf:name_literal", context)) {
 			names.add((String) l.getValue());
 		}
-		assertEquals("Should return untagged when language preference cant be matched",Collections.singleton(SPIDERMAN_NAME), names);
+		assertEquals("Should return untagged when language preference can't be matched", Collections.singleton(SPIDERMAN_NAME), names);
 	}
 
 	@Test
@@ -154,7 +155,7 @@ public class RDFModelPreferredLanguagesTest {
 		for (RDFLiteral l : (Collection<RDFLiteral>) pGetter.invoke(res, "name_literal", context)) {
 			names.add((String) l.getValue());
 		}
-		assertEquals("Should return untagged when language preference cant be matched",Collections.singleton(SPIDERMAN_NAME), names);
+		assertEquals("Should return untagged when language preference can't be matched",Collections.singleton(SPIDERMAN_NAME), names);
 	}
 	
 	// JA preferred and available
@@ -197,7 +198,7 @@ public class RDFModelPreferredLanguagesTest {
 		assertEquals(Collections.singleton(SPIDERMAN_NAME_JA), names);
 	}
 
-	// Empty Tag -- untagged
+	// Empty Tag - ignore language preference and use untagged value
 	
 	@Test
 	public void getNamesWithoutPrefixAndNoTag() throws Exception {
@@ -236,7 +237,7 @@ public class RDFModelPreferredLanguagesTest {
 		assertEquals(Collections.singleton(SPIDERMAN_NAME), names);
 	}
 
-	// RU tag requested and available
+	// RU tag requested - ignore language preferences
 	
 	@Test
 	public void getNamesWithoutPrefixWithRULanguageTag() throws Exception {

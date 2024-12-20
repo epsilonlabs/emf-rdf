@@ -56,25 +56,31 @@ public class RDFResource extends RDFModelElement {
 		final RDFQualifiedName pName = RDFQualifiedName.from(property, this.owningModel::getNamespaceURI);
 
 		Collection<Object> value = getProperty(pName, context, LiteralMode.RAW);
-		if (!value.isEmpty() && !value.stream().anyMatch(p -> p instanceof RDFResource)) {
-			value = filterByPreferredLanguage(value, LiteralMode.VALUES_ONLY);
-			if (!value.isEmpty()) {
-				return value;
-			}
+		if (pName.languageTag == null && !value.stream().anyMatch(p -> p instanceof RDFResource)) {
+			value = filterByPreferredLanguage(value, LiteralMode.RAW);
+		}
+		if (!value.isEmpty()) {
+			return convertLiteralsToValues(value);
 		}
 
-		if (value.isEmpty() && pName.localName.endsWith(LITERAL_SUFFIX)) {
+		if (pName.localName.endsWith(LITERAL_SUFFIX)) {
 			final String localNameWithoutSuffix = pName.localName.substring(0,
 					pName.localName.length() - LITERAL_SUFFIX.length());
 			RDFQualifiedName withoutLiteral = pName.withLocalName(localNameWithoutSuffix);
 
 			value = getProperty(withoutLiteral, context, LiteralMode.RAW);
-			if (!value.isEmpty() && !value.stream().anyMatch(p -> p instanceof RDFResource)) {
+			if (pName.languageTag == null && !value.stream().anyMatch(p -> p instanceof RDFResource)) {
 				value = filterByPreferredLanguage(value, LiteralMode.RAW);
 			}
 		}
 
 		return value;
+	}
+
+	private Collection<Object> convertLiteralsToValues(Collection<Object> value) {
+		return value.stream()
+			.map(e -> e instanceof RDFLiteral ? ((RDFLiteral)e).getValue() : e)
+			.collect(Collectors.toList());
 	}
 
 	private Collection<Object> filterByPreferredLanguage(Collection<Object> value, LiteralMode literalMode) {
