@@ -138,3 +138,16 @@ spider.`name_literal@ru`.println('Name literal of Spiderman in Russian: ');
 * `value`: the raw value of the literal (usually a String, but it can be different for typed literals - see [Apache Jena typed literals](https://jena.apache.org/documentation/notes/typed-literals.html)).
 * `language`: the language tag for the literal (if any).
 * `datatypeURI`: the datatype URI for the literal.
+
+### Limiting returned literals to preferred languages
+
+The "Language tag preference" section of the RDF model configuration dialog allows for specifying a comma-separated list of [BCP 47](https://www.ietf.org/rfc/bcp/bcp47.txt) language tags.
+If these preferences are set, `x.property` will filter literals, by only returning the values for the first tag with matches, or falling back to the untagged values if no matches are found for any of the mentioned tags.
+
+For instance, if we set the language preferences to `en-gb,en`, filtering `x.property` will work as follows:
+
+* If any `en-gb` literals exist, return only those.
+* If any `en` literals exist, return only those.
+* Otherwise, return the untagged literals (if any).
+
+Language preferences do not apply if an explicit language tag is used: `x.property@en` will always get the `en`-tagged literals, and `x.property@` will always get the untagged literals.
