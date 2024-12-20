@@ -160,9 +160,18 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		}
 		
 		this.languagePreference.clear();
-		if (!properties.getProperty(PROPERTY_LANGUAGE_PREFERENCE).isEmpty()) {	
+		String sLanguagePreference = properties.getProperty(PROPERTY_LANGUAGE_PREFERENCE, "");
+		if (!sLanguagePreference.isBlank()) {
 			for (String tag : properties.getProperty(PROPERTY_LANGUAGE_PREFERENCE).split(",")) {
-				this.languagePreference.add(tag.strip());
+				tag = tag.strip();
+				if (isValidLanguageTag(tag)) {
+					this.languagePreference.add(tag);
+				} else {
+					throw new EolModelLoadingException(
+						new IllegalArgumentException(
+							String.format("'%s' is not a valid BCP 47 tag", tag)
+						), this);
+				}
 			}
 		}
 
@@ -353,7 +362,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		}
 		return model.getNsURIPrefix(namespaceURI);
 	}
-	
+
 	// Using Java's Locale class to check that tags conform to bcp47 structure
 	public static boolean isValidLanguageTag (String bcp47tag) {
 		boolean isValidBCP47 = !("und".equals(Locale.forLanguageTag(bcp47tag).toLanguageTag()));

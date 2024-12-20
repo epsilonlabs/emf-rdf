@@ -14,13 +14,13 @@ package org.eclipse.epsilon.emc.rdf;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.eclipse.epsilon.common.util.StringProperties;
@@ -28,10 +28,9 @@ import org.eclipse.epsilon.eol.exceptions.models.EolModelLoadingException;
 import org.eclipse.epsilon.eol.execute.context.EolContext;
 import org.eclipse.epsilon.eol.execute.introspection.IPropertyGetter;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
-public class RDFModelLanguageTagsTest {
+public class RDFModelPreferredLanguagesTest {
 	
 	private RDFModel model;
 	private IPropertyGetter pGetter;
@@ -40,7 +39,7 @@ public class RDFModelLanguageTagsTest {
 	private static final String SPIDERMAN_MULTILANG_TTL = "resources/spiderman-multiLang.ttl";
 	
 	private static final String LANGUAGE_PREFERENCE_INVALID_STRING = "e n,en-us,123,ja,ru";
-	private static final String LANGUAGE_PREFERENCE_JA_STRING = "e n,en-us,123,ja,ru";
+	private static final String LANGUAGE_PREFERENCE_JA_STRING = "en,en-us,ja,ru";
 	private static final String LANGUAGE_PREFERENCE_EN_STRING = "en";
 	
 	private static final String SPIDERMAN_URI = "http://example.org/#spiderman";
@@ -61,7 +60,7 @@ public class RDFModelLanguageTagsTest {
 
 	public void setupModel (String languagePreference) throws EolModelLoadingException {
 		this.model = new RDFModel();
-		//model.setUri("resources/spiderman.ttl");
+
 		StringProperties props = new StringProperties();
 		props.put(RDFModel.PROPERTY_URIS, SPIDERMAN_MULTILANG_TTL);
 		props.put(RDFModel.PROPERTY_LANGUAGE_PREFERENCE, languagePreference);	
@@ -79,12 +78,9 @@ public class RDFModelLanguageTagsTest {
 	}
 	
 	@Test
-	public void modelLanguageTagPropertyLoad() throws Exception {
-		setupModel(LANGUAGE_PREFERENCE_INVALID_STRING);
-		String answer = "[" + LANGUAGE_PREFERENCE_INVALID_STRING.replaceAll("\\s", "") + "]";
-		List<String> langList = model.getLanguagePreference();
-		String langListString = model.getLanguagePreference().toString().replaceAll("\\s", "");		
-		assertEquals(answer, langListString);
+	public void invalidLanguageTagThrowsException() throws Exception {
+		assertThrows(EolModelLoadingException.class,
+			() -> setupModel(LANGUAGE_PREFERENCE_INVALID_STRING));
 	}
 	
 	@Test
@@ -96,15 +92,11 @@ public class RDFModelLanguageTagsTest {
 	
 	@Test
 	public void modelLanguageTagValidator() throws Exception {
-		setupModel(LANGUAGE_PREFERENCE_JA_STRING);
-		// Test for different tag patterns
-		assertTrue(RDFModel.isValidLanguageTag("en"));
-		assertFalse(RDFModel.isValidLanguageTag("e n"));
-		
-		assertTrue(RDFModel.isValidLanguageTag("en-us"));
-		assertFalse(RDFModel.isValidLanguageTag("e n-u s"));
-		
-		assertFalse(RDFModel.isValidLanguageTag("123"));
+		assertTrue("English tag is accepted", RDFModel.isValidLanguageTag("en"));
+		assertFalse("English tag with space in the middle is rejected", RDFModel.isValidLanguageTag("e n"));
+		assertTrue("American English is accepted", RDFModel.isValidLanguageTag("en-us"));
+		assertFalse("American English with space in the middle is rejected", RDFModel.isValidLanguageTag("e n-u s"));
+		assertFalse("A number is not a valid language tag", RDFModel.isValidLanguageTag("123"));
 	}
 	
 	@Test
