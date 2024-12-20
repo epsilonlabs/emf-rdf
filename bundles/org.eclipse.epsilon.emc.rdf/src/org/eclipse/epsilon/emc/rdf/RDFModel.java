@@ -140,13 +140,16 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		 * EMC drivers (e.g. the EmfModel class).
 		 */
 		this.uris.clear();
-		for (String uri : properties.getProperty(PROPERTY_URIS).split(",")) {
-			this.uris.add(uri.strip());
+		String sUris = properties.getProperty(PROPERTY_URIS, "").strip();
+		if (!sUris.isEmpty()) {
+			for (String uri : sUris.split(",")) {
+				this.uris.add(uri.strip());
+			}
 		}
 
 		this.customPrefixesMap.clear();
 		String sPrefixes = properties.getProperty(PROPERTY_PREFIXES, "").strip();
-		if (sPrefixes.length() > 0) {
+		if (!sPrefixes.isEmpty()) {
 			for (String sItem : sPrefixes.split(",")) {
 				int idxEquals = sItem.indexOf('=');
 				if (idxEquals <= 0 || idxEquals == sItem.length() - 1) {
@@ -160,9 +163,9 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		}
 		
 		this.languagePreference.clear();
-		String sLanguagePreference = properties.getProperty(PROPERTY_LANGUAGE_PREFERENCE, "");
-		if (!sLanguagePreference.isBlank()) {
-			for (String tag : properties.getProperty(PROPERTY_LANGUAGE_PREFERENCE).split(",")) {
+		String sLanguagePreference = properties.getProperty(PROPERTY_LANGUAGE_PREFERENCE, "").strip();
+		if (!sLanguagePreference.isEmpty()) {
+			for (String tag : sLanguagePreference.split(",")) {
 				tag = tag.strip();
 				if (isValidLanguageTag(tag)) {
 					this.languagePreference.add(tag);
