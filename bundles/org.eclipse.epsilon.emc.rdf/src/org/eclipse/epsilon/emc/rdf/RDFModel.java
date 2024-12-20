@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -38,6 +39,8 @@ import org.eclipse.epsilon.eol.models.IRelativePathResolver;
 
 public class RDFModel extends CachedModel<RDFModelElement> {
 
+	public static final String PROPERTY_LANGUAGE_PREFERENCE = "languagePreference";
+
 	public static final String PROPERTY_URIS = "uris";
 
 	/**
@@ -50,6 +53,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	 */
 	public static final String PROPERTY_PREFIXES = "prefixes";
 
+	protected final List<String> languagePreference = new ArrayList<>();
 	protected final Map<String, String> customPrefixesMap = new HashMap<>();
 	protected final List<String> uris = new ArrayList<>();
 	protected Model model;
@@ -136,13 +140,16 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		 * EMC drivers (e.g. the EmfModel class).
 		 */
 		this.uris.clear();
-		for (String uri : properties.getProperty(PROPERTY_URIS).split(",")) {
-			this.uris.add(uri.strip());
+		String sUris = properties.getProperty(PROPERTY_URIS, "").strip();
+		if (!sUris.isEmpty()) {
+			for (String uri : sUris.split(",")) {
+				this.uris.add(uri.strip());
+			}
 		}
 
 		this.customPrefixesMap.clear();
 		String sPrefixes = properties.getProperty(PROPERTY_PREFIXES, "").strip();
-		if (sPrefixes.length() > 0) {
+		if (!sPrefixes.isEmpty()) {
 			for (String sItem : sPrefixes.split(",")) {
 				int idxEquals = sItem.indexOf('=');
 				if (idxEquals <= 0 || idxEquals == sItem.length() - 1) {
@@ -152,6 +159,22 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 				String sPrefix = sItem.substring(0, idxEquals);
 				String sURI = sItem.substring(idxEquals + 1);
 				customPrefixesMap.put(sPrefix, sURI);
+			}
+		}
+		
+		this.languagePreference.clear();
+		String sLanguagePreference = properties.getProperty(PROPERTY_LANGUAGE_PREFERENCE, "").strip();
+		if (!sLanguagePreference.isEmpty()) {
+			for (String tag : sLanguagePreference.split(",")) {
+				tag = tag.strip();
+				if (isValidLanguageTag(tag)) {
+					this.languagePreference.add(tag);
+				} else {
+					throw new EolModelLoadingException(
+						new IllegalArgumentException(
+							String.format("'%s' is not a valid BCP 47 tag", tag)
+						), this);
+				}
 			}
 		}
 
@@ -300,6 +323,10 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	public Map<String, String> getCustomPrefixesMap() {
 		return this.customPrefixesMap;
 	}
+	
+	public List<String> getLanguagePreference() {
+		return languagePreference;
+	}
 
 	/**
 	 * <p>
@@ -337,5 +364,11 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 			}
 		}
 		return model.getNsURIPrefix(namespaceURI);
+	}
+
+	// Using Java's Locale class to check that tags conform to bcp47 structure
+	public static boolean isValidLanguageTag (String bcp47tag) {
+		boolean isValidBCP47 = !("und".equals(Locale.forLanguageTag(bcp47tag).toLanguageTag()));
+		return isValidBCP47;
 	}
 }
