@@ -1,0 +1,577 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xs: <http://www.w3.org/2001/XMLSchema> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix mof2rdf: <http://www.omg.org/spec/MOF2RDF/MOFSupport/> .
+
+# === Mapping of MOF Package ===========================================
+
+<http://example.com/Package1/>
+    a owl:Ontology ;
+    rdfs:label "Package1" ;
+    owl:imports <http://www.omg.org/spec/MOF2RDF/MOFSupport/> .
+
+
+# === Mapping of MOF DataType (unstructured) ===========================
+
+<http://example.com/Package1/DataType1>
+    a rdfs:DataType ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "DataType1" .
+
+
+# === Mapping of MOF DataType (structured) =============================
+
+<http://example.com/Package1/DataType2>
+    a owl:Class ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "DataType2" ;
+    rdfs:subClassOf mof2rdf:DataType, [
+        a owl:Restriction ;
+        owl:allValuesFrom xsd:integer ;
+        owl:onProperty <http://example.com/Package1/DataType2.a1>
+    ], [
+        a owl:Restriction ;
+        owl:onDataRange xsd:integer ;
+        owl:onProperty <http://example.com/Package1/DataType2.a1> ;
+        owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger
+    ], [
+        a owl:Restriction ;
+        owl:allValuesFrom xsd:integer ;
+        owl:onProperty <http://example.com/Package1/DataType2.a2>
+    ], [
+        a owl:Restriction ;
+        owl:onDataRange xsd:integer ;
+        owl:onProperty <http://example.com/Package1/DataType2.a2> ;
+        owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger
+    ] .
+
+<http://example.com/Package1/DataType2.a1>
+    a owl:DatatypeProperty ;
+    rdfs:domain <http://example.com/Package1/DataType2> ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "a1" ;
+    rdfs:range xsd:integer .
+
+<http://example.com/Package1/DataType2.a2>
+    a owl:DatatypeProperty ;
+    rdfs:domain <http://example.com/Package1/DataType2> ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "a2" ;
+    rdfs:range xsd:integer .
+
+
+# === Mapping of MOF Enumeration =======================================
+
+<http://example.com/Package1/SomeKind>
+    a owl:Class ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "SomeKind" ;
+    rdfs:subClassOf mof2rdf:Enumeration ;
+    owl:equivalentClass [
+        a owl:Class ;
+        owl:oneOf (<http://example.com/Package1/SomeKind.GREEN>
+            <http://example.com/Package1/SomeKind.RED>
+            <http://example.com/Package1/SomeKind.BLUE>
+        )
+    ] .
+
+<http://example.com/Package1/SomeKind.BLUE>
+    a <http://example.com/Package1/SomeKind>, owl:NamedIndividual ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "BLUE" .
+
+<http://example.com/Package1/SomeKind.GREEN>
+    a <http://example.com/Package1/SomeKind>, owl:NamedIndividual ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "GREEN" .
+
+<http://example.com/Package1/SomeKind.RED>
+    a <http://example.com/Package1/SomeKind>, owl:NamedIndividual ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "RED" .
+
+[]
+    a owl:AllDifferent ;
+    owl:distinctMembers (<http://example.com/Package1/SomeKind.GREEN>
+        <http://example.com/Package1/SomeKind.RED>
+        <http://example.com/Package1/SomeKind.BLUE>
+    ) .
+
+
+# === Mapping of MOF Class =============================================
+
+<http://example.com/Package1/ClassA>
+    a owl:Class ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "ClassA" ;
+    rdfs:subClassOf mof2rdf:Class .
+
+
+# === Mapping of MOF Property ==========================================
+#
+#     [attr1] Property typed as literal Integer, with default multiplicity.
+#     [attr2] Optional Property typed as an unbounded set of String literals.
+#     [attr3] Property typed as a set of literal Integer, with explicit
+#             multiplicity range.
+#     [attr4] Property typed by a flat user-defined DataType, with default
+#             multiplicity.
+#     [attr5] Property typed by a structured user-defined DataType, with
+#             default multiplicity.
+#     [attr6] Property typed by a Class, with default multiplicity.
+
+
+# === Mapping of MOF Property [attr1] ==================================
+
+<http://example.com/Package1/ClassA1>
+    a owl:Class ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "ClassA1" ;
+    rdfs:subClassOf mof2rdf:Class, [
+        a owl:Restriction ;
+        owl:allValuesFrom xsd:integer ;
+        owl:onProperty <http://example.com/Package1/ClassA1.attr1>
+    ], [
+        a owl:Restriction ;
+        owl:onDataRange xsd:integer ;
+        owl:onProperty <http://example.com/Package1/ClassA1.attr1> ;
+        owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger
+    ] .
+
+<http://example.com/Package1/ClassA1.attr1>
+    a owl:DatatypeProperty ;
+    rdfs:domain <http://example.com/Package1/ClassA1> ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "attr1" ;
+    rdfs:range xsd:integer .
+
+
+# === Mapping of MOF Property [attr2] ==================================
+
+<http://example.com/Package1/ClassA2>
+    a owl:Class ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "ClassA2" ;
+    rdfs:subClassOf mof2rdf:Class, [
+        a owl:Restriction ;
+        owl:allValuesFrom xsd:string ;
+        owl:onProperty <http://example.com/Package1/ClassA2.attr2>
+    ] .
+
+<http://example.com/Package1/ClassA2.attr2>
+    a owl:DatatypeProperty ;
+    rdfs:domain <http://example.com/Package1/ClassA2> ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "attr2" ;
+    rdfs:range xsd:string .
+
+
+# === Mapping of MOF Property [attr3] ==================================
+
+<http://example.com/Package1/ClassA3>
+    a owl:Class ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "ClassA3" ;
+    rdfs:subClassOf mof2rdf:Class, [
+        a owl:Restriction ;
+        owl:allValuesFrom xsd:integer ;
+        owl:onProperty <http://example.com/Package1/ClassA3.attr3>
+    ], [
+        a owl:Restriction ;
+        owl:onDataRange xsd:integer ;
+        owl:onProperty <http://example.com/Package1/ClassA3.attr3>
+        owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger
+    ], [
+        a owl:Restriction ;
+        owl:onDataRange xsd:integer ;
+        owl:onProperty <http://example.com/Package1/ClassA3.attr3> ;
+        owl:maxQualifiedCardinality "5"^^xsd:nonNegativeInteger
+    ] .
+
+<http://example.com/Package1/ClassA3.attr3>
+    a owl:DatatypeProperty ;
+    rdfs:domain <http://example.com/Package1/ClassA3> ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "attr3" ;
+    rdfs:range xsd:integer .
+
+
+# === Mapping of MOF Property [attr4] ==================================
+
+<http://example.com/Package1/ClassA4>
+    a owl:Class ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "ClassA4" ;
+    rdfs:subClassOf mof2rdf:Class, [
+        a owl:Restriction ;
+        owl:allValuesFrom <http://example.com/Package1/DataType1> ;
+        owl:onProperty <http://example.com/Package1/ClassA4.attr4>
+    ], [
+        a owl:Restriction ;
+        owl:onDataRange <http://example.com/Package1/DataType1> ;
+        owl:onProperty <http://example.com/Package1/ClassA4.attr4> ;
+        owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger
+    ] .
+
+<http://example.com/Package1/ClassA4.attr4>
+    a owl:DatatypeProperty ;
+    rdfs:domain <http://example.com/Package1/ClassA4> ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "attr4" ;
+    rdfs:range <http://example.com/Package1/DataType1> .
+
+
+# === Mapping of MOF Property [attr5] ==================================
+
+<http://example.com/Package1/ClassA5>
+    a owl:Class ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "ClassA5" ;
+    rdfs:subClassOf mof2rdf:Class, [
+        a owl:Restriction ;
+        owl:allValuesFrom <http://example.com/Package1/DataType2> ;
+        owl:onProperty <http://example.com/Package1/ClassA5.attr5>
+    ], [
+        a owl:Restriction ;
+        owl:onClass <http://example.com/Package1/DataType2> ;
+        owl:onProperty <http://example.com/Package1/ClassA5.attr5> ;
+        owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger
+    ] .
+
+<http://example.com/Package1/ClassA5.attr5>
+    a owl:ObjectProperty ;
+    rdfs:domain <http://example.com/Package1/ClassA5> ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "attr5" ;
+    rdfs:range <http://example.com/Package1/DataType2> .
+
+
+# === Mapping of MOF Property [attr6] ==================================
+
+<http://example.com/Package1/ClassA6>
+    a owl:Class ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "ClassA6" ;
+    rdfs:subClassOf mof2rdf:Class, [
+        a owl:Restriction ;
+        owl:allValuesFrom <http://example.com/Package1/ClassB> ;
+        owl:onProperty <http://example.com/Package1/ClassA6.attr6>
+    ], [
+        a owl:Restriction ;
+        owl:onClass <http://example.com/Package1/ClassB> ;
+        owl:onProperty <http://example.com/Package1/ClassA6.attr6> ;
+        owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger
+    ] .
+
+<http://example.com/Package1/ClassA6.attr6>
+    a owl:ObjectProperty ;
+    rdfs:domain <http://example.com/Package1/ClassA6> ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package1/"
+    ] ;
+    rdfs:label "attr6" ;
+    rdfs:range <http://example.com/Package1/ClassB> .
+\end{newowllisting}
+
+
+# === Mapping of MOF Association =======================================
+
+<http://example.com/Package2/Association_AB>
+    a owl:Class ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package2/"
+    ] ;
+    rdfs:label "Association_AB" ;
+    rdfs:subClassOf mof2rdf:Association, [
+        a owl:Restriction ;
+        owl:onClass <http://example.com/Package2/ClassB> ;
+        owl:onProperty <http://example.com/Package2/Association_AB.endB> ;
+        owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger
+    ], [
+        a owl:Restriction ;
+        owl:onClass <http://example.com/Package2/ClassA> ;
+        owl:onProperty <http://example.com/Package2/Association_AB.endA> ;
+        owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger
+    ] .
+
+<http://example.com/Package2/Association_AB.endA>
+    a owl:ObjectProperty ;
+    rdfs:domain <http://example.com/Package2/Association_AB> ;
+    rdfs:label "endA" ;
+    rdfs:range <http://example.com/Package2/ClassA> .
+
+<http://example.com/Package2/Association_AB.endA.ClassB>
+    a owl:ObjectProperty ;
+    rdfs:domain <http://example.com/Package2/ClassA> ;
+    rdfs:label "endA link" ;
+    rdfs:range <http://example.com/Package2/Association_AB> .
+
+<http://example.com/Package2/Association_AB.endB>
+    a owl:ObjectProperty ;
+    rdfs:domain <http://example.com/Package2/Association_AB> ;
+    rdfs:label "endB" ;
+    rdfs:range <http://example.com/Package2/ClassB> .
+
+<http://example.com/Package2/Association_AB.endB.ClassA>
+    a owl:ObjectProperty ;
+    rdfs:domain <http://example.com/Package2/ClassB> ;
+    rdfs:label "endB link" ;
+    rdfs:range <http://example.com/Package2/Association_AB> .
+
+<http://example.com/Package2/ClassA>
+    a owl:Class ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package2/"
+    ] ;
+    rdfs:label "ClassA" ;
+    rdfs:subClassOf mof2rdf:Class, [
+        a owl:Restriction ;
+        owl:allValuesFrom <http://example.com/Package2/Association_AB> ;
+        owl:onProperty <http://example.com/Package2/Association_AB.endB.ClassA>
+    ], [
+        a owl:Restriction ;
+        owl:maxQualifiedCardinality "3"^^xsd:nonNegativeInteger ;
+        owl:onClass <http://example.com/Package2/Association_AB> ;
+        owl:onProperty <http://example.com/Package2/Association_AB.endB.ClassA>
+    ] .
+
+<http://example.com/Package2/ClassA.endB>
+    a owl:ObjectProperty ;
+    rdfs:domain <http://example.com/Package2/ClassA> ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package2/"
+    ] ;
+    rdfs:label "endB" ;
+    rdfs:range <http://example.com/Package2/ClassB> ;
+    owl:inverseOf <http://example.com/Package2/ClassB.endA> ;
+    owl:propertyChainAxiom ([
+            owl:inverseOf <http://example.com/Package2/Association_AB.endA>
+        ]
+        <http://example.com/Package2/Association_AB.endB>
+    ) .
+
+<http://example.com/Package2/ClassB>
+    a owl:Class ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package2/"
+    ] ;
+    rdfs:label "ClassB" ;
+    rdfs:subClassOf mof2rdf:Class, [
+        a owl:Restriction ;
+        owl:allValuesFrom <http://example.com/Package2/Association_AB> ;
+        owl:onProperty <http://example.com/Package2/Association_AB.endA.ClassB>
+    ], [
+        a owl:Restriction ;
+        owl:onProperty <http://example.com/Package2/Association_AB.endA.ClassB> ;
+        owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+        owl:someValuesFrom <http://example.com/Package2/Association_AB>
+    ] .
+
+<http://example.com/Package2/ClassB.endA>
+    a owl:ObjectProperty ;
+    rdfs:domain <http://example.com/Package2/ClassB> ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package2/"
+    ] ;
+    rdfs:label "endA" ;
+    rdfs:range <http://example.com/Package2/ClassA> ;
+    owl:propertyChainAxiom ([
+            owl:inverseOf <http://example.com/Package2/Association_AB.endB>
+        ]
+        <http://example.com/Package2/Association_AB.endA>
+    ) .
+
+# === Mapping of MOF OrderedAssocoiation ===============================
+#     (showing difference to MOF Association)
+#
+# <http://example.com/Package2/Association_AB>
+#      a owl:Class ;
+#      rdfs:isDefinedBy [
+#          rdfs:resource "http://example.com/Package2/"
+#      ] ;
+#      rdfs:label "Association_AB" ;
+#      rdfs:subClassOf mof2rdf:OrderedAssociation, [
+#          a owl:Restriction ;
+#          owl:onClass <http://example.com/Package2/ClassB> ;
+#          owl:onProperty <http://example.com/Package2/Association_AB.endB> ;
+#          owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger
+#      ], [
+#          a owl:Restriction ;
+#          owl:onClass <http://example.com/Package2/ClassA> ;
+#          owl:onProperty <http://example.com/Package2/Association_AB.endA> ;
+#          owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger
+#      ] .
+#
+#  <http://example.com/Package2/Association_AB.linkSequence>
+#      a owl:AnnotationProperty ;
+#      rdfs:domain <http://example.com/Package2/Association_AB> ;
+#      rdfs:label "Association_AB link sequence" ;
+#      rdfs:range xsd:naturalInteger .
+#
+
+
+# === Mapping of MOF AssociationClass ==================================
+
+<http://example.com/Package3/AssoClass_AB>
+    a owl:Class ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package3/"
+    ] ;
+    rdfs:label "AssoClass_AB" ;
+    rdfs:subClassOf mof2rdf:AssociationClass, [
+        a owl:Restriction ;
+        owl:onClass <http://example.com/Package3/ClassB> ;
+        owl:onProperty <http://example.com/Package3/AssoClass_AB.endB> ;
+        owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger
+    ], [
+        a owl:Restriction ;
+        owl:onClass <http://example.com/Package3/ClassA> ;
+        owl:onProperty <http://example.com/Package3/AssoClass_AB.endA> ;
+        owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger
+    ], [
+        a owl:Restriction ;
+        owl:allValuesFrom xsd:integer ;
+        owl:onProperty <http://example.com/Package3/AssoClass_AB.ac1>
+    ], [
+        a owl:Restriction ;
+        owl:onDataRange xsd:integer ;
+        owl:onProperty <http://example.com/Package3/AssoClass_AB.ac1> ;
+        owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger
+    ] .
+
+<http://example.com/Package3/AssoClass_AB.endA>
+    a owl:ObjectProperty ;
+    rdfs:domain <http://example.com/Package3/AssoClass_AB> ;
+    rdfs:label "endA" ;
+    rdfs:range <http://example.com/Package3/ClassA> .
+
+<http://example.com/Package3/AssoClass_AB.endA.ClassB>
+    a owl:ObjectProperty ;
+    rdfs:domain <http://example.com/Package3/ClassA> ;
+    rdfs:label "endA link" ;
+    rdfs:range <http://example.com/Package3/AssoClass_AB> .
+
+<http://example.com/Package3/AssoClass_AB.endB>
+    a owl:ObjectProperty ;
+    rdfs:domain <http://example.com/Package3/AssoClass_AB> ;
+    rdfs:label "endB" ;
+    rdfs:range <http://example.com/Package3/ClassB> .
+
+<http://example.com/Package3/AssoClass_AB.endB.ClassA>
+    a owl:ObjectProperty ;
+    rdfs:domain <http://example.com/Package3/ClassB> ;
+    rdfs:label "endB link" ;
+    rdfs:range <http://example.com/Package3/AssoClass_AB> .
+
+<http://example.com/Package3/AssoClass_AB.ac1>
+    a owl:DatatypeProperty ;
+    rdfs:domain <http://example.com/Package3/AssoClass_AB> ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package3/"
+    ] ;
+    rdfs:label "ac1" ;
+    rdfs:range xsd:integer .
+
+<http://example.com/Package3/ClassA>
+    a owl:Class ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package3/"
+    ] ;
+    rdfs:label "ClassA" ;
+    rdfs:subClassOf mof2rdf:Class, [
+        a owl:Restriction ;
+        owl:allValuesFrom <http://example.com/Package3/AssoClass_AB> ;
+        owl:onProperty <http://example.com/Package3/AssoClass_AB.endB.ClassA>
+    ], [
+        a owl:Restriction ;
+        owl:maxQualifiedCardinality "3"^^xsd:nonNegativeInteger ;
+        owl:onClass <http://example.com/Package3/AssoClass_AB> ;
+        owl:onProperty <http://example.com/Package3/AssoClass_AB.endB.ClassA>
+    ] .
+
+<http://example.com/Package3/ClassA.endB>
+    a owl:ObjectProperty ;
+    rdfs:domain <http://example.com/Package3/ClassA> ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package3/"
+    ] ;
+    rdfs:label "endB" ;
+    rdfs:range <http://example.com/Package3/ClassB> ;
+    owl:inverseOf <http://example.com/Package3/ClassB.endA> ;
+    owl:propertyChainAxiom ([
+            owl:inverseOf <http://example.com/Package3/AssoClass_AB.endA>
+        ]
+        <http://example.com/Package3/AssoClass_AB.endB>
+    ) .
+
+<http://example.com/Package3/ClassB>
+    a owl:Class ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package3/"
+    ] ;
+    rdfs:label "ClassB" ;
+    rdfs:subClassOf mof2rdf:Class, [
+        a owl:Restriction ;
+        owl:allValuesFrom <http://example.com/Package3/AssoClass_AB> ;
+        owl:onProperty <http://example.com/Package3/AssoClass_AB.endA.ClassB>
+    ], [
+        a owl:Restriction ;
+        owl:onProperty <http://example.com/Package3/AssoClass_AB.endA.ClassB> ;
+        owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+        owl:someValuesFrom <http://example.com/Package3/AssoClass_AB>
+    ] .
+
+<http://example.com/Package3/ClassB.endA>
+    a owl:ObjectProperty ;
+    rdfs:domain <http://example.com/Package3/ClassB> ;
+    rdfs:isDefinedBy [
+        rdfs:resource "http://example.com/Package3/"
+    ] ;
+    rdfs:label "endA" ;
+    rdfs:range <http://example.com/Package3/ClassA> ;
+    owl:propertyChainAxiom ([
+            owl:inverseOf <http://example.com/Package3/AssoClass_AB.endB>
+        ]
+        <http://example.com/Package3/AssoClass_AB.endA>
+    ) .
