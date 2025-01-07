@@ -11,6 +11,5 @@
 			<attribute name="test" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/emc-rdf/jena-uberjar/target/jena-uberjar-5.1.0-SNAPSHOT.jar" sourcepath="/emc-rdf/jena-uberjar/target/jena-uberjar-5.1.0-SNAPSHOT-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
