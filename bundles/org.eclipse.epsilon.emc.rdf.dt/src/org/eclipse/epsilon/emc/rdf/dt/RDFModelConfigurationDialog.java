@@ -404,7 +404,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		if (properties == null) return;
 
 		urls.clear();
-		for (String url : properties.getProperty(RDFModel.PROPERTY_URIS).split("\\s*,\\s*")) {
+		for (String url : properties.getProperty(RDFModel.PROPERTY_DATA_URIS).split("\\s*,\\s*")) {
 			if (url.length() > 0) {
 				urls.add(new URLTableEntry(url));
 			}
@@ -434,7 +434,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 	protected void storeProperties(){
 		super.storeProperties();
 
-		properties.put(RDFModel.PROPERTY_URIS,
+		properties.put(RDFModel.PROPERTY_DATA_URIS,
 			String.join(",", urls.stream()
 				.map(e -> e.url)
 				.collect(Collectors.toList())));

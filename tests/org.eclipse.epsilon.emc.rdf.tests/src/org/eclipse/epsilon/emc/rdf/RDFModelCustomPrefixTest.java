@@ -37,7 +37,7 @@ public class RDFModelCustomPrefixTest {
 	public void emptyString() throws Exception {
 		try (RDFModel model = new RDFModel()) {
 			StringProperties props = new StringProperties();
-			props.put(RDFModel.PROPERTY_URIS, SPIDERMAN_TTL);
+			props.put(RDFModel.PROPERTY_DATA_URIS, SPIDERMAN_TTL);
 			props.put(RDFModel.PROPERTY_PREFIXES, "");
 			model.load(props);
 
@@ -48,10 +48,10 @@ public class RDFModelCustomPrefixTest {
 	@Test
 	public void customOnePrefix() throws Exception {
 		try (RDFModel model = new RDFModel()) {
-			model.setUri(SPIDERMAN_TTL);
+			model.setDataUri(SPIDERMAN_TTL);
 
 			StringProperties props = new StringProperties();
-			props.put(RDFModel.PROPERTY_URIS, SPIDERMAN_TTL);
+			props.put(RDFModel.PROPERTY_DATA_URIS, SPIDERMAN_TTL);
 			props.put(RDFModel.PROPERTY_PREFIXES, "custom=http://xmlns.com/foaf/0.1/");
 			model.load(props);
 
@@ -63,7 +63,7 @@ public class RDFModelCustomPrefixTest {
 	@Test
 	public void customTwoPrefixes() throws Exception {
 		try (RDFModel model = new RDFModel()) {
-			model.setUri(SPIDERMAN_TTL);
+			model.setDataUri(SPIDERMAN_TTL);
 			model.getCustomPrefixesMap().put("f", "http://xmlns.com/foaf/0.1/");
 			model.getCustomPrefixesMap().put("r", "http://www.perceive.net/schemas/relationship/");
 			model.load();
@@ -81,7 +81,7 @@ public class RDFModelCustomPrefixTest {
 	public void missingEquals() throws Exception {
 		try (RDFModel model = new RDFModel()) {
 			StringProperties props = new StringProperties();
-			props.put(RDFModel.PROPERTY_URIS, SPIDERMAN_TTL);
+			props.put(RDFModel.PROPERTY_DATA_URIS, SPIDERMAN_TTL);
 			props.put(RDFModel.PROPERTY_PREFIXES, "missingEqualsSide");
 			model.load(props);
 		}
@@ -91,7 +91,7 @@ public class RDFModelCustomPrefixTest {
 	public void missingPrefix() throws Exception {
 		try (RDFModel model = new RDFModel()) {
 			StringProperties props = new StringProperties();
-			props.put(RDFModel.PROPERTY_URIS, SPIDERMAN_TTL);
+			props.put(RDFModel.PROPERTY_DATA_URIS, SPIDERMAN_TTL);
 			props.put(RDFModel.PROPERTY_PREFIXES, "=foo");
 			model.load(props);
 		}
@@ -101,7 +101,7 @@ public class RDFModelCustomPrefixTest {
 	public void missingNamespaceURI() throws Exception {
 		try (RDFModel model = new RDFModel()) {
 			StringProperties props = new StringProperties();
-			props.put(RDFModel.PROPERTY_URIS, SPIDERMAN_TTL);
+			props.put(RDFModel.PROPERTY_DATA_URIS, SPIDERMAN_TTL);
 			props.put(RDFModel.PROPERTY_PREFIXES, "foo=");
 			model.load(props);
 		}

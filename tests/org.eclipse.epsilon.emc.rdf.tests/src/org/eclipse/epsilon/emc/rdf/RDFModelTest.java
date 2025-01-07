@@ -53,7 +53,7 @@ public class RDFModelTest {
 	@Before
 	public void setup() throws EolModelLoadingException {
 		this.model = new RDFModel();
-		model.setUri("resources/spiderman.ttl");
+		model.setDataUri("resources/spiderman.ttl");
 		model.load();
 
 		this.pGetter = model.getPropertyGetter();

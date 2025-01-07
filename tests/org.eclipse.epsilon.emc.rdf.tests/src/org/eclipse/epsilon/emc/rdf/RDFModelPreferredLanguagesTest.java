@@ -63,7 +63,7 @@ public class RDFModelPreferredLanguagesTest {
 		this.model = new RDFModel();
 
 		StringProperties props = new StringProperties();
-		props.put(RDFModel.PROPERTY_URIS, SPIDERMAN_MULTILANG_TTL);
+		props.put(RDFModel.PROPERTY_DATA_URIS, SPIDERMAN_MULTILANG_TTL);
 		props.put(RDFModel.PROPERTY_LANGUAGE_PREFERENCE, languagePreference);	
 		model.load(props);
 		

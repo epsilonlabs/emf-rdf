@@ -13,6 +13,7 @@
 package org.eclipse.epsilon.emc.rdf;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
@@ -26,22 +27,24 @@ public class RDFModelMultipleUriTest {
 	@Test
 	public void ttlThenRDFXML() throws Exception {
 		try (RDFModel model = new RDFModel()) {
-			model.getUris().add(getAbsoluteURI(SPIDERMAN_TTL));
-			model.getUris().add(getAbsoluteURI(FOAF_RDFXML));
+			model.getDataUris().add(getAbsoluteURI(SPIDERMAN_TTL));
+			model.getDataUris().add(getAbsoluteURI(FOAF_RDFXML));
 			model.load();
 
-			assertEquals("The FOAF vocabulary has 13 classes", 13, model.getAllOfType("Class").size());
+			assertTrue("The FOAF vocabulary has at least 13 classes (more are inferred)",
+					model.getAllOfType("Class").size() >= 13);
 		}
 	}
 
 	@Test
 	public void rdfXMLThenTTL() throws Exception {
 		try (RDFModel model = new RDFModel()) {
-			model.getUris().add(getAbsoluteURI(FOAF_RDFXML));
-			model.getUris().add(getAbsoluteURI(SPIDERMAN_TTL));
+			model.getDataUris().add(getAbsoluteURI(FOAF_RDFXML));
+			model.getDataUris().add(getAbsoluteURI(SPIDERMAN_TTL));
 			model.load();
 
-			assertEquals("The FOAF vocabulary has 13 classes", 13, model.getAllOfType("Class").size());
+			assertTrue("The FOAF vocabulary has at least 13 classes (more are inferred)",
+				model.getAllOfType("Class").size() >= 13);
 		}
 	}
 

@@ -21,12 +21,16 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.jena.ontology.OntModel;
+import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.reasoner.Reasoner;
+import org.apache.jena.reasoner.ReasonerRegistry;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.epsilon.common.util.StringProperties;
 import org.eclipse.epsilon.eol.exceptions.EolRuntimeException;
@@ -41,7 +45,8 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 
 	public static final String PROPERTY_LANGUAGE_PREFERENCE = "languagePreference";
 
-	public static final String PROPERTY_URIS = "uris";
+	public static final String PROPERTY_SCHEMA_URIS = "schemaUris";
+	public static final String PROPERTY_DATA_URIS = "uris";
 
 	/**
 	 * One of the keys used to construct the first argument to
@@ -55,8 +60,10 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 
 	protected final List<String> languagePreference = new ArrayList<>();
 	protected final Map<String, String> customPrefixesMap = new HashMap<>();
-	protected final List<String> uris = new ArrayList<>();
-	protected Model model;
+
+	protected final List<String> schemaURIs = new ArrayList<>();
+	protected final List<String> dataURIs = new ArrayList<>();
+	protected OntModel model;
 
 	public RDFModel() {
 		this.propertyGetter = new RDFPropertyGetter(this);
@@ -139,11 +146,23 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		 * configuration of this RDFModel. This is the same as in other popular
 		 * EMC drivers (e.g. the EmfModel class).
 		 */
-		this.uris.clear();
-		String sUris = properties.getProperty(PROPERTY_URIS, "").strip();
-		if (!sUris.isEmpty()) {
-			for (String uri : sUris.split(",")) {
-				this.uris.add(uri.strip());
+		this.dataURIs.clear();
+		{
+			String sUris = properties.getProperty(PROPERTY_DATA_URIS, "").strip();
+			if (!sUris.isEmpty()) {
+				for (String uri : sUris.split(",")) {
+					this.dataURIs.add(uri.strip());
+				}
+			}
+		}
+
+		this.schemaURIs.clear();
+		{
+			String sUris = properties.getProperty(PROPERTY_SCHEMA_URIS, "").strip();
+			if (!sUris.isEmpty()) {
+				for (String uri : sUris.split(",")) {
+					this.schemaURIs.add(uri.strip());
+				}
 			}
 		}
 
@@ -161,7 +180,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 				customPrefixesMap.put(sPrefix, sURI);
 			}
 		}
-		
+
 		this.languagePreference.clear();
 		String sLanguagePreference = properties.getProperty(PROPERTY_LANGUAGE_PREFERENCE, "").strip();
 		if (!sLanguagePreference.isEmpty()) {
@@ -267,16 +286,29 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		}
 
 		try {
-			if (uris.isEmpty()) {
+			if (dataURIs.isEmpty()) {
 				throw new IllegalStateException("No file path has been set");
 			}
 
 			// Read all the URIs into an integrated model
-			Iterator<String> itUri = uris.iterator();
-			model = RDFDataMgr.loadModel(itUri.next());
-			while (itUri.hasNext()) {
-				model.read(itUri.next());
+			Model schemaModel = ModelFactory.createDefaultModel();
+			for (Iterator<String> itUri = schemaURIs.iterator(); itUri.hasNext(); ) {
+				schemaModel.read(itUri.next());
 			}
+
+			Model dataModel = ModelFactory.createDefaultModel();
+			for (Iterator<String> itUri = dataURIs.iterator(); itUri.hasNext(); ) {
+				dataModel.read(itUri.next());
+			}
+
+			Reasoner reasoner = ReasonerRegistry.getOWLReasoner();
+			InfModel infmodel = ModelFactory.createInfModel(reasoner, dataModel, schemaModel);
+			this.model = ModelFactory.createOntologyModel();
+			this.model.add(infmodel);
+			for (Entry<String, String> e : dataModel.getNsPrefixMap().entrySet()) {
+				this.model.setNsPrefix(e.getKey(), e.getValue());
+			}
+
 		} catch (Exception ex) {
 			throw new EolModelLoadingException(ex, this);
 		}
@@ -311,13 +343,22 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		return types;
 	}
 
-	public List<String> getUris() {
-		return uris;
+	public List<String> getDataUris() {
+		return dataURIs;
 	}
 
-	public void setUri(String uri) {
-		this.uris.clear();
-		this.uris.add(uri);
+	public void setDataUri(String uri) {
+		this.dataURIs.clear();
+		this.dataURIs.add(uri);
+	}
+
+	public List<String> getSchemaUris() {
+		return schemaURIs;
+	}
+
+	public void setSchemaUri(String uri) {
+		this.schemaURIs.clear();
+		this.schemaURIs.add(uri);
 	}
 
 	public Map<String, String> getCustomPrefixesMap() {
