@@ -42,6 +42,11 @@ import org.eclipse.epsilon.eol.models.CachedModel;
 import org.eclipse.epsilon.eol.models.IRelativePathResolver;
 
 public class RDFModel extends CachedModel<RDFModelElement> {
+	
+	
+	// TODO Add property for Reasoner type "NONE" by passes reasoning when loading a model with no schema, else warning
+	// TODO Add a method to write OntModel to file with optional syntax (expose OntModel.write)
+	// TODO write test to compare inferred model and non-inferred model
 
 	public static final String PROPERTY_LANGUAGE_PREFERENCE = "languagePreference";
 
@@ -61,6 +66,22 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	protected final List<String> languagePreference = new ArrayList<>();
 	protected final Map<String, String> customPrefixesMap = new HashMap<>();
 
+	public enum RDFReasonerType {
+		NONE,
+		OWL_FULL;
+	}  // TODO add to this list to cover reasoner types in the ReasonerRegistry Class
+	protected RDFReasonerType rdfsReasonerType = RDFReasonerType.NONE;
+	
+	public RDFReasonerType getRdfsReasonerType() {
+		return rdfsReasonerType;
+	}
+
+	public void setRdfsReasonerType(RDFReasonerType rdfsReasonerType) {
+		this.rdfsReasonerType = rdfsReasonerType;
+	}
+
+
+	
 	protected final List<String> schemaURIs = new ArrayList<>();
 	protected final List<String> dataURIs = new ArrayList<>();
 	protected OntModel model;
@@ -295,16 +316,32 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 			for (Iterator<String> itUri = schemaURIs.iterator(); itUri.hasNext(); ) {
 				schemaModel.read(itUri.next());
 			}
+			// If the schema model has been loaded assume need for a reasoner using Jena's default OWL
+			if( (schemaModel.size() >= 0) && (rdfsReasonerType == RDFReasonerType.NONE) )
+			{
+				this.setRdfsReasonerType(RDFReasonerType.OWL_FULL);
+			}
 
 			Model dataModel = ModelFactory.createDefaultModel();
 			for (Iterator<String> itUri = dataURIs.iterator(); itUri.hasNext(); ) {
 				dataModel.read(itUri.next());
 			}
-
-			Reasoner reasoner = ReasonerRegistry.getOWLReasoner();
-			InfModel infmodel = ModelFactory.createInfModel(reasoner, dataModel, schemaModel);
+			
+			
+			//Create an OntModel to handle the data model being loaded or inferred from data and schema
 			this.model = ModelFactory.createOntologyModel();
-			this.model.add(infmodel);
+			
+			if(rdfsReasonerType == RDFReasonerType.NONE) {
+				this.model.add(dataModel);
+			} 
+			else
+			{	// The reasoner will add ontology bits to the dataModel being loaded.
+				Reasoner reasoner = ReasonerRegistry.getOWLReasoner();
+				InfModel infmodel = ModelFactory.createInfModel(reasoner, dataModel, schemaModel);
+				this.model.add(infmodel);	
+			}
+			
+			// Copy the Name prefixmaps from the original dataModel loaded to the new OntModel
 			for (Entry<String, String> e : dataModel.getNsPrefixMap().entrySet()) {
 				this.model.setNsPrefix(e.getKey(), e.getValue());
 			}
