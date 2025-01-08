@@ -162,9 +162,12 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		public String url;
 	}
 
-	private TableViewer urlList;
-	private List<URLTableEntry> urls = new ArrayList<>();
+	private TableViewer dataModelUrlListViewer;
+	private List<URLTableEntry> dataModelUrls = new ArrayList<>();
 
+	private TableViewer schemaModelUrlListViewer;
+	private List<URLTableEntry> schemaModelUrls = new ArrayList<>();
+	
 	private TableViewer nsMappingTable;
 	private List<NamespaceMappingTableEntry> nsMappingEntries = new ArrayList<>();
 
@@ -181,7 +184,8 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 	@Override
 	protected void createGroups(Composite control) {
 		createNameAliasGroup(control);
-		createRDFUrlsGroup(control);
+		createDataModelRDFUrlsGroup(control);
+		createSchemaModelRDFUrlsGroup(control);
 		createNamespaceMappingGroup(control);
 		createLanguagePreferenceGroup(control);
 	}
@@ -269,13 +273,13 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		return groupContent;
 	}
 
-	private String lastPath = null;
-	private Composite createRDFUrlsGroup(Composite parent) {
-		final Composite groupContent = DialogUtil.createGroupContainer(parent, "URLs to load", 2);
+	private String dataModelLastPath = null;
+	private Composite createDataModelRDFUrlsGroup(Composite parent) {
+		final Composite groupContent = DialogUtil.createGroupContainer(parent, "Data Model URLs to load", 2);
 
-		urlList = new TableViewer(groupContent, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.MULTI);
+		dataModelUrlListViewer = new TableViewer(groupContent, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.MULTI);
 
-		TableViewerColumn urlColumn = new TableViewerColumn(urlList, SWT.NONE);
+		TableViewerColumn urlColumn = new TableViewerColumn(dataModelUrlListViewer, SWT.NONE);
 		urlColumn.getColumn().setWidth(800);
 		urlColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
@@ -283,13 +287,13 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 				return ((URLTableEntry) element).url;
 			}
 		});
-		urlColumn.setEditingSupport(new URLEntryEditingSupport(urlList));
+		urlColumn.setEditingSupport(new URLEntryEditingSupport(dataModelUrlListViewer));
 		
-		urlList.setContentProvider(ArrayContentProvider.getInstance());
-		urlList.setInput(urls);
+		dataModelUrlListViewer.setContentProvider(ArrayContentProvider.getInstance());
+		dataModelUrlListViewer.setInput(dataModelUrls);
 
 		GridData urlListLayout = new GridData(SWT.FILL, SWT.FILL, true, true);
-		urlList.getControl().setLayoutData(urlListLayout);
+		dataModelUrlListViewer.getControl().setLayoutData(urlListLayout);
 
 		final Composite urlButtons = new Composite(groupContent, SWT.NONE);
 		final GridData urlButtonsLayout = new GridData();
@@ -302,8 +306,8 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		addUrlButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				urls.add(new URLTableEntry(SAMPLE_URL));
-				urlList.refresh();
+				dataModelUrls.add(new URLTableEntry(SAMPLE_URL));
+				dataModelUrlListViewer.refresh();
 			}
 		});
 
@@ -316,8 +320,8 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 						"Browse workspace", "Select file with RDF content", "*.rdf", null);
 
 				if (file != null) {
-					urls.add(new URLTableEntry(file.getLocationURI().toString()));
-					urlList.refresh();
+					dataModelUrls.add(new URLTableEntry(file.getLocationURI().toString()));
+					dataModelUrlListViewer.refresh();
 				}
 			}
 		});
@@ -330,15 +334,15 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 				FileDialog fileDialog = new FileDialog(getShell(), SWT.OPEN);
 				fileDialog.setText("Select an RDF file to add");
 				fileDialog.setFilterExtensions(new String[] { ".rdf", ".ttl", ".nt", ".nq", ".trig", ".owl", ".jsonld", ".trdf", ".rt", ".rpb", ".pbrdf", ".rj", ".trix", ".*" });
-				if (lastPath != null)
-					fileDialog.setFilterPath(lastPath);
+				if (dataModelLastPath != null)
+					fileDialog.setFilterPath(dataModelLastPath);
 
 				String selectedFile = fileDialog.open();
 				if (selectedFile != null) {
-					urls.add(new URLTableEntry("file:" + selectedFile));
-					urlList.refresh();
+					dataModelUrls.add(new URLTableEntry("file:" + selectedFile));
+					dataModelUrlListViewer.refresh();
 				}
-				lastPath = fileDialog.getFilterPath();
+				dataModelLastPath = fileDialog.getFilterPath();
 			}
 		});
 		
@@ -347,12 +351,12 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		removeUrlButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if (urlList.getSelection() instanceof IStructuredSelection) {
-					final IStructuredSelection sel = (IStructuredSelection)urlList.getSelection();
+				if (dataModelUrlListViewer.getSelection() instanceof IStructuredSelection) {
+					final IStructuredSelection sel = (IStructuredSelection)dataModelUrlListViewer.getSelection();
 					for (Iterator<?> it = sel.iterator(); it.hasNext(); ) {
-						urls.remove(it.next());
+						dataModelUrls.remove(it.next());
 					}
-					urlList.refresh();
+					dataModelUrlListViewer.refresh();
 					validateForm();
 				}
 			}
@@ -363,8 +367,113 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		clearUrlButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				urls.clear();
-				urlList.refresh();
+				dataModelUrls.clear();
+				dataModelUrlListViewer.refresh();
+				validateForm();
+			}
+		});
+
+		groupContent.layout();
+		groupContent.pack();
+		return groupContent;
+	}
+
+	private String schemaModelLastPath = null;
+	private Composite createSchemaModelRDFUrlsGroup(Composite parent) {
+		final Composite groupContent = DialogUtil.createGroupContainer(parent, "Schema Model URLs to load", 2);
+
+		schemaModelUrlListViewer = new TableViewer(groupContent, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.MULTI);
+
+		TableViewerColumn urlColumn = new TableViewerColumn(schemaModelUrlListViewer, SWT.NONE);
+		urlColumn.getColumn().setWidth(800);
+		urlColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				return ((URLTableEntry) element).url;
+			}
+		});
+		urlColumn.setEditingSupport(new URLEntryEditingSupport(schemaModelUrlListViewer));
+		
+		schemaModelUrlListViewer.setContentProvider(ArrayContentProvider.getInstance());
+		schemaModelUrlListViewer.setInput(schemaModelUrls);
+
+		GridData urlListLayout = new GridData(SWT.FILL, SWT.FILL, true, true);
+		schemaModelUrlListViewer.getControl().setLayoutData(urlListLayout);
+
+		final Composite urlButtons = new Composite(groupContent, SWT.NONE);
+		final GridData urlButtonsLayout = new GridData();
+		urlButtonsLayout.horizontalAlignment = SWT.FILL;
+		urlButtons.setLayoutData(urlButtonsLayout);
+		urlButtons.setLayout(new FillLayout(SWT.VERTICAL));
+
+		final Button addUrlButton = new Button(urlButtons, SWT.NONE);
+		addUrlButton.setText("Add");
+		addUrlButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				schemaModelUrls.add(new URLTableEntry(SAMPLE_URL));
+				schemaModelUrlListViewer.refresh();
+			}
+		});
+
+		final Button addFromWorkspaceButton = new Button(urlButtons, SWT.NONE);
+		addFromWorkspaceButton.setText("Browse Workspace...");
+		addFromWorkspaceButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				IFile file = BrowseWorkspaceUtil.browseFile(getShell(),
+						"Browse workspace", "Select file with RDF content", "*.rdf", null);
+
+				if (file != null) {
+					schemaModelUrls.add(new URLTableEntry(file.getLocationURI().toString()));
+					schemaModelUrlListViewer.refresh();
+				}
+			}
+		});
+				
+		final Button addFromFileSystemButton = new Button(urlButtons, SWT.NONE);
+		addFromFileSystemButton.setText("Browse Filesystem...");
+		addFromFileSystemButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				FileDialog fileDialog = new FileDialog(getShell(), SWT.OPEN);
+				fileDialog.setText("Select an RDF file to add");
+				fileDialog.setFilterExtensions(new String[] { ".rdf", ".ttl", ".nt", ".nq", ".trig", ".owl", ".jsonld", ".trdf", ".rt", ".rpb", ".pbrdf", ".rj", ".trix", ".*" });
+				if (schemaModelLastPath != null)
+					fileDialog.setFilterPath(schemaModelLastPath);
+
+				String selectedFile = fileDialog.open();
+				if (selectedFile != null) {
+					schemaModelUrls.add(new URLTableEntry("file:" + selectedFile));
+					schemaModelUrlListViewer.refresh();
+				}
+				schemaModelLastPath = fileDialog.getFilterPath();
+			}
+		});
+		
+		final Button removeUrlButton = new Button(urlButtons, SWT.NONE);
+		removeUrlButton.setText("Remove");
+		removeUrlButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if (schemaModelUrlListViewer.getSelection() instanceof IStructuredSelection) {
+					final IStructuredSelection sel = (IStructuredSelection)schemaModelUrlListViewer.getSelection();
+					for (Iterator<?> it = sel.iterator(); it.hasNext(); ) {
+						schemaModelUrls.remove(it.next());
+					}
+					schemaModelUrlListViewer.refresh();
+					validateForm();
+				}
+			}
+		});
+
+		final Button clearUrlButton = new Button(urlButtons, SWT.NONE);
+		clearUrlButton.setText("Clear");
+		clearUrlButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				schemaModelUrls.clear();
+				schemaModelUrlListViewer.refresh();
 				validateForm();
 			}
 		});
@@ -403,10 +512,17 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		super.loadProperties();
 		if (properties == null) return;
 
-		urls.clear();
+		dataModelUrls.clear();
 		for (String url : properties.getProperty(RDFModel.PROPERTY_DATA_URIS).split("\\s*,\\s*")) {
 			if (url.length() > 0) {
-				urls.add(new URLTableEntry(url));
+				dataModelUrls.add(new URLTableEntry(url));
+			}
+		}
+		
+		schemaModelUrls.clear();
+		for (String url : properties.getProperty(RDFModel.PROPERTY_SCHEMA_URIS).split("\\s*,\\s*")) {
+			if (url.length() > 0) {
+				schemaModelUrls.add(new URLTableEntry(url));
 			}
 		}
 
@@ -425,7 +541,8 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		
 		languagePreferenceText.setText(properties.getProperty(RDFModel.PROPERTY_LANGUAGE_PREFERENCE));
 
-		this.urlList.refresh();
+		this.dataModelUrlListViewer.refresh();
+		this.schemaModelUrlListViewer.refresh();
 		this.nsMappingTable.refresh();
 		validateForm();
 	}
@@ -435,9 +552,14 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		super.storeProperties();
 
 		properties.put(RDFModel.PROPERTY_DATA_URIS,
-			String.join(",", urls.stream()
+			String.join(",", dataModelUrls.stream()
 				.map(e -> e.url)
 				.collect(Collectors.toList())));
+		
+		properties.put(RDFModel.PROPERTY_SCHEMA_URIS,
+				String.join(",", schemaModelUrls.stream()
+					.map(e -> e.url)
+					.collect(Collectors.toList())));
 
 		properties.put(RDFModel.PROPERTY_PREFIXES,
 			String.join(",", nsMappingEntries.stream()
@@ -464,7 +586,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 			}
 		}
 
-		for (URLTableEntry entry : this.urls) {
+		for (URLTableEntry entry : this.dataModelUrls) {
 			String errorMessage = validateURL(entry.url);
 			if (errorMessage != null) {
 				setErrorMessage(errorMessage);
@@ -472,6 +594,14 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 			}
 		}
 
+		for (URLTableEntry entry : this.schemaModelUrls) {
+			String errorMessage = validateURL(entry.url);
+			if (errorMessage != null) {
+				setErrorMessage(errorMessage);
+				return;
+			}
+		}
+		
 		for (NamespaceMappingTableEntry entry : this.nsMappingEntries) {
 			String errorMessage = validateURL(entry.url);
 			if (errorMessage != null) {
