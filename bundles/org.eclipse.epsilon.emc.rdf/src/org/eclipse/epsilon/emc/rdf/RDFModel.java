@@ -12,6 +12,7 @@
  ********************************************************************************/
 package org.eclipse.epsilon.emc.rdf;
 
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -85,6 +86,18 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	protected final List<String> schemaURIs = new ArrayList<>();
 	protected final List<String> dataURIs = new ArrayList<>();
 	protected OntModel model;
+	
+	// Write the OntModel the driver is using a file, this includes data model (inferred schemas) and additional Ont information
+	// DO NOT USE THESE TO PERSIST A USER'S DATA MODEL!
+	public void writeOntModel(OutputStream outputStream, String language) {
+		model.write(outputStream, language);
+	}
+	
+	// As writeOntModel() but with All option, which adds yet more model information into the file
+	public void writeAllOntModel(OutputStream outputStream, String language) {
+		model.writeAll(outputStream, language);
+	}
+	
 
 	public RDFModel() {
 		this.propertyGetter = new RDFPropertyGetter(this);
