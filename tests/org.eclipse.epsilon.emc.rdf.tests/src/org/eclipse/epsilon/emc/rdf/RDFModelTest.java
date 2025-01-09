@@ -72,7 +72,8 @@ public class RDFModelTest {
 	@Test
 	public void listAll() throws EolModelLoadingException {
 		// The result of this test changes when using an OntModel
-		model.allContents().forEach(item->System.out.println(item.toString()));
+		// model.allContents().forEach(item->System.out.println(item.toString()));
+		
 		//assertEquals("allContents should produce one element per resource", 2, model.allContents().size());
 		assertTrue("allContents should produce more than one element per resource", model.allContents().size()>2);
 	}
