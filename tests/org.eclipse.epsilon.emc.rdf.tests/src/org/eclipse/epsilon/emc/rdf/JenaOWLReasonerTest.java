@@ -41,7 +41,7 @@ import org.apache.jena.vocabulary.OWL;
 import org.junit.Before;
 import org.junit.Test;
 
-public class OWLReasonerTest {
+public class JenaOWLReasonerTest {
 
 	private Model schema;
 	private Model data;
