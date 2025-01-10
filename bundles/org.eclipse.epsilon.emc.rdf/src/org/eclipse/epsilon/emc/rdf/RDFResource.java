@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntResource;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
@@ -50,12 +51,20 @@ public class RDFResource extends RDFModelElement {
 		super(rdfModel);
 		this.resource = aResource;
 		this.ontResource = null;
+		
+		// If the Resource has Ont Properties we can get an OntResource
+		try {
+			this.ontResource = resource.as(OntClass.class);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			//e.printStackTrace();
+		}
 	}
 	
-	public RDFResource(OntResource aResource, RDFModel rdfModel) {
+	public RDFResource(OntResource aResource, RDFModel rdfModel) { 
 		super(rdfModel);
+		this.resource = aResource.asResource();
 		this.ontResource = aResource;
-		this.resource = ontResource.asResource();
 	}
 
 	public Resource getResource() {
@@ -216,6 +225,16 @@ public class RDFResource extends RDFModelElement {
 	
 	public String getStatementsString() {
 		String statements = "Statements for RDFResource [" + resource + "]";
+		
+		boolean resourceIsClass = false;
+		try {
+			resourceIsClass = resource.as(OntClass.class).isClass();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			//e.printStackTrace();
+		}
+		statements = statements.concat(" is Class " + resourceIsClass); 
+
 		for (StmtIterator i = owningModel.model.listStatements(resource, (Property) null,(Resource) null); i.hasNext();) {
 			Statement stmt = i.nextStatement();
 			statements = statements.concat("\n - ").concat(PrintUtil.print(stmt).toString());
