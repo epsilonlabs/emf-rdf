@@ -67,6 +67,23 @@ public class RDFModelTest {
 			model.dispose();
 		}
 	}
+	
+	@Test
+	public void getAllClassesInModel()
+	{
+		Collection<RDFModelElement> modelClassesList = model.getClassesInModel();
+		//System.out.println(modelClassesList.size());
+		//modelClassesList.forEach(c -> {RDFResource res = (RDFResource) c; res.printStatements(); }); 
+		assertTrue("Model should have 31 Classes", modelClassesList.size() == 31 );
+	}
+	
+	@Test
+	public void getSpidermanElementsClasses() {
+		Collection<RDFModelElement> elementsClasses = model.getElementClassesByID(SPIDERMAN_URI, false);
+		//System.out.println(elementsClasses.size());
+		//elementsClasses.forEach(c -> {RDFResource res = (RDFResource) c; res.printStatements(); });
+		assertTrue("SPIDERMAN_URI should have 2 Classes", elementsClasses.size() == 2 );
+	}
 
 	// TODO review this test - OntModel changed results
 	@Test
