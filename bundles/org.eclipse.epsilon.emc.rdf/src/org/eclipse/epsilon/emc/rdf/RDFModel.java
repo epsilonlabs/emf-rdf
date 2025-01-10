@@ -21,7 +21,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Predicate;
 
+import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
@@ -32,6 +34,7 @@ import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.reasoner.ReasonerRegistry;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.epsilon.common.util.StringProperties;
 import org.eclipse.epsilon.eol.exceptions.EolRuntimeException;
@@ -132,7 +135,26 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		}
 		return null;
 	}
+	
+	public Collection<RDFModelElement> getElementClassesByID(String iri, boolean direct) {
+		List<RDFModelElement> classList = new ArrayList<>();
+		ExtendedIterator<Resource> rdfTypeList = model.getOntResource(iri).listRDFTypes(direct);
+		rdfTypeList.forEach(type -> {
+			if (type.as(OntClass.class).isClass()) {
+				classList.add(new RDFResource(type, this));
+			}
+		});
+		return classList;
+	}
 
+	public Collection<RDFModelElement> getClassesInModel() {
+		List<RDFModelElement> classList = new ArrayList<>();
+		ExtendedIterator<OntClass> modelClassIt = model.listClasses();
+		modelClassIt.forEach(c -> {classList.add(new RDFResource(c, this));
+		});	
+		return classList;
+	}
+	
 	@Override
 	public String getElementId(Object instance) {
 		if (instance instanceof RDFResource) {
