@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.jena.ontology.OntResource;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
@@ -25,6 +26,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
+import org.apache.jena.util.PrintUtil;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.epsilon.eol.execute.context.IEolContext;
@@ -42,14 +44,29 @@ public class RDFResource extends RDFModelElement {
 	}
 
 	private Resource resource;
+	private OntResource ontResource;
 
-	public RDFResource(Resource resource, RDFModel rdfModel) {
+	public RDFResource(Resource aResource, RDFModel rdfModel) {
 		super(rdfModel);
-		this.resource = resource;
+		this.resource = aResource;
+		this.ontResource = null;
+	}
+	
+	public RDFResource(OntResource aResource, RDFModel rdfModel) {
+		super(rdfModel);
+		this.ontResource = aResource;
+		this.resource = ontResource.asResource();
 	}
 
 	public Resource getResource() {
 		return resource;
+	}
+	
+	public boolean isOntResource() {
+		if (ontResource != null) {
+			return true;
+		}
+		return false;
 	}
 
 	public Collection<Object> getProperty(String property, IEolContext context) {
@@ -62,7 +79,6 @@ public class RDFResource extends RDFModelElement {
 			RDFQualifiedName withoutLiteral = pName.withLocalName(localNameWithoutSuffix);
 			value = getProperty(withoutLiteral, context, LiteralMode.RAW);
 		}
-
 		return value;
 	}
 
@@ -196,6 +212,19 @@ public class RDFResource extends RDFModelElement {
 	@Override
 	public String toString() {
 		return "RDFResource [resource=" + resource + "]";
+	}
+	
+	public String getStatementsString() {
+		String statements = "Statements for RDFResource [" + resource + "]";
+		for (StmtIterator i = owningModel.model.listStatements(resource, (Property) null,(Resource) null); i.hasNext();) {
+			Statement stmt = i.nextStatement();
+			statements = statements.concat("\n - ").concat(PrintUtil.print(stmt).toString());
+		}
+		return statements;
+	}
+	
+	public void printStatements() {
+		System.out.println(getStatementsString());
 	}
 
 }
