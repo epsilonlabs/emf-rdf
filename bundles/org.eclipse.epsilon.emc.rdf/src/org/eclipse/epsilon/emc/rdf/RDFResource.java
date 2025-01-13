@@ -19,7 +19,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.jena.ontology.OntClass;
+import org.apache.jena.ontology.OntProperty;
 import org.apache.jena.ontology.OntResource;
+import org.apache.jena.ontology.Restriction;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
@@ -50,18 +52,18 @@ public class RDFResource extends RDFModelElement {
 	public RDFResource(Resource aResource, RDFModel rdfModel) {
 		super(rdfModel);
 		this.resource = aResource;
-		this.ontResource = null;
 		
 		// If the Resource has Ont Properties we can get an OntResource
 		try {
 			this.ontResource = resource.as(OntClass.class);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
+			this.ontResource = null;
+			//System.out.println("resource: " + resource.getLocalName() + " not ontResource");
+			// this.printStatements();
 		}
 	}
-	
-	public RDFResource(OntResource aResource, RDFModel rdfModel) { 
+
+	public RDFResource(OntResource aResource, RDFModel rdfModel) {
 		super(rdfModel);
 		this.resource = aResource.asResource();
 		this.ontResource = aResource;
@@ -127,6 +129,13 @@ public class RDFResource extends RDFModelElement {
 		return new ArrayList<>(rawFromUntagged);
 	}
 	
+	private void checkPropertyStmtForRestrictionsOnPredicate(Statement propertyStmt) {
+			OntProperty ontP = propertyStmt.getPredicate().as(OntProperty.class);
+			ExtendedIterator<Restriction> propertyRestriction = ontP.listReferringRestrictions();
+			propertyRestriction.forEach(r-> System.out.println("  property - "+ propertyStmt +" has restriction -" + r));
+			// TODO Look up the Restrictions on a List of Restrictions stored on the model. 
+	}
+	
 	public Collection<Object> getProperty(RDFQualifiedName pName, IEolContext context, LiteralMode literalMode) {
 		// Filter statements by prefix and local name
 		ExtendedIterator<Statement> itStatements = null;
@@ -158,6 +167,7 @@ public class RDFResource extends RDFModelElement {
 				Statement stmt = itStatements.next();
 				values.put(stmt.getPredicate().getURI(),
 						convertToModelObject(stmt.getObject()));
+				checkPropertyStmtForRestrictionsOnPredicate(stmt);
 			}
 
 			final Set<String> distinctKeys = values.keySet();
@@ -176,6 +186,7 @@ public class RDFResource extends RDFModelElement {
 			while (itStatements.hasNext()) {
 				Statement stmt = itStatements.next();
 				values.add(convertToModelObject(stmt.getObject()));
+				checkPropertyStmtForRestrictionsOnPredicate(stmt);
 			}
 			rawValues = values;
 		}
@@ -184,6 +195,8 @@ public class RDFResource extends RDFModelElement {
 		if (pName.languageTag == null && !rawValues.stream().anyMatch(p -> p instanceof RDFResource)) {
 			rawValues = filterByPreferredLanguage(rawValues);
 		}
+		
+		
 
 		// Convert literals to values depending on mode
 		switch (literalMode) {
