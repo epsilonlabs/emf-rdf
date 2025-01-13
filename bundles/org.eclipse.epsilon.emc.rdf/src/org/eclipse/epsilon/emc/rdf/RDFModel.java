@@ -25,6 +25,8 @@ import java.util.function.Predicate;
 
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
+import org.apache.jena.ontology.OntProperty;
+import org.apache.jena.ontology.Restriction;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -136,7 +138,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		return null;
 	}
 	
-	public Collection<RDFModelElement> getElementClassesByID(String iri, boolean direct) {
+	public Collection<RDFModelElement> listClassesForElementByID(String iri, boolean direct) {
 		List<RDFModelElement> classList = new ArrayList<>();
 		ExtendedIterator<Resource> rdfTypeList = model.getOntResource(iri).listRDFTypes(direct);
 		rdfTypeList.forEach(type -> {
@@ -147,12 +149,25 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		return classList;
 	}
 
-	public Collection<RDFModelElement> getClassesInModel() {
+	public Collection<RDFModelElement> listOntClassesInModel() {
 		List<RDFModelElement> classList = new ArrayList<>();
 		ExtendedIterator<OntClass> modelClassIt = model.listClasses();
-		modelClassIt.forEach(c -> {classList.add(new RDFResource(c, this));
-		});	
+		modelClassIt.forEach(c ->classList.add(new RDFResource(c, this)));	
 		return classList;
+	}
+	
+	public Collection<RDFModelElement> listOntPropertiesInModel(){
+		List<RDFModelElement> ontPropertyList = new ArrayList<>();
+		ExtendedIterator<OntProperty> modelOntPropertiesIt = model.listOntProperties();
+		modelOntPropertiesIt.forEach(p ->ontPropertyList.add(new RDFResource(p,this)));
+		return ontPropertyList;
+	}
+	
+	public Collection<RDFModelElement> listRestrictionInModel(){
+		List<RDFModelElement> restrictionList = new ArrayList<>();
+		ExtendedIterator<Restriction> restrictionIt = model.listRestrictions();
+		restrictionIt.forEach(r -> restrictionList.add(new RDFResource(r, this)));
+		return restrictionList;
 	}
 	
 	@Override
