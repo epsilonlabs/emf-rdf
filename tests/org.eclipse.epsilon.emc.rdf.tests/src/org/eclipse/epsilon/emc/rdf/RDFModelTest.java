@@ -71,7 +71,7 @@ public class RDFModelTest {
 	@Test
 	public void getAllClassesInModel()
 	{
-		Collection<RDFModelElement> modelClassesList = model.getClassesInModel();
+		Collection<RDFModelElement> modelClassesList = model.listOntClassesInModel();
 		//System.out.println(modelClassesList.size());
 		//modelClassesList.forEach(c -> {RDFResource res = (RDFResource) c; res.printStatements(); }); 
 		assertTrue("Model should have 31 Classes", modelClassesList.size() == 31 );
@@ -79,9 +79,14 @@ public class RDFModelTest {
 	
 	@Test
 	public void getSpidermanElementsClasses() {
-		Collection<RDFModelElement> elementsClasses = model.getElementClassesByID(SPIDERMAN_URI, false);
-		//System.out.println(elementsClasses.size());
-		//elementsClasses.forEach(c -> {RDFResource res = (RDFResource) c; res.printStatements(); });
+		Collection<RDFModelElement> elementsClasses = model.listClassesForElementByID(SPIDERMAN_URI, false);
+		/*
+		System.out.println("SPIDERMAN_URI elementsClasses: " + elementsClasses.size());
+		elementsClasses.forEach(c -> {
+			RDFResource res = (RDFResource) c; 
+			res.printStatements();
+			});
+		*/
 		assertTrue("SPIDERMAN_URI should have 2 Classes", elementsClasses.size() == 2 );
 	}
 
