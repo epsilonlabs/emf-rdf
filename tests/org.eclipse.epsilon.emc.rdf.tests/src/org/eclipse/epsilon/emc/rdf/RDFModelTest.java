@@ -72,8 +72,8 @@ public class RDFModelTest {
 	public void getAllClassesInModel()
 	{
 		Collection<RDFModelElement> modelClassesList = model.listOntClassesInModel();
-		//System.out.println(modelClassesList.size());
-		//modelClassesList.forEach(c -> {RDFResource res = (RDFResource) c; res.printStatements(); }); 
+		System.out.println(modelClassesList.size());
+		modelClassesList.forEach(c -> {RDFResource res = (RDFResource) c; res.printStatements(); }); 
 		assertTrue("Model should have 31 Classes", modelClassesList.size() == 31 );
 	}
 	
@@ -90,14 +90,11 @@ public class RDFModelTest {
 		assertTrue("SPIDERMAN_URI should have 2 Classes", elementsClasses.size() == 2 );
 	}
 
-	// TODO review this test - OntModel changed results
 	@Test
 	public void listAll() throws EolModelLoadingException {
-		// The result of this test changes when using an OntModel
+		// The result of this test changes when using an OntModel, we now have more that 2 but should have at least 2
 		// model.allContents().forEach(item->System.out.println(item.toString()));
-		
-		//assertEquals("allContents should produce one element per resource", 2, model.allContents().size());
-		assertTrue("allContents should produce more than one element per resource", model.allContents().size()>2);
+		assertTrue("allContents should produce at least one element for the Green Goblin and Spiderman ", model.allContents().size()>=2);
 	}
 
 	@Test
@@ -200,7 +197,6 @@ public class RDFModelTest {
 		assertFalse("The model should deny that it knows the foaf:SomethingElse type", model.hasType("foaf:SomethingElse"));
 	}
 
-	// TODO review this test - OntModel changed results
 	@Test
 	public void getPersonInformation() throws Exception {
 		RDFModelElement firstPerson = model.getAllOfType("foaf:Person").iterator().next();
@@ -209,37 +205,11 @@ public class RDFModelTest {
 		assertEquals("The model should report the first type of the resource",
 			"foaf:Person",
 			model.getTypeNameOf(firstPerson));
-
-
-		// OntModel extended the graph and the firstPerson reports as foaf:Person rdfs:Resource
-		// A reasoner with a schema could further add types for the firstPerson on an inferred model
-		/*
-		System.out.print("\n Collections.singleton: ");
-		Collections.singleton("foaf:Person").forEach(p->System.out.print(p.toString() + " "));
 		
-		System.out.print("\n Model.getAllTypeNamesOf: ");
-		model.getAllTypeNamesOf(firstPerson).forEach(n->System.out.print(n.toString() + " "));
-		
-		// This may be revised later, if generic types are introduced		
-		assertEquals("The model should only report the Person type for that person",
-			Collections.singletonList("foaf:Person"),
-			model.getAllTypeNamesOf(firstPerson));
-		*/	
+		assertEquals("The model should only report the Person type and the rdfs Resource",
+				new HashSet<>(Arrays.asList("foaf:Person", "rdfs:Resource")),
+				new HashSet<>(model.getAllTypeNamesOf(firstPerson)));		
 	}
-
-	// TODO review this test - OntModel changed results
-	/*
-	@Test(expected=EolModelElementTypeNotFoundException.class)
-	public void jenaDoesNotFetchRelatedVocabulary() throws Exception {
-		// By itself, Jena will not fetch the related FOAF vocabulary referenced in the Turtles example
-		
-		// When using an OntModel classes are added the to the model to support Jena's Ont API
-		System.out.println("model.getAllOfType: ");
-		model.getAllOfType("Class").forEach(type -> System.out.println(" - " + type));
-		
-		model.getAllOfType("Class");
-	}
-	*/
 	
 	// Functions not tests
 
