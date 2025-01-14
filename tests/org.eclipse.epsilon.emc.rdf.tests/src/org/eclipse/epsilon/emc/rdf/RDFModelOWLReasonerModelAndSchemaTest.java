@@ -122,12 +122,13 @@ public class RDFModelOWLReasonerModelAndSchemaTest {
 		System.out.println("\nGet the MotherBoard for " + element);
 		System.out.println("\nMax Cardinality should mean we get 1 motherboard (possibly random)");
 		Collection<Object> motherBoard = element.listPropertyValues("eg:hasMotherBoard", context);
+		motherBoard.forEach(motherboard -> {System.out.println(motherboard);});
 		
 		// Jena provides access to a list of Restrictions that can be found applied to the model 
-		listModelRestictions();
+		//listModelRestictions();
 
 		// These are all the statements about the element selected, note there are some with "generated" URIs - these are inferred by Jena
-		System.out.println("\n" + element.getStatementsString());
+		//System.out.println("\n" + element.getStatementsString());
 
 	}
 

@@ -108,43 +108,20 @@ public class RDFResource extends RDFModelElement {
 		return new ArrayList<>(rawFromUntagged);
 	}
 	
-	// TODO make this check the cardinality of a predicate "property"
-	private void checkPropertyStmtForRestrictionsOnPredicate(Statement propertyStmt) {
-			OntProperty predicateOntProperty = propertyStmt.getPredicate().as(OntProperty.class);
-			ExtendedIterator<Restriction> propertyRestrictionIt = predicateOntProperty.listReferringRestrictions();
-			propertyRestrictionIt.forEach(refferingRestriction -> {
-				System.out.println(
-						"  property - " + propertyStmt + " predicate has restrictions -" + refferingRestriction);
 
-				// Play guess who with the Cardinality restrictions
-				
-				if (refferingRestriction.isCardinalityRestriction()) {
-					System.out.println("   " + refferingRestriction + " asCardinalityRestriction : "
-							+ refferingRestriction.asCardinalityRestriction().getCardinality());
-				}
-
-				if (refferingRestriction.isMinCardinalityRestriction()) {
-					System.out.println("   " + refferingRestriction + " asMinCardinalityRestriction : "
-							+ refferingRestriction.asMinCardinalityRestriction().getMinCardinality());
-				}
-
-				if (refferingRestriction.isMaxCardinalityRestriction()) {
-					System.out.println("   " + refferingRestriction + " asMaxCardinalityRestriction : "
-							+ refferingRestriction.asMaxCardinalityRestriction().getMaxCardinality());
-				}
-			});
-			// TODO Look up the Restrictions on a List of Restrictions stored on the model. 
-	}
 	
 	public Collection<Object> listPropertyValues(RDFQualifiedName propertyName, IEolContext context, LiteralMode literalMode) {
-
+		// TODO Handle the maxCardinality as an object (restriction) not a value?
+		int maxCardinality = RDFPropertyProcesses.getPropertyStatementMaxCardinality(propertyName, resource);
+		//int maxCardinality = 1; // Manual testing
+		
 		ExtendedIterator<Statement> itStatements; 
 		itStatements = RDFPropertyProcesses.getPropertyStatementIterator(propertyName, resource);	
 		itStatements = RDFPropertyProcesses.filterPropertyStatementsIteratorWithLanguageTag(propertyName, itStatements);
 		
 		
 		// Build a collection Objects for the rawValues of the Objects for the Properties remaining 
-		Collection<Object> rawValues;
+		Collection<Object> rawPropertyValues;
 		if (propertyName.prefix == null) {
 			// If no prefix was specified, watch out for ambiguity and issue warning in that case
 			ListMultimap<String, Object> values = MultimapBuilder.hashKeys().arrayListValues().build();
@@ -152,7 +129,6 @@ public class RDFResource extends RDFModelElement {
 				Statement stmt = itStatements.next();
 				values.put(stmt.getPredicate().getURI(),
 						convertToModelObject(stmt.getObject()));
-				checkPropertyStmtForRestrictionsOnPredicate(stmt);
 			}
 
 			final Set<String> distinctKeys = values.keySet();
@@ -164,29 +140,35 @@ public class RDFResource extends RDFModelElement {
 				));
 			}
 
-			rawValues = values.values();
+			rawPropertyValues = values.values();
 		} else {
 			// Prefix was specified: we don't have to worry about ambiguity
 			final List<Object> values = new ArrayList<>();
 			while (itStatements.hasNext()) {
 				Statement stmt = itStatements.next();
 				values.add(convertToModelObject(stmt.getObject()));
-				checkPropertyStmtForRestrictionsOnPredicate(stmt);
 			}
-			rawValues = values;
+			rawPropertyValues = values;
 		}
 
 		// Filter by preferred languages if any are set
-		if (propertyName.languageTag == null && !rawValues.stream().anyMatch(p -> p instanceof RDFResource)) {
-			rawValues = filterByPreferredLanguage(rawValues);
+		if (propertyName.languageTag == null && !rawPropertyValues.stream().anyMatch(p -> p instanceof RDFResource)) {
+			rawPropertyValues = filterByPreferredLanguage(rawPropertyValues);
+		}
+		
+		// Check collection of rawValues is less than the MaxCardinality and prune as needed...
+		if ((maxCardinality != -1) & (rawPropertyValues.size() > maxCardinality)) {
+			System.out.println("Prue values, maxCardinality " + maxCardinality + " rawPropertyValues.size() "
+					+ rawPropertyValues.size());
+			rawPropertyValues = rawPropertyValues.stream().limit(maxCardinality).collect(Collectors.toList());
 		}
 		
 		// Convert literals to values depending on mode
 		switch (literalMode) {
 		case VALUES_ONLY:
-			return convertLiteralsToValues(rawValues);
+			return convertLiteralsToValues(rawPropertyValues);
 		case RAW:
-			return rawValues;
+			return rawPropertyValues;
 		default:
 			throw new IllegalArgumentException("Unknown literal mode " + literalMode);
 		}
