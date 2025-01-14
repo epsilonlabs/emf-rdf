@@ -47,13 +47,15 @@ public class RDFResource extends RDFModelElement {
 	}
 
 	private Resource resource;
-	private OntResource ontResource;
+	//private OntResource ontResource;
 
 	public RDFResource(Resource aResource, RDFModel rdfModel) {
 		super(rdfModel);
 		this.resource = aResource;
 		
-		// If the Resource has Ont Properties we can get an OntResource
+		/*
+		// May not need this OntResource stuff
+		// See the if the Resource can be handled as an OntResource
 		try {
 			this.ontResource = resource.as(OntClass.class);
 		} catch (Exception e) {
@@ -61,16 +63,14 @@ public class RDFResource extends RDFModelElement {
 			//System.out.println("resource: " + resource.getLocalName() + " not ontResource");
 			// this.printStatements();
 		}
+		*/
 	}
-
+/*
+	// May not need this after all
 	public RDFResource(OntResource aResource, RDFModel rdfModel) {
 		super(rdfModel);
 		this.resource = aResource.asResource();
 		this.ontResource = aResource;
-	}
-
-	public Resource getResource() {
-		return resource;
 	}
 	
 	public boolean isOntResource() {
@@ -78,6 +78,10 @@ public class RDFResource extends RDFModelElement {
 			return true;
 		}
 		return false;
+	}
+*/
+	public Resource getResource() {
+		return resource;
 	}
 
 	public Collection<Object> getProperty(String property, IEolContext context) {
@@ -196,8 +200,6 @@ public class RDFResource extends RDFModelElement {
 			rawValues = filterByPreferredLanguage(rawValues);
 		}
 		
-		
-
 		// Convert literals to values depending on mode
 		switch (literalMode) {
 		case VALUES_ONLY:
