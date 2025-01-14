@@ -48,41 +48,10 @@ public class RDFResource extends RDFModelElement {
 
 	private Resource resource;
 	
-	//private OntResource ontResource;
-
 	public RDFResource(Resource aResource, RDFModel rdfModel) {
 		super(rdfModel);
 		this.resource = aResource;
-		
-		/*
-		// May not need this OntResource stuff
-		// See the if the Resource can be handled as an OntResource
-		try {
-			this.ontResource = resource.as(OntClass.class);
-		} catch (Exception e) {
-			this.ontResource = null;
-			//System.out.println("resource: " + resource.getLocalName() + " not ontResource");
-			// this.printStatements();
-		}
-		*/
 	}
-	
-/*
-	
-// May not need this after all
-	public RDFResource(OntResource aResource, RDFModel rdfModel) {
-		super(rdfModel);
-		this.resource = aResource.asResource();
-		this.ontResource = aResource;
-	}
-	
-	public boolean isOntResource() {
-		if (ontResource != null) {
-			return true;
-		}
-		return false;
-	}
-*/
 	
 	public Resource getResource() {
 		return resource;
