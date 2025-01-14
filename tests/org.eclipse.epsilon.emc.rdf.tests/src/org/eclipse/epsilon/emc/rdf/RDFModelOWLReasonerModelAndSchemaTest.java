@@ -79,7 +79,7 @@ public class RDFModelOWLReasonerModelAndSchemaTest {
 	private static final boolean DISPLAYLISTSOFMODEL = false;
 	
 	@Test
-	public void listModelClassesTest() {
+	public void listModelOntClassesTest() {
 		final int EXPECTED_RESULT = 42;
 		loadModelDefaults();
 		Collection<RDFModelElement> classList = model.listOntClassesInModel();
@@ -161,7 +161,7 @@ public class RDFModelOWLReasonerModelAndSchemaTest {
 		System.out.println("\nListing Model Restrictions : " + restrictionList.size());
 		restrictionList.forEach(r -> {
 			RDFResource res = (RDFResource) r;
-			System.out.println("\n" + r + " expresses restictions in these statements:\n " + res.getStatementsString());
+			System.out.println("\n" + r + " expresses restrictions as with these statements:\n " + res.getStatementsString());
 
 		});
 
