@@ -72,8 +72,8 @@ public class RDFModelTest {
 	public void getAllClassesInModel()
 	{
 		Collection<RDFModelElement> modelClassesList = model.listOntClassesInModel();
-		System.out.println(modelClassesList.size());
-		modelClassesList.forEach(c -> {RDFResource res = (RDFResource) c; res.printStatements(); }); 
+		//System.out.println(modelClassesList.size());
+		//modelClassesList.forEach(c -> {RDFResource res = (RDFResource) c; res.printStatements(); }); 
 		assertTrue("Model should have 31 Classes", modelClassesList.size() == 31 );
 	}
 	

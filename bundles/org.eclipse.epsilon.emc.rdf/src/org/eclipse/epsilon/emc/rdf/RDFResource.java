@@ -47,6 +47,7 @@ public class RDFResource extends RDFModelElement {
 	}
 
 	private Resource resource;
+	
 	//private OntResource ontResource;
 
 	public RDFResource(Resource aResource, RDFModel rdfModel) {
@@ -65,8 +66,10 @@ public class RDFResource extends RDFModelElement {
 		}
 		*/
 	}
+	
 /*
-	// May not need this after all
+	
+// May not need this after all
 	public RDFResource(OntResource aResource, RDFModel rdfModel) {
 		super(rdfModel);
 		this.resource = aResource.asResource();
@@ -80,20 +83,23 @@ public class RDFResource extends RDFModelElement {
 		return false;
 	}
 */
+	
 	public Resource getResource() {
 		return resource;
 	}
 
-	public Collection<Object> getProperty(String property, IEolContext context) {
+	public Collection<Object> listPropertyValues(String property, IEolContext context) {
 		final RDFQualifiedName pName = RDFQualifiedName.from(property, this.owningModel::getNamespaceURI);
-		Collection<Object> value = getProperty(pName, context, LiteralMode.VALUES_ONLY);
+		
+		Collection<Object> value = listPropertyValues(pName, context, LiteralMode.VALUES_ONLY);
 
 		if (value.isEmpty() && pName.localName.endsWith(LITERAL_SUFFIX)) {
 			final String localNameWithoutSuffix = pName.localName.substring(0,
 					pName.localName.length() - LITERAL_SUFFIX.length());
 			RDFQualifiedName withoutLiteral = pName.withLocalName(localNameWithoutSuffix);
-			value = getProperty(withoutLiteral, context, LiteralMode.RAW);
+			value = listPropertyValues(withoutLiteral, context, LiteralMode.RAW);
 		}
+		
 		return value;
 	}
 
@@ -133,38 +139,44 @@ public class RDFResource extends RDFModelElement {
 		return new ArrayList<>(rawFromUntagged);
 	}
 	
+	// TODO make this check the cardinality of a predicate "property"
 	private void checkPropertyStmtForRestrictionsOnPredicate(Statement propertyStmt) {
-			OntProperty ontP = propertyStmt.getPredicate().as(OntProperty.class);
-			ExtendedIterator<Restriction> propertyRestriction = ontP.listReferringRestrictions();
-			propertyRestriction.forEach(r-> System.out.println("  property - "+ propertyStmt +" predicate has restriction -" + r));
+			OntProperty predicateOntProperty = propertyStmt.getPredicate().as(OntProperty.class);
+			ExtendedIterator<Restriction> propertyRestrictionIt = predicateOntProperty.listReferringRestrictions();
+			propertyRestrictionIt.forEach(refferingRestriction -> {
+				System.out.println(
+						"  property - " + propertyStmt + " predicate has restrictions -" + refferingRestriction);
+
+				// Play guess who with the Cardinality restrictions
+				
+				if (refferingRestriction.isCardinalityRestriction()) {
+					System.out.println("   " + refferingRestriction + " asCardinalityRestriction : "
+							+ refferingRestriction.asCardinalityRestriction().getCardinality());
+				}
+
+				if (refferingRestriction.isMinCardinalityRestriction()) {
+					System.out.println("   " + refferingRestriction + " asMinCardinalityRestriction : "
+							+ refferingRestriction.asMinCardinalityRestriction().getMinCardinality());
+				}
+
+				if (refferingRestriction.isMaxCardinalityRestriction()) {
+					System.out.println("   " + refferingRestriction + " asMaxCardinalityRestriction : "
+							+ refferingRestriction.asMaxCardinalityRestriction().getMaxCardinality());
+				}
+			});
 			// TODO Look up the Restrictions on a List of Restrictions stored on the model. 
 	}
 	
-	public Collection<Object> getProperty(RDFQualifiedName pName, IEolContext context, LiteralMode literalMode) {
-		// Filter statements by prefix and local name
-		ExtendedIterator<Statement> itStatements = null;
-		if (pName.prefix == null) {
-			itStatements = resource.listProperties()
-				.filterKeep(stmt -> pName.localName.equals(stmt.getPredicate().getLocalName()));
-		} else {
-			String prefixIri = resource.getModel().getNsPrefixMap().get(pName.prefix);
-			Property prop = new PropertyImpl(prefixIri, pName.localName);
-			itStatements = resource.listProperties(prop);
-		}
+	public Collection<Object> listPropertyValues(RDFQualifiedName propertyName, IEolContext context, LiteralMode literalMode) {
 
-		// If a language tag is used, only keep literals with that tag
-		if (pName.languageTag != null) {
-			itStatements = itStatements.filterKeep(stmt -> {
-				if (stmt.getObject() instanceof Literal) {
-					Literal l = (Literal) stmt.getObject();
-					return pName.languageTag.equals(l.getLanguage());
-				}
-				return false;
-			});
-		}
-
+		ExtendedIterator<Statement> itStatements; 
+		itStatements = RDFPropertyProcesses.getPropertyStatementIterator(propertyName, resource);	
+		itStatements = RDFPropertyProcesses.filterPropertyStatementsIteratorWithLanguageTag(propertyName, itStatements);
+		
+		
+		// Build a collection Objects for the rawValues of the Objects for the Properties remaining 
 		Collection<Object> rawValues;
-		if (pName.prefix == null) {
+		if (propertyName.prefix == null) {
 			// If no prefix was specified, watch out for ambiguity and issue warning in that case
 			ListMultimap<String, Object> values = MultimapBuilder.hashKeys().arrayListValues().build();
 			while (itStatements.hasNext()) {
@@ -178,7 +190,7 @@ public class RDFResource extends RDFModelElement {
 			if (distinctKeys.size() > 1) {
 				context.getWarningStream().println(String.format(
 					"Ambiguous access to property '%s': multiple prefixes found (%s)",
-					pName,
+					propertyName,
 					String.join(", ", distinctKeys)
 				));
 			}
@@ -196,7 +208,7 @@ public class RDFResource extends RDFModelElement {
 		}
 
 		// Filter by preferred languages if any are set
-		if (pName.languageTag == null && !rawValues.stream().anyMatch(p -> p instanceof RDFResource)) {
+		if (propertyName.languageTag == null && !rawValues.stream().anyMatch(p -> p instanceof RDFResource)) {
 			rawValues = filterByPreferredLanguage(rawValues);
 		}
 		
