@@ -76,55 +76,59 @@ public class RDFModelOWLReasonerModelAndSchemaTest {
 		loadModelDefaults();
 		assertTrue(model != null);
 	}
+	private static final boolean DISPLAYLISTSOFMODEL = false;
 	
 	@Test
 	public void listModelClassesTest() {
+		final int EXPECTED_RESULT = 42;
 		loadModelDefaults();
 		Collection<RDFModelElement> classList = model.listOntClassesInModel();
-		System.out.println( "Model Classes : " + classList.size());
-		classList.forEach(o -> System.out.println(" OntClass " + o));
+		assertTrue( "Model should have "+EXPECTED_RESULT+" OntClasses" , classList.size()== EXPECTED_RESULT);
+		if (DISPLAYLISTSOFMODEL) {
+			System.out.println( "Model OntClasses : " + classList.size());
+			classList.forEach(o -> System.out.println(" OntClass " + o));
+		}
 	}
 	
 	@Test
 	public void listModelOntPropertiesTest() {
+		final int EXPECTED_RESULT = 33;
 		loadModelDefaults();
 		Collection<RDFModelElement> ontPropList = model.listOntPropertiesInModel();
-		System.out.println( "Model OntProperties : " + ontPropList.size());
-		ontPropList.forEach(o -> System.out.println(" OntProperty "+o));
-		
+		assertTrue("Model should have " + EXPECTED_RESULT + " OntProperties", ontPropList.size() == EXPECTED_RESULT);
+		if (DISPLAYLISTSOFMODEL) {
+			System.out.println( "Model OntProperties : " + ontPropList.size());
+			ontPropList.forEach(o -> System.out.println(" OntProperty " + o));
+		}
 	}
-	
+
 	@Test
 	public void listModelRestictionsTest() {
+		final int EXPECTED_RESULT = 3;
 		loadModelDefaults();
 		Collection<RDFModelElement> restrictionList = model.listRestrictionInModel();
-		System.out.println("Model Restrictions : " + restrictionList.size());
-		restrictionList.forEach(r->{System.out.println(" Restriction " + r);});
+		assertTrue("Model should have " + EXPECTED_RESULT + " Restrictions", restrictionList.size() == EXPECTED_RESULT);
+		if (DISPLAYLISTSOFMODEL) {
+			System.out.println("Model Restrictions : " + restrictionList.size());
+			restrictionList.forEach(r -> System.out.println(" Restriction " + r));
+		}
 	}
 
 	@Test
 	public void getMotherBoard() {
 		loadModelDefaults();
-		
+
 		RDFResource element = model.getElementById(URI_BIGNAME42);
-		//System.out.println(element.getStatementsString());		
-		System.out.println("\nMax Cardinality should mean we get 1 motherboard (possibly random)");		
+		System.out.println("\nGet the MotherBoard for " + element);
+		System.out.println("\nMax Cardinality should mean we get 1 motherboard (possibly random)");
 		Collection<Object> motherBoard = element.getProperty("eg:hasMotherBoard", context);
 		
-		
+		// Jena provides access to a list of Restrictions that can be found applied to the model 
 		listModelRestictions();
-		
-		/*
-		element.getResource().listProperties().forEach(p -> {
-			OntProperty ontP = p.getPredicate().as(OntProperty.class);
-			
-			ontP.listReferringRestrictions().forEach(r -> {
-				if (r.isMaxCardinalityRestriction()) {
-					System.out.println("Property : " + p + " has MaxCardinalityRestriction" + r);
-				}
-			});
-		});
-		*/
+
+		// These are all the statements about the element selected, note there are some with "generated" URIs - these are inferred by Jena
+		System.out.println("\n" + element.getStatementsString());
+
 	}
 
 	// Functions not tests
@@ -151,17 +155,16 @@ public class RDFModelOWLReasonerModelAndSchemaTest {
 			e.printStackTrace();
 		}
 	}
-	
-	public void listModelRestictions() {		
+
+	public void listModelRestictions() {
 		Collection<RDFModelElement> restrictionList = model.listRestrictionInModel();
 		System.out.println("\nListing Model Restrictions : " + restrictionList.size());
-		restrictionList.forEach(r->{
+		restrictionList.forEach(r -> {
 			RDFResource res = (RDFResource) r;
 			System.out.println("\n" + r + " expresses restictions in these statements:\n " + res.getStatementsString());
-			
-			
-			});
-		
+
+		});
+
 	}
 
 }

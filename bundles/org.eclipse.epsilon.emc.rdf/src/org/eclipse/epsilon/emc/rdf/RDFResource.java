@@ -132,7 +132,7 @@ public class RDFResource extends RDFModelElement {
 	private void checkPropertyStmtForRestrictionsOnPredicate(Statement propertyStmt) {
 			OntProperty ontP = propertyStmt.getPredicate().as(OntProperty.class);
 			ExtendedIterator<Restriction> propertyRestriction = ontP.listReferringRestrictions();
-			propertyRestriction.forEach(r-> System.out.println("  property - "+ propertyStmt +" has restriction -" + r));
+			propertyRestriction.forEach(r-> System.out.println("  property - "+ propertyStmt +" predicate has restriction -" + r));
 			// TODO Look up the Restrictions on a List of Restrictions stored on the model. 
 	}
 	
