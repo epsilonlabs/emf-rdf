@@ -74,12 +74,11 @@ public class RDFPropertyProcesses {
 				}
 			}
 		}
-		if (mostRestrictiveMaxCardinality != null) System.out.println("returning maxCardinality " + mostRestrictiveMaxCardinality.getMaxCardinality());
 		return mostRestrictiveMaxCardinality;
 	}
 	
 	// Probably delete this later...
-	private static void checkPropertyStmtForRestrictionsOnPredicate(Statement propertyStmt) {
+	private static void checkPropertyStmtForCardinalityRestrictionsOnPredicate(Statement propertyStmt) {
 			OntProperty predicateOntProperty = propertyStmt.getPredicate().as(OntProperty.class);
 			ExtendedIterator<Restriction> propertyRestrictionIt = predicateOntProperty.listReferringRestrictions();
 			propertyRestrictionIt.forEach(refferingRestriction -> {
@@ -103,7 +102,6 @@ public class RDFPropertyProcesses {
 							+ refferingRestriction.asMaxCardinalityRestriction().getMaxCardinality());
 				}
 			});
-			// TODO Look up the Restrictions on a List of Restrictions stored on the model. 
 	}
 	
 }

@@ -155,8 +155,9 @@ public class RDFResource extends RDFModelElement {
 		// Check collection of rawValues is less than the MaxCardinality and prune as needed...
 		if (null != maxCardinality) {
 			if (rawPropertyValues.size() > maxCardinality.getMaxCardinality()) {
-				System.err.println("Max cardinality " + maxCardinality.getMaxCardinality() + " raw property values found "
-						+ rawPropertyValues.size() + " the list of raw property values have been pruned.");
+				System.err.println("Property [" + propertyName.localName + "] has a max cardinality " + maxCardinality.getMaxCardinality() 
+									+ ", raw property values list contained " + rawPropertyValues.size() 
+									+ ".\n The list of raw property values has been pruned, it contained: " + rawPropertyValues);
 				rawPropertyValues = rawPropertyValues.stream().limit(maxCardinality.getMaxCardinality())
 						.collect(Collectors.toList());
 			}
