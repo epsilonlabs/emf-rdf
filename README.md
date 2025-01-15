@@ -151,3 +151,14 @@ For instance, if we set the language preferences to `en-gb,en`, filtering `x.pro
 * Otherwise, return the untagged literals (if any).
 
 Language preferences do not apply if an explicit language tag is used: `x.property@en` will always get the `en`-tagged literals, and `x.property@` will always get the untagged literals.
+
+### Schemas and reasoners
+
+RDF models are loaded as Ontology Resource Models with Jena's default OWL reasoner. This reasoner infers OWL concepts on to an RDF data model when it is loaded. Future updates to this driver could enable different Jena reasoners to be selected.
+
+On the RDF model configuration dialog there is a section "Schema Model URLs to load", this section enables several schemas URLs to be added. *Currently, only one schema is applied to the reasoner which applies it to all loaded models*. All the RDF data models listed in the section "Data Model URLs to load" will be loaded with an OWL schema inferred and the first schema (URL) listed. 
+
+#### Schema defined restrictions (max cardinality)
+
+An RDF Schema can contain restrictions for some properties in an RDF data model such as maximum cardinality. If a maximum cardinality is defined for a property in the RDF data model that have been loaded, then **returned property values are limited to the most restrictive max cardinality that is applied to a property**. 
+ 
