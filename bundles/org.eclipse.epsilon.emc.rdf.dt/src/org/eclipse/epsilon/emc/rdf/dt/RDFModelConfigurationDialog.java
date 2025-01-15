@@ -48,6 +48,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialog {
+	private static final String[] RDFFILE_EXTENSIONS = new String[] { "*.rdf", "*.ttl", "*.nt", "*.nq", "*.trig", "*.owl", "*.jsonld", "*.trdf", "*.rt", "*.rpb", "*.pbrdf", "*.rj", "*.trix", "*.*"};
 
 	private static final String SAMPLE_URL = "http://changeme";
 
@@ -333,7 +334,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 			public void widgetSelected(SelectionEvent e) {
 				FileDialog fileDialog = new FileDialog(getShell(), SWT.OPEN);
 				fileDialog.setText("Select an RDF file to add");
-				fileDialog.setFilterExtensions(new String[] { ".rdf", ".ttl", ".nt", ".nq", ".trig", ".owl", ".jsonld", ".trdf", ".rt", ".rpb", ".pbrdf", ".rj", ".trix", ".*" });
+				fileDialog.setFilterExtensions(RDFFILE_EXTENSIONS);
 				if (dataModelLastPath != null)
 					fileDialog.setFilterPath(dataModelLastPath);
 
@@ -430,7 +431,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 				}
 			}
 		});
-				
+		
 		final Button addFromFileSystemButton = new Button(urlButtons, SWT.NONE);
 		addFromFileSystemButton.setText("Browse Filesystem...");
 		addFromFileSystemButton.addSelectionListener(new SelectionAdapter() {
@@ -438,7 +439,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 			public void widgetSelected(SelectionEvent e) {
 				FileDialog fileDialog = new FileDialog(getShell(), SWT.OPEN);
 				fileDialog.setText("Select an RDF file to add");
-				fileDialog.setFilterExtensions(new String[] { ".rdf", ".ttl", ".nt", ".nq", ".trig", ".owl", ".jsonld", ".trdf", ".rt", ".rpb", ".pbrdf", ".rj", ".trix", ".*" });
+				fileDialog.setFilterExtensions(RDFFILE_EXTENSIONS);
 				if (schemaModelLastPath != null)
 					fileDialog.setFilterPath(schemaModelLastPath);
 
