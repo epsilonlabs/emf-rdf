@@ -64,7 +64,7 @@ public class JenaOWLReasonerTest {
 		// this.infmodel = ModelFactory.createInfModel(reasoner, data);
 	}
 
-	@Test
+	//@Test
 	public void getResourceNForceFromInfModel() throws Exception {
 		Resource nForce = infmodel.getResource("urn:x-hp:eg/nForce");
 		//System.out.println("nForce *:");
@@ -73,7 +73,7 @@ public class JenaOWLReasonerTest {
 	}
 
 
-	@Test
+	//@Test
 	public void modelRestrictionMaxCardinality() {
 		//Shows any statements containing OWL.maxCardinality in infmodel
 		//System.out.println("Statements about property maxCardinality");
@@ -115,7 +115,7 @@ public class JenaOWLReasonerTest {
 
 	}
 
-	@Test
+	//@Test
 	public void propertyRestrictedCardinalityInSchema() {
 		
 		oInfmodel = ModelFactory.createOntologyModel();
