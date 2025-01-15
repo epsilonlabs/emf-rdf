@@ -12,6 +12,7 @@
  ********************************************************************************/
 package org.eclipse.epsilon.emc.rdf;
 
+import org.apache.jena.ontology.MaxCardinalityRestriction;
 import org.apache.jena.ontology.OntProperty;
 import org.apache.jena.ontology.Restriction;
 import org.apache.jena.rdf.model.Literal;
@@ -51,10 +52,9 @@ public class RDFPropertyProcesses {
 		return propertyStatements;
 	}
 	
-	public static int getPropertyStatementMaxCardinality(RDFQualifiedName propertyName, Resource resource) {
+	public static MaxCardinalityRestriction getPropertyStatementMaxCardinalityRestriction (RDFQualifiedName propertyName, Resource resource) {
 		// Gets all the propertyStatements and finds all the MaxCardinality restrictions, keeps the most restrictive (lowest maxCardinality)
-		int maxCardinality = -1;
-
+		MaxCardinalityRestriction mostRestrictiveMaxCardinality = null;
 		ExtendedIterator<Statement> propertyStatementIt = getPropertyStatementIterator(propertyName, resource);
 
 		while (propertyStatementIt.hasNext()) {
@@ -64,15 +64,18 @@ public class RDFPropertyProcesses {
 					.filterKeep(restriction -> restriction.isMaxCardinalityRestriction());
 			
 			while (restrictionMaxCardinalityIt.hasNext()) {
-				Restriction restiction = restrictionMaxCardinalityIt.next();				
-				int value = restiction.asMaxCardinalityRestriction().getMaxCardinality();
-				if ((maxCardinality == -1) | (maxCardinality > value)) {
-					maxCardinality = value;
+				MaxCardinalityRestriction currentMaxCardinalityRestriction = restrictionMaxCardinalityIt.next().asMaxCardinalityRestriction();								
+				if (mostRestrictiveMaxCardinality == null) {
+					mostRestrictiveMaxCardinality = currentMaxCardinalityRestriction;
+				} else {
+					if (mostRestrictiveMaxCardinality.getMaxCardinality() > currentMaxCardinalityRestriction.getMaxCardinality()) {
+						mostRestrictiveMaxCardinality = currentMaxCardinalityRestriction;
+					}
 				}
 			}
 		}
-		if (maxCardinality != -1) System.out.println("returning maxCardinality " + maxCardinality);
-		return maxCardinality;
+		if (mostRestrictiveMaxCardinality != null) System.out.println("returning maxCardinality " + mostRestrictiveMaxCardinality.getMaxCardinality());
+		return mostRestrictiveMaxCardinality;
 	}
 	
 	// Probably delete this later...

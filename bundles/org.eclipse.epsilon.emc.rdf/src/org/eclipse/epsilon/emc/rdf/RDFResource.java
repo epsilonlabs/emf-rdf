@@ -18,17 +18,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.jena.ontology.MaxCardinalityRestriction;
 import org.apache.jena.ontology.OntClass;
-import org.apache.jena.ontology.OntProperty;
-import org.apache.jena.ontology.OntResource;
-import org.apache.jena.ontology.Restriction;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
-import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.util.PrintUtil;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
@@ -111,9 +108,8 @@ public class RDFResource extends RDFModelElement {
 
 	
 	public Collection<Object> listPropertyValues(RDFQualifiedName propertyName, IEolContext context, LiteralMode literalMode) {
-		// TODO Handle the maxCardinality as an object (restriction) not a value?
-		int maxCardinality = RDFPropertyProcesses.getPropertyStatementMaxCardinality(propertyName, resource);
-		//int maxCardinality = 1; // Manual testing
+		// Disable this check to remove the maxCardinality limit on returned properties i.e. maxCardinality == null.
+		MaxCardinalityRestriction maxCardinality = RDFPropertyProcesses.getPropertyStatementMaxCardinalityRestriction(propertyName, resource);
 		
 		ExtendedIterator<Statement> itStatements; 
 		itStatements = RDFPropertyProcesses.getPropertyStatementIterator(propertyName, resource);	
@@ -157,10 +153,13 @@ public class RDFResource extends RDFModelElement {
 		}
 		
 		// Check collection of rawValues is less than the MaxCardinality and prune as needed...
-		if ((maxCardinality != -1) & (rawPropertyValues.size() > maxCardinality)) {
-			System.out.println("Prue values, maxCardinality " + maxCardinality + " rawPropertyValues.size() "
-					+ rawPropertyValues.size());
-			rawPropertyValues = rawPropertyValues.stream().limit(maxCardinality).collect(Collectors.toList());
+		if (null != maxCardinality) {
+			if (rawPropertyValues.size() > maxCardinality.getMaxCardinality()) {
+				System.err.println("Max cardinality " + maxCardinality.getMaxCardinality() + " raw property values found "
+						+ rawPropertyValues.size() + " the list of raw property values have been pruned.");
+				rawPropertyValues = rawPropertyValues.stream().limit(maxCardinality.getMaxCardinality())
+						.collect(Collectors.toList());
+			}
 		}
 		
 		// Convert literals to values depending on mode
@@ -208,8 +207,7 @@ public class RDFResource extends RDFModelElement {
 		try {
 			resourceIsClass = resource.as(OntClass.class).isClass();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
+
 		}
 		statements = statements.concat(" is Class " + resourceIsClass); 
 
