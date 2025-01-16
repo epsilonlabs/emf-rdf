@@ -154,11 +154,16 @@ Language preferences do not apply if an explicit language tag is used: `x.proper
 
 ### Data models, schema models and reasoners
 
-*Currently, all data models and schema models are combined into single models for each respective type. These combined models are then passed to a reasoner to produce a single (OWL) inferred model which can be queried.*
+RDF models are loaded as Ontology Resource Models with Jena's default OWL reasoner.
+This reasoner infers OWL concepts onto an RDF data model when it is loaded.
 
-RDF models are loaded as Ontology Resource Models with Jena's default OWL reasoner. This reasoner infers OWL concepts on to an RDF data model when it is loaded. Future updates to this driver could enable different Jena reasoners to be selected.
+In order to support OWL inferencing, the `RDF Model` configuration dialog is divided into two sections:
 
-On the RDF model configuration dialog there is a section "Data Model URLs to load", this section enables several URLs to be added for RDF Data models. Each of the Data model in the list is loaded and added to a single Data Model. URLs for Schema Models can be added in the section "Schema Model URLs to load"; schema models are added to a single Schema Model. The resulting combined Data and Schema Models are then processed by Jena's reasoner using the default OWL settings. The resulting inferred model is then used as the RDFModel that queries can be performed on. 
+* "Data Model URLs to load": each of the elements in the list is loaded and merged into a single RDF data model.
+* "Schema Model URLs to load": each element is merged into a single RDF schema model.
+
+The resulting RDF data and schema models are then processed by Jena's reasoner using the default OWL settings.
+The inferred model is then used by Epsilon for querying.
 
 #### Schema defined restrictions (max cardinality)
 
