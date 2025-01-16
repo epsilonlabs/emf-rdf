@@ -21,10 +21,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntProperty;
-import org.apache.jena.ontology.Restriction;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -34,7 +31,6 @@ import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.reasoner.ReasonerRegistry;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.epsilon.common.util.StringProperties;
 import org.eclipse.epsilon.eol.exceptions.EolRuntimeException;
@@ -116,24 +112,12 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	}
 
 	@Override
-	public RDFResource getElementById(String iri) {
-		Resource res = model.getResource(iri);
+	public RDFResource getElementById(String uri) {
+		Resource res = model.getResource(uri);
 		if (res != null) {
 			return new RDFResource(res, this);
 		}
 		return null;
-	}
-	
-	// TODO Document "direct" and rename method getOntClassesForElementByID
-	public Collection<RDFModelElement> listClassesForElementByID(String iri, boolean direct) {
-		List<RDFModelElement> classList = new ArrayList<>();
-		ExtendedIterator<Resource> rdfTypeList = model.getOntResource(iri).listRDFTypes(direct);
-		rdfTypeList.forEach(type -> {
-			if (type.as(OntClass.class).isClass()) {
-				classList.add(new RDFResource(type, this));
-			}
-		});
-		return classList;
 	}
 
 	@Override
@@ -456,32 +440,5 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	}
 	
 	
-	// --- Examples of methods that can expose the lists of convenient information Jena keeps about this Model. 
-	// TODO Discussion about these method examples, do we want to expose these kind of things?
-	
-	// Model.getOntologyClasses() (which would be also available as Model.ontologyClasses).
-	public Collection<RDFModelElement> getOntClasses() {
-		List<RDFModelElement> classList = new ArrayList<>();
-		ExtendedIterator<OntClass> modelClassIt = model.listClasses();
-		modelClassIt.forEach(c ->classList.add(new RDFResource(c, this)));	
-		return classList;
-	}
-	
-	// Model.getOntologyProperties() (also available as Model.ontologyProperties).
-	public Collection<RDFModelElement> getOntProperties(){
-		List<RDFModelElement> ontPropertyList = new ArrayList<>();
-		ExtendedIterator<OntProperty> modelOntPropertiesIt = model.listOntProperties();
-		modelOntPropertiesIt.forEach(p ->ontPropertyList.add(new RDFResource(p,this)));
-		return ontPropertyList;
-	}
-	
-	//Model.getRestrictions() (also available as Model.restrictions).
-	public Collection<RDFModelElement> getRestriction(){
-		List<RDFModelElement> restrictionList = new ArrayList<>();
-		ExtendedIterator<Restriction> restrictionIt = model.listRestrictions();
-		restrictionIt.forEach(r -> restrictionList.add(new RDFResource(r, this)));
-		return restrictionList;
-	}
-	
-	// --- END --------------------------------------------------------------------------------------------------
+
 }

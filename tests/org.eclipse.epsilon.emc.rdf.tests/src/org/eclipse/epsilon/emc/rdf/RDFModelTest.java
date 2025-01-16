@@ -66,18 +66,6 @@ public class RDFModelTest {
 			model.dispose();
 		}
 	}
-	
-	@Test
-	public void getAllClassesInModel() {
-		Collection<RDFModelElement> modelClassesList = model.getOntClasses();
-		assertTrue("Model should have 31 Classes", modelClassesList.size() == 31);
-	}
-	
-	@Test
-	public void getSpidermanElementsClasses() {
-		Collection<RDFModelElement> elementsClasses = model.listClassesForElementByID(SPIDERMAN_URI, false);
-		assertTrue("SPIDERMAN_URI should have 2 Classes", elementsClasses.size() == 2 );
-	}
 
 	@Test
 	public void listAll() throws EolModelLoadingException {
