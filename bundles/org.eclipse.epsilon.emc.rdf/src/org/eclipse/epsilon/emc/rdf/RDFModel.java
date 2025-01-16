@@ -135,27 +135,6 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		return classList;
 	}
 
-	public Collection<RDFModelElement> listOntClassesInModel() {
-		List<RDFModelElement> classList = new ArrayList<>();
-		ExtendedIterator<OntClass> modelClassIt = model.listClasses();
-		modelClassIt.forEach(c ->classList.add(new RDFResource(c, this)));	
-		return classList;
-	}
-	
-	public Collection<RDFModelElement> listOntPropertiesInModel(){
-		List<RDFModelElement> ontPropertyList = new ArrayList<>();
-		ExtendedIterator<OntProperty> modelOntPropertiesIt = model.listOntProperties();
-		modelOntPropertiesIt.forEach(p ->ontPropertyList.add(new RDFResource(p,this)));
-		return ontPropertyList;
-	}
-	
-	public Collection<RDFModelElement> listRestrictionInModel(){
-		List<RDFModelElement> restrictionList = new ArrayList<>();
-		ExtendedIterator<Restriction> restrictionIt = model.listRestrictions();
-		restrictionIt.forEach(r -> restrictionList.add(new RDFResource(r, this)));
-		return restrictionList;
-	}
-
 	@Override
 	public String getElementId(Object instance) {
 		if (instance instanceof RDFResource) {
@@ -474,4 +453,31 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		boolean isValidBCP47 = !("und".equals(Locale.forLanguageTag(bcp47tag).toLanguageTag()));
 		return isValidBCP47;
 	}
+	
+	
+	// --- Examples of methods that can expose the lists of convenient information Jena keeps about this Model. 
+	// TODO Discussion about these method examples, do we want to expose these kind of things?
+	
+	public Collection<RDFModelElement> getOntClasses() {
+		List<RDFModelElement> classList = new ArrayList<>();
+		ExtendedIterator<OntClass> modelClassIt = model.listClasses();
+		modelClassIt.forEach(c ->classList.add(new RDFResource(c, this)));	
+		return classList;
+	}
+	
+	public Collection<RDFModelElement> getOntProperties(){
+		List<RDFModelElement> ontPropertyList = new ArrayList<>();
+		ExtendedIterator<OntProperty> modelOntPropertiesIt = model.listOntProperties();
+		modelOntPropertiesIt.forEach(p ->ontPropertyList.add(new RDFResource(p,this)));
+		return ontPropertyList;
+	}
+	
+	public Collection<RDFModelElement> getRestriction(){
+		List<RDFModelElement> restrictionList = new ArrayList<>();
+		ExtendedIterator<Restriction> restrictionIt = model.listRestrictions();
+		restrictionIt.forEach(r -> restrictionList.add(new RDFResource(r, this)));
+		return restrictionList;
+	}
+	
+	// --- END --------------------------------------------------------------------------------------------------
 }
