@@ -119,11 +119,8 @@ public class RDFResource extends RDFModelElement {
 		Collection<RDFLiteral> rawFromUntagged = literalsByTag.get("");
 		return new ArrayList<>(rawFromUntagged);
 	}
-	
 
-	
 	public Collection<Object> listPropertyValues(RDFQualifiedName propertyName, IEolContext context, LiteralMode literalMode) {
-
 		ExtendedIterator<Statement> itStatements; 
 		itStatements = RDFPropertyProcesses.getPropertyStatementIterator(propertyName, resource);	
 		itStatements = RDFPropertyProcesses.filterPropertyStatementsIteratorWithLanguageTag(propertyName, itStatements);
