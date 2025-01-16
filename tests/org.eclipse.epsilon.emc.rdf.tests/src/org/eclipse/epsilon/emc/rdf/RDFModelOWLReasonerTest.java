@@ -50,21 +50,21 @@ public class RDFModelOWLReasonerTest {
 	@Test
 	public void listModelOntClasses() {
 		loadModelDefaults();
-		Collection<RDFModelElement> classList = model.listOntClassesInModel();
+		Collection<RDFModelElement> classList = model.getOntClasses();
 		assertEquals("Model should have the expected number of OntClasses", 42, classList.size());
 	}
 	
 	@Test
 	public void listModelOntProperties() {
 		loadModelDefaults();
-		Collection<RDFModelElement> ontPropList = model.listOntPropertiesInModel();
+		Collection<RDFModelElement> ontPropList = model.getOntProperties();
 		assertEquals("Model should have the expected number of OntProperties", 33, ontPropList.size());
 	}
 
 	@Test
 	public void listModelRestictions() {
 		loadModelDefaults();
-		Collection<RDFModelElement> restrictionList = model.listRestrictionInModel();
+		Collection<RDFModelElement> restrictionList = model.getRestriction();
 		assertEquals("Model should have the expected number of Restrictions", 3, restrictionList.size());
 	}
 

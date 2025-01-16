@@ -69,7 +69,7 @@ public class RDFModelTest {
 	
 	@Test
 	public void getAllClassesInModel() {
-		Collection<RDFModelElement> modelClassesList = model.listOntClassesInModel();
+		Collection<RDFModelElement> modelClassesList = model.getOntClasses();
 		assertTrue("Model should have 31 Classes", modelClassesList.size() == 31);
 	}
 	
