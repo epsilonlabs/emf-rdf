@@ -36,7 +36,7 @@ public class RDFPropertyGetter extends JavaPropertyGetter {
 		// Otherwise, use RDF information
 		if (object instanceof RDFResource) {
 			RDFResource res = (RDFResource) object;
-			return res.listPropertyValues(property, context);
+			return res.getProperty(property, context);
 		}
 
 		ModuleElement ast = context.getExecutorFactory().getActiveModuleElement();

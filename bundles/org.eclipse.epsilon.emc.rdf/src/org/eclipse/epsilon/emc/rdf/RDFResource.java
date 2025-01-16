@@ -51,7 +51,7 @@ public class RDFResource extends RDFModelElement {
 		return resource;
 	}
 
-	public Collection<Object> listPropertyValues(String property, IEolContext context) {
+	public Object getProperty(String property, IEolContext context) {
 		final RDFQualifiedName pName = RDFQualifiedName.from(property, this.owningModel::getNamespaceURI);
 		Collection<Object> value = listPropertyValues(pName, context, LiteralMode.VALUES_ONLY);
 
@@ -61,7 +61,11 @@ public class RDFResource extends RDFModelElement {
 			RDFQualifiedName withoutLiteral = pName.withLocalName(localNameWithoutSuffix);
 			value = listPropertyValues(withoutLiteral, context, LiteralMode.RAW);
 		}
-		
+
+		// TODO: if max cardinality is 1, only return that single object (not a
+		// collection), or null if we haven't found any values (the underlying
+		// collection is empty).
+
 		return value;
 	}
 

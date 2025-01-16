@@ -72,7 +72,7 @@ public class RDFModelOWLReasonerTest {
 	public void getMotherBoard() {
 		loadModelDefaults();
 		RDFResource element = model.getElementById(URI_BIGNAME42);
-		Collection<Object> motherBoard = element.listPropertyValues("eg:hasMotherBoard", context);
+		Collection<Object> motherBoard = element.getProperty("eg:hasMotherBoard", context);
 		assertTrue("hasMotherBoard has max cardinality of 1 should only have 1 value returned ", motherBoard.size() == 1);
 	}
 
