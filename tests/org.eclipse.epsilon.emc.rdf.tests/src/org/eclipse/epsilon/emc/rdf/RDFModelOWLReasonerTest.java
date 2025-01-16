@@ -72,9 +72,14 @@ public class RDFModelOWLReasonerTest {
 	public void getMotherBoard() {
 		loadModelDefaults();
 		RDFResource element = model.getElementById(URI_BIGNAME42);
-		Collection<Object> motherBoard = element.getProperty("eg:hasMotherBoard", context);
-		assertTrue("hasMotherBoard has max cardinality of 1 should only have 1 value returned ", motherBoard.size() == 1);
+		Object motherBoard = element.getProperty("eg:hasMotherBoard", context);
+		assertTrue("hasMotherBoard has max cardinality of 1 should only have that value returned ",
+			motherBoard instanceof RDFResource);
 	}
+
+	// TODO need a similar test to getMotherBoard but for the scenario where null should be returned (i.e. you have no motherboard)
+
+	// TODO need a test that would issue the warning
 
 	// Functions not tests
 

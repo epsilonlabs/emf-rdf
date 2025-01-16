@@ -62,9 +62,24 @@ public class RDFResource extends RDFModelElement {
 			value = listPropertyValues(withoutLiteral, context, LiteralMode.RAW);
 		}
 
-		// TODO: if max cardinality is 1, only return that single object (not a
-		// collection), or null if we haven't found any values (the underlying
-		// collection is empty).
+		// Disable this check to remove the maxCardinality limit on returned properties i.e. maxCardinality == null.
+		MaxCardinalityRestriction maxCardinality = RDFPropertyProcesses.getPropertyStatementMaxCardinalityRestriction(pName, resource);
+
+		// Check collection of rawValues is less than the MaxCardinality and prune as needed...
+		if (null != maxCardinality) {
+			if (value.size() > maxCardinality.getMaxCardinality()) {
+				System.err.println("Property [" + pName + "] has a max cardinality " + maxCardinality.getMaxCardinality()
+									+ ", raw property values list contained " + value.size()
+									+ ".\n The list of raw property values has been pruned, it contained: " + value);
+
+				value = value.stream().limit(maxCardinality.getMaxCardinality())
+						.collect(Collectors.toList());
+			}
+			if (maxCardinality.getMaxCardinality() == 1) {
+				// If the maximum cardinality is 1, return the single value (do not return a collection)
+				return value.isEmpty() ? null : value.iterator().next();
+			}
+		}
 
 		return value;
 	}
@@ -108,8 +123,6 @@ public class RDFResource extends RDFModelElement {
 
 	
 	public Collection<Object> listPropertyValues(RDFQualifiedName propertyName, IEolContext context, LiteralMode literalMode) {
-		// Disable this check to remove the maxCardinality limit on returned properties i.e. maxCardinality == null.
-		MaxCardinalityRestriction maxCardinality = RDFPropertyProcesses.getPropertyStatementMaxCardinalityRestriction(propertyName, resource);
 
 		ExtendedIterator<Statement> itStatements; 
 		itStatements = RDFPropertyProcesses.getPropertyStatementIterator(propertyName, resource);	
@@ -150,18 +163,7 @@ public class RDFResource extends RDFModelElement {
 		if (propertyName.languageTag == null && !rawPropertyValues.stream().anyMatch(p -> p instanceof RDFResource)) {
 			rawPropertyValues = filterByPreferredLanguage(rawPropertyValues);
 		}
-		
-		// Check collection of rawValues is less than the MaxCardinality and prune as needed...
-		if (null != maxCardinality) {
-			if (rawPropertyValues.size() > maxCardinality.getMaxCardinality()) {
-				System.err.println("Property [" + propertyName.localName + "] has a max cardinality " + maxCardinality.getMaxCardinality() 
-									+ ", raw property values list contained " + rawPropertyValues.size() 
-									+ ".\n The list of raw property values has been pruned, it contained: " + rawPropertyValues);
-				rawPropertyValues = rawPropertyValues.stream().limit(maxCardinality.getMaxCardinality())
-						.collect(Collectors.toList());
-			}
-		}
-		
+
 		// Convert literals to values depending on mode
 		switch (literalMode) {
 		case VALUES_ONLY:
