@@ -12,7 +12,6 @@
  ********************************************************************************/
 package org.eclipse.epsilon.emc.rdf;
 
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -21,7 +20,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.function.Predicate;
 
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
@@ -52,7 +50,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	public static final String PROPERTY_LANGUAGE_PREFERENCE = "languagePreference";
 
 	public static final String PROPERTY_SCHEMA_URIS = "schemaUris";
-	public static final String PROPERTY_DATA_URIS = "uris";  // TODO Update the uris to dataUris, breaks existing saved .launch files
+	public static final String PROPERTY_DATA_URIS = "uris";
 
 	/**
 	 * One of the keys used to construct the first argument to
@@ -67,37 +65,25 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	protected final List<String> languagePreference = new ArrayList<>();
 	protected final Map<String, String> customPrefixesMap = new HashMap<>();
 
-	public enum RDFReasonerType {
+	// TODO add to this list to cover reasoner types in the ReasonerRegistry Class
+	public enum ReasonerType {
 		NONE,
 		OWL_FULL;
-	}  // TODO add to this list to cover reasoner types in the ReasonerRegistry Class
-	protected RDFReasonerType rdfsReasonerType = RDFReasonerType.NONE;
-	
-	public RDFReasonerType getRdfsReasonerType() {
-		return rdfsReasonerType;
 	}
 
-	public void setRdfsReasonerType(RDFReasonerType rdfsReasonerType) {
-		this.rdfsReasonerType = rdfsReasonerType;
+	protected ReasonerType reasonerType = ReasonerType.NONE;
+
+	public ReasonerType getReasonerType() {
+		return reasonerType;
 	}
 
+	public void setReasonerType(ReasonerType rdfsReasonerType) {
+		this.reasonerType = rdfsReasonerType;
+	}
 
-	
 	protected final List<String> schemaURIs = new ArrayList<>();
 	protected final List<String> dataURIs = new ArrayList<>();
 	protected OntModel model;
-	
-	// Write the OntModel the driver is using a file, this includes data model (inferred schemas) and additional Ont information
-	// DO NOT USE THESE TO PERSIST A USER'S DATA MODEL!
-	public void writeOntModel(OutputStream outputStream, String language) {
-		model.write(outputStream, language);
-	}
-	
-	// As writeOntModel() but with All option, which adds yet more model information into the file
-	public void writeAllOntModel(OutputStream outputStream, String language) {
-		model.writeAll(outputStream, language);
-	}
-	
 
 	public RDFModel() {
 		this.propertyGetter = new RDFPropertyGetter(this);
@@ -169,7 +155,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		restrictionIt.forEach(r -> restrictionList.add(new RDFResource(r, this)));
 		return restrictionList;
 	}
-	
+
 	@Override
 	public String getElementId(Object instance) {
 		if (instance instanceof RDFResource) {
@@ -212,25 +198,8 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		 * configuration of this RDFModel. This is the same as in other popular
 		 * EMC drivers (e.g. the EmfModel class).
 		 */
-		this.dataURIs.clear();
-		{
-			String sUris = properties.getProperty(PROPERTY_DATA_URIS, "").strip();
-			if (!sUris.isEmpty()) {
-				for (String uri : sUris.split(",")) {
-					this.dataURIs.add(uri.strip());
-				}
-			}
-		}
-
-		this.schemaURIs.clear();
-		{
-			String sUris = properties.getProperty(PROPERTY_SCHEMA_URIS, "").strip();
-			if (!sUris.isEmpty()) {
-				for (String uri : sUris.split(",")) {
-					this.schemaURIs.add(uri.strip());
-				}
-			}
-		}
+		loadCommaSeparatedProperty(properties, PROPERTY_DATA_URIS, this.dataURIs);
+		loadCommaSeparatedProperty(properties, PROPERTY_SCHEMA_URIS, this.schemaURIs);
 
 		this.customPrefixesMap.clear();
 		String sPrefixes = properties.getProperty(PROPERTY_PREFIXES, "").strip();
@@ -264,6 +233,18 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		}
 
 		load();
+	}
+
+	protected void loadCommaSeparatedProperty(StringProperties properties, String propertyName, List<String> targetList) {
+		targetList.clear();
+		{
+			String sUris = properties.getProperty(propertyName, "").strip();
+			if (!sUris.isEmpty()) {
+				for (String uri : sUris.split(",")) {
+					targetList.add(uri.strip());
+				}
+			}
+		}
 	}
 
 	@Override
@@ -361,34 +342,35 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 			for (Iterator<String> itUri = schemaURIs.iterator(); itUri.hasNext(); ) {
 				schemaModel.read(itUri.next());
 			}
-			
+
 			// If a schema model has been loaded assume need for a reasoner using Jena's default OWL
-			if( (schemaModel.size() >= 0) && (rdfsReasonerType == RDFReasonerType.NONE) )
-			{
-				this.setRdfsReasonerType(RDFReasonerType.OWL_FULL);
+			if (schemaModel.size() >= 0 && reasonerType == ReasonerType.NONE) {
+				System.err.println("Schema URIs have been defined: overriding NONE ReasonerType with OWL_FULL ReasonerType");
+				this.setReasonerType(ReasonerType.OWL_FULL);
 			}
 
 			Model dataModel = ModelFactory.createDefaultModel();
 			for (Iterator<String> itUri = dataURIs.iterator(); itUri.hasNext(); ) {
 				dataModel.read(itUri.next());
 			}
-			
+
 			//Create an OntModel to handle the data model being loaded or inferred from data and schema
 			this.model = ModelFactory.createOntologyModel();
 			
-			if (rdfsReasonerType == RDFReasonerType.NONE) { // Just OntModel bits are added to the dataModel being loaded.
+			if (reasonerType == ReasonerType.NONE) {
+				// Only the OntModel bits are added to the dataModel being loaded.
 				this.model.add(dataModel);
-			} else { // OntModel bits are added and the reasoner will add schema bits to the dataModel being loaded.
+			} else {
+				// OntModel bits are added and the reasoner will add schema bits to the dataModel being loaded.
 				Reasoner reasoner = ReasonerRegistry.getOWLReasoner();
 				InfModel infmodel = ModelFactory.createInfModel(reasoner, dataModel, schemaModel);
 				this.model.add(infmodel);
 			}
-			
-			// Copy the Name prefixmaps from the loaded Model dataModel to the new OntModel dataModel representation
+
+			// Copy the Name prefix maps from the loaded Model dataModel to the new OntModel dataModel representation
 			for (Entry<String, String> e : dataModel.getNsPrefixMap().entrySet()) {
 				this.model.setNsPrefix(e.getKey(), e.getValue());
 			}
-
 		} catch (Exception ex) {
 			throw new EolModelLoadingException(ex, this);
 		}

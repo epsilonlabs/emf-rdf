@@ -19,14 +19,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.jena.ontology.MaxCardinalityRestriction;
-import org.apache.jena.ontology.OntClass;
 import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
-import org.apache.jena.util.PrintUtil;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.epsilon.eol.execute.context.IEolContext;
@@ -56,7 +53,6 @@ public class RDFResource extends RDFModelElement {
 
 	public Collection<Object> listPropertyValues(String property, IEolContext context) {
 		final RDFQualifiedName pName = RDFQualifiedName.from(property, this.owningModel::getNamespaceURI);
-		
 		Collection<Object> value = listPropertyValues(pName, context, LiteralMode.VALUES_ONLY);
 
 		if (value.isEmpty() && pName.localName.endsWith(LITERAL_SUFFIX)) {
@@ -110,12 +106,11 @@ public class RDFResource extends RDFModelElement {
 	public Collection<Object> listPropertyValues(RDFQualifiedName propertyName, IEolContext context, LiteralMode literalMode) {
 		// Disable this check to remove the maxCardinality limit on returned properties i.e. maxCardinality == null.
 		MaxCardinalityRestriction maxCardinality = RDFPropertyProcesses.getPropertyStatementMaxCardinalityRestriction(propertyName, resource);
-		
+
 		ExtendedIterator<Statement> itStatements; 
 		itStatements = RDFPropertyProcesses.getPropertyStatementIterator(propertyName, resource);	
 		itStatements = RDFPropertyProcesses.filterPropertyStatementsIteratorWithLanguageTag(propertyName, itStatements);
-		
-		
+
 		// Build a collection Objects for the rawValues of the Objects for the Properties remaining 
 		Collection<Object> rawPropertyValues;
 		if (propertyName.prefix == null) {
@@ -199,28 +194,6 @@ public class RDFResource extends RDFModelElement {
 	@Override
 	public String toString() {
 		return "RDFResource [resource=" + resource + "]";
-	}
-	
-	public String getStatementsString() {
-		String statements = "Statements for RDFResource [" + resource + "]";
-		
-		boolean resourceIsClass = false;
-		try {
-			resourceIsClass = resource.as(OntClass.class).isClass();
-		} catch (Exception e) {
-
-		}
-		statements = statements.concat(" is Class " + resourceIsClass); 
-
-		for (StmtIterator i = owningModel.model.listStatements(resource, (Property) null,(Resource) null); i.hasNext();) {
-			Statement stmt = i.nextStatement();
-			statements = statements.concat("\n - ").concat(PrintUtil.print(stmt).toString());
-		}
-		return statements;
-	}
-	
-	public void printStatements() {
-		System.out.println(getStatementsString());
 	}
 
 }

@@ -24,7 +24,11 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 
 public class RDFPropertyProcesses {
 
-	public static ExtendedIterator<Statement> getPropertyStatementIterator (RDFQualifiedName propertyName, Resource resource) {
+	private RDFPropertyProcesses() {
+		// This class is not meant to be instantiated
+	}
+
+	public static ExtendedIterator<Statement> getPropertyStatementIterator(RDFQualifiedName propertyName, Resource resource) {
 		ExtendedIterator<Statement> propertyStatementIt = null;
 		// Filter all Property (Predicate) statements by prefix and local name
 		if (propertyName.prefix == null) {
@@ -37,8 +41,8 @@ public class RDFPropertyProcesses {
 		}
 		return propertyStatementIt;
 	}
-	
-	public static ExtendedIterator<Statement> filterPropertyStatementsIteratorWithLanguageTag (RDFQualifiedName propertyName, ExtendedIterator<Statement> propertyStatements) {
+
+	public static ExtendedIterator<Statement> filterPropertyStatementsIteratorWithLanguageTag(RDFQualifiedName propertyName, ExtendedIterator<Statement> propertyStatements) {
 		// If a language tag is used, only keep literals with that tag
 		if (propertyName.languageTag != null) {
 			propertyStatements = propertyStatements.filterKeep(stmt -> {
@@ -51,8 +55,8 @@ public class RDFPropertyProcesses {
 		}
 		return propertyStatements;
 	}
-	
-	public static MaxCardinalityRestriction getPropertyStatementMaxCardinalityRestriction (RDFQualifiedName propertyName, Resource resource) {
+
+	public static MaxCardinalityRestriction getPropertyStatementMaxCardinalityRestriction(RDFQualifiedName propertyName, Resource resource) {
 		// Gets all the propertyStatements and finds all the MaxCardinality restrictions, keeps the most restrictive (lowest maxCardinality)
 		MaxCardinalityRestriction mostRestrictiveMaxCardinality = null;
 		ExtendedIterator<Statement> propertyStatementIt = getPropertyStatementIterator(propertyName, resource);
@@ -64,7 +68,7 @@ public class RDFPropertyProcesses {
 					.filterKeep(restriction -> restriction.isMaxCardinalityRestriction());
 			
 			while (restrictionMaxCardinalityIt.hasNext()) {
-				MaxCardinalityRestriction currentMaxCardinalityRestriction = restrictionMaxCardinalityIt.next().asMaxCardinalityRestriction();								
+				MaxCardinalityRestriction currentMaxCardinalityRestriction = restrictionMaxCardinalityIt.next().asMaxCardinalityRestriction();
 				if (mostRestrictiveMaxCardinality == null) {
 					mostRestrictiveMaxCardinality = currentMaxCardinalityRestriction;
 				} else {
@@ -76,32 +80,5 @@ public class RDFPropertyProcesses {
 		}
 		return mostRestrictiveMaxCardinality;
 	}
-	
-	// Probably delete this later...
-	private static void checkPropertyStmtForCardinalityRestrictionsOnPredicate(Statement propertyStmt) {
-			OntProperty predicateOntProperty = propertyStmt.getPredicate().as(OntProperty.class);
-			ExtendedIterator<Restriction> propertyRestrictionIt = predicateOntProperty.listReferringRestrictions();
-			propertyRestrictionIt.forEach(refferingRestriction -> {
-				System.out.println(
-						"  property - " + propertyStmt + " predicate has restrictions -" + refferingRestriction);
 
-				// Play guess who with the Cardinality restrictions
-				
-				if (refferingRestriction.isCardinalityRestriction()) {
-					System.out.println("   " + refferingRestriction + " asCardinalityRestriction : "
-							+ refferingRestriction.asCardinalityRestriction().getCardinality());
-				}
-
-				if (refferingRestriction.isMinCardinalityRestriction()) {
-					System.out.println("   " + refferingRestriction + " asMinCardinalityRestriction : "
-							+ refferingRestriction.asMinCardinalityRestriction().getMinCardinality());
-				}
-
-				if (refferingRestriction.isMaxCardinalityRestriction()) {
-					System.out.println("   " + refferingRestriction + " asMaxCardinalityRestriction : "
-							+ refferingRestriction.asMaxCardinalityRestriction().getMaxCardinality());
-				}
-			});
-	}
-	
 }

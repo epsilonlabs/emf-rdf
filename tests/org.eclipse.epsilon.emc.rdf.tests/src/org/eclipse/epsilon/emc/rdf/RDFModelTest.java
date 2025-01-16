@@ -16,7 +16,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -69,32 +68,20 @@ public class RDFModelTest {
 	}
 	
 	@Test
-	public void getAllClassesInModel()
-	{
+	public void getAllClassesInModel() {
 		Collection<RDFModelElement> modelClassesList = model.listOntClassesInModel();
-		//System.out.println(modelClassesList.size());
-		//modelClassesList.forEach(c -> {RDFResource res = (RDFResource) c; res.printStatements(); }); 
-		assertTrue("Model should have 31 Classes", modelClassesList.size() == 31 );
+		assertTrue("Model should have 31 Classes", modelClassesList.size() == 31);
 	}
 	
 	@Test
 	public void getSpidermanElementsClasses() {
 		Collection<RDFModelElement> elementsClasses = model.listClassesForElementByID(SPIDERMAN_URI, false);
-		/*
-		System.out.println("SPIDERMAN_URI elementsClasses: " + elementsClasses.size());
-		elementsClasses.forEach(c -> {
-			RDFResource res = (RDFResource) c; 
-			res.printStatements();
-			});
-		*/
 		assertTrue("SPIDERMAN_URI should have 2 Classes", elementsClasses.size() == 2 );
 	}
 
 	@Test
 	public void listAll() throws EolModelLoadingException {
-		// The result of this test changes when using an OntModel, we now have more that 2 but should have at least 2
-		// model.allContents().forEach(item->System.out.println(item.toString()));
-		assertTrue("allContents should produce at least one element for the Green Goblin and Spiderman ", model.allContents().size()>=2);
+		assertTrue("allContents should produce at least one element for the Green Goblin and Spiderman ", model.allContents().size() >= 2);
 	}
 
 	@Test
@@ -210,14 +197,5 @@ public class RDFModelTest {
 				new HashSet<>(Arrays.asList("foaf:Person", "rdfs:Resource")),
 				new HashSet<>(model.getAllTypeNamesOf(firstPerson)));		
 	}
-	
-	// Functions not tests
 
-	public void outputTTLFile() throws Exception {
-		String path = "./resources/temp/savedModel.ttl";
-		System.out.println("Saving to file: " + path);
-		FileOutputStream file = new FileOutputStream(path);
-		model.writeOntModel(file, "TTL");
-		file.close();
-	}
 }
