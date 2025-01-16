@@ -124,6 +124,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		return null;
 	}
 	
+	// TODO Document "direct" and rename method getOntClassesForElementByID
 	public Collection<RDFModelElement> listClassesForElementByID(String iri, boolean direct) {
 		List<RDFModelElement> classList = new ArrayList<>();
 		ExtendedIterator<Resource> rdfTypeList = model.getOntResource(iri).listRDFTypes(direct);
@@ -458,6 +459,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	// --- Examples of methods that can expose the lists of convenient information Jena keeps about this Model. 
 	// TODO Discussion about these method examples, do we want to expose these kind of things?
 	
+	// Model.getOntologyClasses() (which would be also available as Model.ontologyClasses).
 	public Collection<RDFModelElement> getOntClasses() {
 		List<RDFModelElement> classList = new ArrayList<>();
 		ExtendedIterator<OntClass> modelClassIt = model.listClasses();
@@ -465,6 +467,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		return classList;
 	}
 	
+	// Model.getOntologyProperties() (also available as Model.ontologyProperties).
 	public Collection<RDFModelElement> getOntProperties(){
 		List<RDFModelElement> ontPropertyList = new ArrayList<>();
 		ExtendedIterator<OntProperty> modelOntPropertiesIt = model.listOntProperties();
@@ -472,6 +475,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		return ontPropertyList;
 	}
 	
+	//Model.getRestrictions() (also available as Model.restrictions).
 	public Collection<RDFModelElement> getRestriction(){
 		List<RDFModelElement> restrictionList = new ArrayList<>();
 		ExtendedIterator<Restriction> restrictionIt = model.listRestrictions();

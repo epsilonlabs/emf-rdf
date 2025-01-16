@@ -184,6 +184,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 
 	@Override
 	protected void createGroups(Composite control) {
+		// TODO schema URLs above the data URLs, as the schema URLs in a way are at a "higher level" than the data ones.
 		createNameAliasGroup(control);
 		createDataModelRDFUrlsGroup(control);
 		createSchemaModelRDFUrlsGroup(control);
