@@ -37,3 +37,6 @@ target-plain/
 *.polyglot*
 *.tycho
 *.META-INF_MANIFEST.MF
+
+#Eclipse IDE
+.project
