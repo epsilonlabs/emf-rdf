@@ -35,8 +35,7 @@ public class RDFPropertyProcesses {
 			propertyStatementIt = resource.listProperties()
 				.filterKeep(stmt -> propertyName.localName.equals(stmt.getPredicate().getLocalName()));
 		} else {
-			String prefixIri = resource.getModel().getNsPrefixMap().get(propertyName.prefix);
-			Property prop = new PropertyImpl(prefixIri, propertyName.localName);
+			Property prop = new PropertyImpl(propertyName.namespaceURI, propertyName.localName);
 			propertyStatementIt = resource.listProperties(prop);
 		}
 		return propertyStatementIt;
