@@ -12,14 +12,12 @@
  ********************************************************************************/
 package org.eclipse.epsilon.emc.rdf;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Collection;
 
 import org.eclipse.epsilon.common.util.StringProperties;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelLoadingException;
@@ -35,7 +33,8 @@ public class RDFModelOWLReasonerTest {
 	private static final String LANGUAGE_PREFERENCE_EN_STRING = "en";
 	private static final String URI_BIGNAME42 = "urn:x-hp:eg/bigName42";
 	private static final String URI_ALIENBOX51 = "urn:x-hp:eg/alienBox51";
-	
+	private static final String URI_WHITEBOX = "urn:x-hp:eg/whiteBoxZX";
+
 	private RDFModel model;
 	private EolContext context;
 
@@ -55,7 +54,7 @@ public class RDFModelOWLReasonerTest {
 	@Test
 	public void getMotherBoardTest() {
 		loadModelDefaults();
-		RDFResource element = model.getElementById(URI_BIGNAME42);
+		RDFResource element = model.getElementById(URI_WHITEBOX);
 		Object motherBoard = element.getProperty("eg:motherBoard", context);
 		assertTrue("motherBoard has max cardinality of 1 should only have that value returned ",
 			motherBoard instanceof RDFResource);
@@ -64,25 +63,33 @@ public class RDFModelOWLReasonerTest {
 	// TODO Review this test with Antonio.
 	// Proposed test: need a similar test to getMotherBoard but for the scenario where null should be returned (i.e. you have no motherboard)
 	// Getting an empty list back, because there is not motherboard there is also no max cardinality which could be evaluated to 1 and thus a single value or null.
-	
+
 	@Test
 	public void getPropertyThatDoesNotExistAsNullTest() {
 		loadModelDefaults();
 		RDFResource element = model.getElementById(URI_ALIENBOX51);
 		Object motherBoard = element.getProperty("eg:motherBoard", context);
-		Collection<RDFResource> listMotherBoards = (Collection <RDFResource>) motherBoard;
-		//assertTrue("URI_ALIENBOX51 computer does not have motherBoard " + motherBoard, motherBoard == null);
-		assertTrue("URI_ALIENBOX51 computer does not have motherBoard ", listMotherBoards.size() == 0);
+		assertNull("URI_ALIENBOX51 computer does not have motherBoard ", motherBoard);
 	}
-	
+
 	@Test
 	public void getMotherBoardTestIssuesWarning() throws IOException {
-		ByteArrayOutputStream errors = new ByteArrayOutputStream(); 
-		System.setErr(new PrintStream(errors));
-		loadModelDefaults();
-		RDFResource element = model.getElementById(URI_BIGNAME42);
-		Object motherBoard = element.getProperty("eg:motherBoard", context);
-		assertTrue("An error should be raised for max cardinality being raised ", errors.toString().contains("has a max cardinality 1, raw property values list contained"));
+		ByteArrayOutputStream errors = new ByteArrayOutputStream();
+
+		PrintStream oldErr = System.err;
+		try {
+			System.setErr(new PrintStream(errors));
+			loadModelDefaults();
+
+			// This will return only the first motherboard, but we actually have two
+			model.getElementById(URI_BIGNAME42).getProperty("eg:motherBoard", context);
+
+			String sErrors = errors.toString();
+			assertTrue("An error should be raised for max cardinality being exceeded",
+				sErrors.contains("has a max cardinality 1, raw property values list contained"));
+		} finally {
+			System.setErr(oldErr);
+		}
 	}
 
 	// Functions not tests

@@ -10,8 +10,7 @@
 
 :whiteBoxZX a :Computer ;
     :bundle :actionPack ;
-    :motherBoard :nForce,
-        :unknownMB .
+    :motherBoard :nForce .
 
 :actionPack a :GameBundle .
 
