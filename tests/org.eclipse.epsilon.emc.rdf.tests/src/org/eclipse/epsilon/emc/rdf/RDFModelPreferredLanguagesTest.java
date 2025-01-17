@@ -32,17 +32,17 @@ import org.junit.Test;
 
 @SuppressWarnings("unchecked")
 public class RDFModelPreferredLanguagesTest {
-	
+
 	private RDFModel model;
 	private IPropertyGetter pGetter;
 	private EolContext context;
-	
+
 	private static final String SPIDERMAN_MULTILANG_TTL = "resources/spiderman-multiLang.ttl";
-	
+
 	private static final String LANGUAGE_PREFERENCE_INVALID_STRING = "e n,en-us,123,ja";
 	private static final String LANGUAGE_PREFERENCE_JA_STRING = "en,en-us,ja";
 	private static final String LANGUAGE_PREFERENCE_EN_STRING = "en";
-	
+
 	private static final String SPIDERMAN_URI = "http://example.org/#spiderman";
 	private static final String SPIDERMAN_NAME = "Spiderman";
 	private static final String SPIDERMAN_NAME_RU = "Человек-паук";
@@ -63,34 +63,33 @@ public class RDFModelPreferredLanguagesTest {
 		this.model = new RDFModel();
 
 		StringProperties props = new StringProperties();
-		props.put(RDFModel.PROPERTY_URIS, SPIDERMAN_MULTILANG_TTL);
+		props.put(RDFModel.PROPERTY_DATA_URIS, SPIDERMAN_MULTILANG_TTL);
 		props.put(RDFModel.PROPERTY_LANGUAGE_PREFERENCE, languagePreference);	
 		model.load(props);
 		
 		this.pGetter = model.getPropertyGetter();
 		this.context = new EolContext();
 	}
-	
+
 	@After
 	public void teardown() {
 		if (model != null) {
 			model.dispose();
 		}
 	}
-	
+
 	@Test
 	public void invalidLanguageTagThrowsException() throws Exception {
 		assertThrows(EolModelLoadingException.class,
 			() -> setupModel(LANGUAGE_PREFERENCE_INVALID_STRING));
 	}
-	
+
 	@Test
 	public void modelLanguageTagPropertyLoadEMPTY() throws Exception {
 		setupModel(null);
 		assertTrue(model.getLanguagePreference().isEmpty());
 	}
-	
-	
+
 	@Test
 	public void modelLanguageTagValidator() throws Exception {
 		assertTrue("English tag is accepted", RDFModel.isValidLanguageTag("en"));
@@ -99,7 +98,7 @@ public class RDFModelPreferredLanguagesTest {
 		assertFalse("American English with space in the middle is rejected", RDFModel.isValidLanguageTag("e n-u s"));
 		assertFalse("A number is not a valid language tag", RDFModel.isValidLanguageTag("123"));
 	}
-	
+
 	@Test
 	public void getAllContentsNamesWithoutPrefixNoPreferredLanguageTags() throws Exception {
 		setupModel(null);
@@ -109,7 +108,7 @@ public class RDFModelPreferredLanguagesTest {
 		}
 		assertEquals("With no language preference and no tag, all values are returned", ALL_NAMES, names);;
 	}
-	
+
 	@Test
 	public void getNamesWithoutPrefixNoPreferredLanguageTag() throws Exception {
 		setupModel(null);
@@ -119,7 +118,7 @@ public class RDFModelPreferredLanguagesTest {
 	}
 	
 	// EN preferred but not available
-	
+
 	@Test
 	public void getNamesWithoutPrefixUsingPreferredLanguageTagEN() throws Exception {
 		setupModel(LANGUAGE_PREFERENCE_EN_STRING);
@@ -157,9 +156,9 @@ public class RDFModelPreferredLanguagesTest {
 		}
 		assertEquals("Should return untagged when language preference can't be matched",Collections.singleton(SPIDERMAN_NAME), names);
 	}
-	
+
 	// JA preferred and available
-	
+
 	@Test
 	public void getNamesWithoutPrefixUsingPreferredLanguageTagJA() throws Exception {
 		setupModel(LANGUAGE_PREFERENCE_JA_STRING);
@@ -167,7 +166,7 @@ public class RDFModelPreferredLanguagesTest {
 		Set<String> names = new HashSet<>((Collection<String>) pGetter.invoke(res, "name", context));
 		assertEquals(Collections.singleton(SPIDERMAN_NAME_JA), names);
 	}
-	
+
 	@Test
 	public void getNamesWithPrefixUsingPreferredLanguageTagJA() throws Exception {
 		setupModel(LANGUAGE_PREFERENCE_JA_STRING);
@@ -175,7 +174,7 @@ public class RDFModelPreferredLanguagesTest {
 		Set<String> names = new HashSet<>((Collection<String>) pGetter.invoke(res, "foaf:name", context));
 		assertEquals(Collections.singleton(SPIDERMAN_NAME_JA), names);
 	}
-	
+
 	@Test
 	public void getNameLiteralWithPrefixUsingPreferredLanguageTagJA() throws Exception {
 		setupModel(LANGUAGE_PREFERENCE_JA_STRING);
@@ -199,7 +198,7 @@ public class RDFModelPreferredLanguagesTest {
 	}
 
 	// Empty Tag - ignore language preference and use untagged value
-	
+
 	@Test
 	public void getNamesWithoutPrefixAndNoTag() throws Exception {
 		setupModel(LANGUAGE_PREFERENCE_JA_STRING);
@@ -209,7 +208,7 @@ public class RDFModelPreferredLanguagesTest {
 		}
 		assertEquals(ALL_NAMES_UNTAGGED, names);
 	}
-	
+
 	@Test
 	public void getNamesWithPrefixAndNoTag() throws Exception {
 		setupModel(LANGUAGE_PREFERENCE_JA_STRING);
@@ -254,5 +253,5 @@ public class RDFModelPreferredLanguagesTest {
 		Set<String> names = new HashSet<>((Collection<String>) pGetter.invoke(res, "foaf:name@ru", context));
 		assertEquals(Collections.singleton(SPIDERMAN_NAME_RU), names);
 	}
-	
+
 }

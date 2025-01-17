@@ -18,13 +18,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.jena.ontology.MaxCardinalityRestriction;
 import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
-import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.epsilon.eol.execute.context.IEolContext;
@@ -42,25 +41,44 @@ public class RDFResource extends RDFModelElement {
 	}
 
 	private Resource resource;
-
-	public RDFResource(Resource resource, RDFModel rdfModel) {
+	
+	public RDFResource(Resource aResource, RDFModel rdfModel) {
 		super(rdfModel);
-		this.resource = resource;
+		this.resource = aResource;
 	}
-
+	
 	public Resource getResource() {
 		return resource;
 	}
 
-	public Collection<Object> getProperty(String property, IEolContext context) {
+	public Object getProperty(String property, IEolContext context) {
 		final RDFQualifiedName pName = RDFQualifiedName.from(property, this.owningModel::getNamespaceURI);
-		Collection<Object> value = getProperty(pName, context, LiteralMode.VALUES_ONLY);
+		Collection<Object> value = listPropertyValues(pName, context, LiteralMode.VALUES_ONLY);
 
 		if (value.isEmpty() && pName.localName.endsWith(LITERAL_SUFFIX)) {
 			final String localNameWithoutSuffix = pName.localName.substring(0,
 					pName.localName.length() - LITERAL_SUFFIX.length());
 			RDFQualifiedName withoutLiteral = pName.withLocalName(localNameWithoutSuffix);
-			value = getProperty(withoutLiteral, context, LiteralMode.RAW);
+			value = listPropertyValues(withoutLiteral, context, LiteralMode.RAW);
+		}
+
+		// Disable this check to remove the maxCardinality limit on returned properties i.e. maxCardinality == null.
+		MaxCardinalityRestriction maxCardinality = RDFPropertyProcesses.getPropertyStatementMaxCardinalityRestriction(pName, resource);
+
+		// Check collection of rawValues is less than the MaxCardinality and prune as needed...
+		if (null != maxCardinality) {
+			if (value.size() > maxCardinality.getMaxCardinality()) {
+				System.err.println("Property [" + pName + "] has a max cardinality " + maxCardinality.getMaxCardinality()
+									+ ", raw property values list contained " + value.size()
+									+ ".\n The list of raw property values has been pruned, it contained: " + value);
+
+				value = value.stream().limit(maxCardinality.getMaxCardinality())
+						.collect(Collectors.toList());
+			}
+			if (maxCardinality.getMaxCardinality() == 1) {
+				// If the maximum cardinality is 1, return the single value (do not return a collection)
+				return value.isEmpty() ? null : value.iterator().next();
+			}
 		}
 
 		return value;
@@ -101,32 +119,15 @@ public class RDFResource extends RDFModelElement {
 		Collection<RDFLiteral> rawFromUntagged = literalsByTag.get("");
 		return new ArrayList<>(rawFromUntagged);
 	}
-	
-	public Collection<Object> getProperty(RDFQualifiedName pName, IEolContext context, LiteralMode literalMode) {
-		// Filter statements by prefix and local name
-		ExtendedIterator<Statement> itStatements = null;
-		if (pName.prefix == null) {
-			itStatements = resource.listProperties()
-				.filterKeep(stmt -> pName.localName.equals(stmt.getPredicate().getLocalName()));
-		} else {
-			String prefixIri = resource.getModel().getNsPrefixMap().get(pName.prefix);
-			Property prop = new PropertyImpl(prefixIri, pName.localName);
-			itStatements = resource.listProperties(prop);
-		}
 
-		// If a language tag is used, only keep literals with that tag
-		if (pName.languageTag != null) {
-			itStatements = itStatements.filterKeep(stmt -> {
-				if (stmt.getObject() instanceof Literal) {
-					Literal l = (Literal) stmt.getObject();
-					return pName.languageTag.equals(l.getLanguage());
-				}
-				return false;
-			});
-		}
+	public Collection<Object> listPropertyValues(RDFQualifiedName propertyName, IEolContext context, LiteralMode literalMode) {
+		ExtendedIterator<Statement> itStatements; 
+		itStatements = RDFPropertyProcesses.getPropertyStatementIterator(propertyName, resource);	
+		itStatements = RDFPropertyProcesses.filterPropertyStatementsIteratorWithLanguageTag(propertyName, itStatements);
 
-		Collection<Object> rawValues;
-		if (pName.prefix == null) {
+		// Build a collection Objects for the rawValues of the Objects for the Properties remaining 
+		Collection<Object> rawPropertyValues;
+		if (propertyName.prefix == null) {
 			// If no prefix was specified, watch out for ambiguity and issue warning in that case
 			ListMultimap<String, Object> values = MultimapBuilder.hashKeys().arrayListValues().build();
 			while (itStatements.hasNext()) {
@@ -139,12 +140,12 @@ public class RDFResource extends RDFModelElement {
 			if (distinctKeys.size() > 1) {
 				context.getWarningStream().println(String.format(
 					"Ambiguous access to property '%s': multiple prefixes found (%s)",
-					pName,
+					propertyName,
 					String.join(", ", distinctKeys)
 				));
 			}
 
-			rawValues = values.values();
+			rawPropertyValues = values.values();
 		} else {
 			// Prefix was specified: we don't have to worry about ambiguity
 			final List<Object> values = new ArrayList<>();
@@ -152,20 +153,20 @@ public class RDFResource extends RDFModelElement {
 				Statement stmt = itStatements.next();
 				values.add(convertToModelObject(stmt.getObject()));
 			}
-			rawValues = values;
+			rawPropertyValues = values;
 		}
 
 		// Filter by preferred languages if any are set
-		if (pName.languageTag == null && !rawValues.stream().anyMatch(p -> p instanceof RDFResource)) {
-			rawValues = filterByPreferredLanguage(rawValues);
+		if (propertyName.languageTag == null && !rawPropertyValues.stream().anyMatch(p -> p instanceof RDFResource)) {
+			rawPropertyValues = filterByPreferredLanguage(rawPropertyValues);
 		}
 
 		// Convert literals to values depending on mode
 		switch (literalMode) {
 		case VALUES_ONLY:
-			return convertLiteralsToValues(rawValues);
+			return convertLiteralsToValues(rawPropertyValues);
 		case RAW:
-			return rawValues;
+			return rawPropertyValues;
 		default:
 			throw new IllegalArgumentException("Unknown literal mode " + literalMode);
 		}

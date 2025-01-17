@@ -31,7 +31,7 @@ public class RDFModelAmbiguousPropertyTest {
 	@Test
 	public void nameIsAmbiguous() throws Exception {
 		try (RDFModel model = new RDFModel()) {
-			model.setUri(TTL);
+			model.setDataUri(TTL);
 			model.load();
 
 			RDFResource elem = model.getElementById("http://example.org/#green-goblin");

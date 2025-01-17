@@ -151,3 +151,27 @@ For instance, if we set the language preferences to `en-gb,en`, filtering `x.pro
 * Otherwise, return the untagged literals (if any).
 
 Language preferences do not apply if an explicit language tag is used: `x.property@en` will always get the `en`-tagged literals, and `x.property@` will always get the untagged literals.
+
+### Data models, schema models and reasoners
+
+RDF models are loaded as Ontology Resource Models with Jena's default OWL reasoner.
+This reasoner infers OWL concepts onto an RDF data model when it is loaded.
+
+In order to support OWL inferencing, the `RDF Model` configuration dialog is divided into two sections:
+
+* "Data Model URLs to load": each of the elements in the list is loaded and merged into a single RDF data model.
+* "Schema Model URLs to load": each element is merged into a single RDF schema model.
+
+The resulting RDF data and schema models are then processed by Jena's reasoner using the default OWL settings.
+The inferred model is then used by Epsilon for querying.
+
+#### Schema-defined restrictions (maximum cardinality)
+
+An RDF Schema can contain OWL restrictions for some properties in an RDF data model, such as maximum cardinality.
+
+When computing `resource.property`, if a maximum cardinality is defined for `property`, then the number of returned values will be limited to that maximum size.
+If there are multiple maximum cardinality restrictions, the most restrictive one will be used.
+
+In the specific case that the maximum cardinality is 1, `resource.property` will directly return the value (if set) or `null`, instead of returning a collection.
+
+Note: this behaviour will be moved to the MOF2RDF-specific variant of the driver in the future (see #15).

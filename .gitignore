@@ -37,3 +37,11 @@ target-plain/
 *.polyglot*
 *.tycho
 *.META-INF_MANIFEST.MF
+
+# Eclipse IDE metadata in non-project folders
+/.project
+/bundles/.project
+/examples/.project
+/features/.project
+/releng/.project
+/tests/.project

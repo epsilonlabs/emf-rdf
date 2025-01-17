@@ -53,7 +53,7 @@ public class RDFModelTest {
 	@Before
 	public void setup() throws EolModelLoadingException {
 		this.model = new RDFModel();
-		model.setUri("resources/spiderman.ttl");
+		model.setDataUri("resources/spiderman.ttl");
 		model.load();
 
 		this.pGetter = model.getPropertyGetter();
@@ -69,7 +69,7 @@ public class RDFModelTest {
 
 	@Test
 	public void listAll() throws EolModelLoadingException {
-		assertEquals("allContents should produce one element per resource", 2, model.allContents().size());
+		assertTrue("allContents should produce at least one element for the Green Goblin and Spiderman ", model.allContents().size() >= 2);
 	}
 
 	@Test
@@ -177,21 +177,13 @@ public class RDFModelTest {
 		RDFModelElement firstPerson = model.getAllOfType("foaf:Person").iterator().next();
 		assertTrue("The model should own the person", model.owns(firstPerson));
 		assertFalse("The model should not own an unrelated object", model.owns(1234));
-
 		assertEquals("The model should report the first type of the resource",
 			"foaf:Person",
 			model.getTypeNameOf(firstPerson));
-
-		// This may be revised later, if generic types are introduced
-		assertEquals("The model should only report the Person type for that person",
-			Collections.singletonList("foaf:Person"),
-			model.getAllTypeNamesOf(firstPerson));
-	}
-
-	@Test(expected=EolModelElementTypeNotFoundException.class)
-	public void jenaDoesNotFetchRelatedVocabulary() throws Exception {
-		// By itself, Jena will not fetch the related FOAF vocabulary referenced in the Turtles example
-		model.getAllOfType("Class");
+		
+		assertEquals("The model should only report the Person type and the rdfs Resource",
+				new HashSet<>(Arrays.asList("foaf:Person", "rdfs:Resource")),
+				new HashSet<>(model.getAllTypeNamesOf(firstPerson)));		
 	}
 
 }
