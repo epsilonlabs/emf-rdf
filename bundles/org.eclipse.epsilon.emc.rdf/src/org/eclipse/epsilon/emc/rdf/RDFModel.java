@@ -309,7 +309,6 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 
 			// If a schema model has been loaded assume need for a reasoner using Jena's default OWL
 			if (schemaModel.size() >= 0 && reasonerType == ReasonerType.NONE) {
-				System.err.println("Schema URIs have been defined: overriding NONE ReasonerType with OWL_FULL ReasonerType");
 				this.setReasonerType(ReasonerType.OWL_FULL);
 			}
 
@@ -438,7 +437,5 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		boolean isValidBCP47 = !("und".equals(Locale.forLanguageTag(bcp47tag).toLanguageTag()));
 		return isValidBCP47;
 	}
-	
-	
 
 }
