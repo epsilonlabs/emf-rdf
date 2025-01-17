@@ -76,10 +76,7 @@ public class RDFModelTest {
 	public void getNamesWithoutPrefix() throws Exception {
 		Set<String> names = new HashSet<>();
 		for (RDFModelElement o : model.allContents()) {
-			Object nameResult = pGetter.invoke(o, "name", context);
-			if (nameResult instanceof Collection) {
-				names.addAll((Collection<String>) nameResult);
-			}
+			names.addAll((Collection<String>) pGetter.invoke(o, "name", context));
 		}
 		assertEquals("With no language preference and no tag, all values are returned", ALL_NAMES, names);
 	}

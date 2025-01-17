@@ -104,10 +104,7 @@ public class RDFModelPreferredLanguagesTest {
 		setupModel(null);
 		Set<String> names = new HashSet<>();
 		for (RDFModelElement o : model.allContents()) {
-			Object oName = pGetter.invoke(o, "name", context);
-			if (oName instanceof Collection) {
-				names.addAll((Collection<String>) oName);
-			}
+			names.addAll((Collection<String>) pGetter.invoke(o, "name", context));
 		}
 		assertEquals("With no language preference and no tag, all values are returned", ALL_NAMES, names);;
 	}
@@ -207,10 +204,7 @@ public class RDFModelPreferredLanguagesTest {
 		setupModel(LANGUAGE_PREFERENCE_JA_STRING);
 		Set<String> names = new HashSet<>();
 		for (RDFModelElement o : model.allContents()) {
-			Object oName = pGetter.invoke(o, "name@", context);
-			if (oName instanceof Collection) {
-				names.addAll((Collection<String>) oName);
-			}
+			names.addAll((Collection<String>) pGetter.invoke(o, "name@", context));
 		}
 		assertEquals(ALL_NAMES_UNTAGGED, names);
 	}
