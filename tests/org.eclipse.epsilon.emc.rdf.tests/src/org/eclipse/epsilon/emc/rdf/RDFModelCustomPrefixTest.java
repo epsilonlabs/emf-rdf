@@ -19,6 +19,7 @@ import java.util.Collection;
 
 import org.eclipse.epsilon.common.util.StringProperties;
 import org.eclipse.epsilon.eol.execute.context.EolContext;
+import org.eclipse.epsilon.eol.execute.introspection.IPropertyGetter;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -72,8 +73,9 @@ public class RDFModelCustomPrefixTest {
 			assertEquals("Two people should be found using the custom prefix", 2, people.size());
 
 			RDFModelElement element = people.iterator().next();
-			assertNotNull("It should be possible to use the second prefix to fetch a relationship",
-					model.getPropertyGetter().invoke(element, "r:enemyOf", context));
+			IPropertyGetter pGetter = model.getPropertyGetter();
+			Object related = pGetter.invoke(element, "r:enemyOf", context);
+			assertNotNull("It should be possible to use the second prefix to fetch a relationship", related);
 		}
 	}
 

@@ -17,8 +17,23 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
+ * <p>
  * Represents a partially or fully-qualified name for an RDF resource, with an
- * optional namespace URI. Instances are created using {@link #from(String, Map)}.
+ * optional namespace URI. Instances are created using
+ * {@link #from(String, Map)}.
+ * </p>
+ *
+ * <p>
+ * There is a class invariant that:
+ * </p>
+ *
+ * <code>this.prefix != null if and only if this.namespaceURI != null</code>.
+ *
+ * <p>
+ * This invariant is enforced by only allowing construction from the outside
+ * through {@link #from(String, Function)} or through the
+ * {@link #withLanguageTag(String)} and {@link #withLocalName(String)} methods.
+ * </p>
  */
 public class RDFQualifiedName {
 
@@ -29,7 +44,8 @@ public class RDFQualifiedName {
 	final String localName;
 	final String languageTag;
 
-	public RDFQualifiedName(String prefix, String nsURI, String localName, String languageTag) {
+	// NOTE: this constructor is intentionally private. See class comment.
+	private RDFQualifiedName(String prefix, String nsURI, String localName, String languageTag) {
 		this.prefix = prefix;
 		this.namespaceURI = nsURI;
 		this.localName = localName;
@@ -55,9 +71,11 @@ public class RDFQualifiedName {
 
 	/**
 	 * Parses a property where the prefix (if any) has already been resolved to
-	 * a namespace URI, and the local name matches {@code localName(@language)?}.  
+	 * a namespace URI, and the local name matches {@code localName(@language)?}.
+	 *
+	 * NOTE: this method is intentionally private. See class comment.
 	 */
-	public static RDFQualifiedName from(String prefix, String nsURI, String localNameWithOptionalTag) {
+	private static RDFQualifiedName from(String prefix, String nsURI, String localNameWithOptionalTag) {
 		int atIdx = localNameWithOptionalTag.indexOf('@');
 		String localName = null, languageTag = null;
 		if (atIdx == -1) {
