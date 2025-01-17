@@ -60,10 +60,6 @@ public class RDFModelOWLReasonerTest {
 			motherBoard instanceof RDFResource);
 	}
 
-	// TODO Review this test with Antonio.
-	// Proposed test: need a similar test to getMotherBoard but for the scenario where null should be returned (i.e. you have no motherboard)
-	// Getting an empty list back, because there is not motherboard there is also no max cardinality which could be evaluated to 1 and thus a single value or null.
-
 	@Test
 	public void getPropertyThatDoesNotExistAsNullTest() {
 		loadModelDefaults();

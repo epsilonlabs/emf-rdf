@@ -81,7 +81,7 @@ public class RDFResource extends RDFModelElement {
 			}
 		}
 
-		return value.isEmpty() ? null : value;
+		return value;
 	}
 
 	protected Collection<Object> convertLiteralsToValues(Collection<Object> value) {
