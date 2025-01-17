@@ -4,13 +4,13 @@
 :alienBox51 a :GamingComputer .
 
 :bigName42 a :Computer ;
-    :hasBundle :binNameSpecialBundle ;
-    :hasMotherBoard :bigNameSpecialMB,
+    :bundle :binNameSpecialBundle ;
+    :motherBoard :bigNameSpecialMB,
         :nForce2 .
 
 :whiteBoxZX a :Computer ;
-    :hasBundle :actionPack ;
-    :hasMotherBoard :nForce,
+    :bundle :actionPack ;
+    :motherBoard :nForce,
         :unknownMB .
 
 :actionPack a :GameBundle .

@@ -10,7 +10,7 @@ eg:GamingComputer a owl:Class ;
     owl:equivalentClass [ owl:intersectionOf ( [ a owl:Restriction ;
                         owl:hasValue eg:gamingGraphics ;
                         owl:onProperty eg:hasComponent ] [ a owl:Restriction ;
-                        owl:onProperty eg:hasBundle ;
+                        owl:onProperty eg:bundle ;
                         owl:someValuesFrom eg:GameBundle ] eg:Computer ) ] .
 
 eg:budgetGraphics a eg:GraphicsCard .
@@ -28,10 +28,10 @@ eg:MotherBoard a owl:Class .
 
 eg:gamingGraphics a eg:GraphicsCard .
 
-eg:hasBundle a owl:ObjectProperty ;
+eg:bundle a owl:ObjectProperty ;
     rdfs:domain eg:Computer .
 
-eg:hasMotherBoard a owl:ObjectProperty ;
+eg:motherBoard a owl:ObjectProperty ;
     rdfs:domain eg:Computer ;
     rdfs:range eg:MotherBoard ;
     rdfs:subPropertyOf eg:hasComponent .
@@ -39,7 +39,7 @@ eg:hasMotherBoard a owl:ObjectProperty ;
 eg:Computer a owl:Class ;
     rdfs:subClassOf [ owl:intersectionOf ( [ a owl:Restriction ;
                         owl:maxCardinality "1"^^xsd:nonNegativeInteger ;
-                        owl:onProperty eg:hasMotherBoard ] ) ] .
+                        owl:onProperty eg:motherBoard ] ) ] .
 
 eg:hasComponent a owl:ObjectProperty,
         owl:TransitiveProperty .

@@ -81,6 +81,7 @@ public class RDFResource extends RDFModelElement {
 			}
 		}
 
+		//return value.isEmpty() ? null : value; // Null returns cause issues with PropertyGetter which expects empty collections for no property matches
 		return value;
 	}
 
