@@ -4,7 +4,7 @@
    <extension
          point="org.eclipse.epsilon.common.dt.modelType">
       <modelType
-            class="org.eclipse.epsilon.emc.rdf.RDFModel"
+            class="org.eclipse.epsilon.emc.rdf.dt.EclipseRDFModel"
             dialog="org.eclipse.epsilon.emc.rdf.dt.RDFModelConfigurationDialog"
             icon="icons/sw-cube.png"
             label="RDF Model"
