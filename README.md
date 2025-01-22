@@ -152,6 +152,10 @@ For instance, if we set the language preferences to `en-gb,en`, filtering `x.pro
 
 Language preferences do not apply if an explicit language tag is used: `x.property@en` will always get the `en`-tagged literals, and `x.property@` will always get the untagged literals.
 
+### Platform URL support
+
+Data and schema models can be loaded using Platform:/ URLs when using the driver in an Eclipse enviroment. All Platform URLs are converted to File URLs before being passed to Jena.
+
 ### Data models, schema models and reasoners
 
 RDF models are loaded as Ontology Resource Models with Jena's default OWL reasoner.
