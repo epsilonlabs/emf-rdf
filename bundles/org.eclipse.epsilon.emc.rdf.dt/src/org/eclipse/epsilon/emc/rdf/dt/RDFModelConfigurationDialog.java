@@ -155,11 +155,15 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		public String prefix, url;
 	}
 
+	private String getIFilePlatformAsUrlString(IFile file) {
+		// Is there a better way to convert the full path to a platform url?
+		return "platform:/resource" + file.getFullPath().toPortableString();
+	}
+	
 	protected class URLTableEntry {
 		public URLTableEntry(String url) {
 			this.url = url;
 		}
-
 		public String url;
 	}
 
@@ -317,11 +321,11 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		addFromWorkspaceButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				
 				IFile file = BrowseWorkspaceUtil.browseFile(getShell(),
-						"Browse workspace", "Select file with RDF content", "*.rdf", null);
-
+						"Browse workspace", "Select file with RDF content", "*.rdf", null);				
 				if (file != null) {
-					dataModelUrls.add(new URLTableEntry(file.getLocationURI().toString()));
+					dataModelUrls.add(new URLTableEntry(getIFilePlatformAsUrlString(file)));
 					dataModelUrlListViewer.refresh();
 				}
 			}
@@ -426,7 +430,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 						"Browse workspace", "Select file with RDF content", "*.rdf", null);
 
 				if (file != null) {
-					schemaModelUrls.add(new URLTableEntry(file.getLocationURI().toString()));
+					schemaModelUrls.add(new URLTableEntry(getIFilePlatformAsUrlString(file)));
 					schemaModelUrlListViewer.refresh();
 				}
 			}
