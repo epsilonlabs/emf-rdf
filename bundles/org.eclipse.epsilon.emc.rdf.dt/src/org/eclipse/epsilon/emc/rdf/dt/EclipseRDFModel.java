@@ -17,22 +17,23 @@ public class EclipseRDFModel extends RDFModel {
 	@Override
 	protected void loadModel() throws EolModelLoadingException { 
 		// Change any platform:/ URLs to file:/ URLs in these lists...
+		processEclipsePlatformUrlsToFileUrls(schemaURIs);
+		processEclipsePlatformUrlsToFileUrls(dataURIs);
 
-		processEclipsePlatformUrlsInList(schemaURIs);
-		processEclipsePlatformUrlsInList(dataURIs);
-		
-		// Call the RDFModel load as normal with only File:/ URLs in the lists
+		// Call the RDFModel load as normal, no platform URLs are passed to Jena
 		super.loadModel();
 	}
 	
-	// Pushes a list of URLs through a process to turn any Platform:/ into File:/ which Jena can use
-	private void processEclipsePlatformUrlsInList(List<String> urlList) {
+	// Pushes a list of URLs through a process to turn any Platform:/ into File:/ 
+	private void processEclipsePlatformUrlsToFileUrls(List<String> urlList) {
 		List<String> goodUrls = new ArrayList<String>();
-		
 		urlList.forEach(u -> {
-			String newUrlString = processPlatformURLtoFileUrl(u);
-			if (newUrlString != null) {
+			String newUrlString = null;
+			try {
+				newUrlString = processPlatformURLtoFileUrl(u);
 				goodUrls.add(newUrlString);
+			} catch (EolModelLoadingException e) {
+				System.err.println(e);
 			}
 		});
 		urlList.clear();
@@ -42,32 +43,35 @@ public class EclipseRDFModel extends RDFModel {
 
 	// Will attempt to resolve a String to a URI and then URL, gets the file system path and returns it
 	// A File:/ URL is unchanged by this process, Platform:/ URLs become File:/ URLs
-	private String processPlatformURLtoFileUrl(String urlString) {
-		
+	private String processPlatformURLtoFileUrl(String urlString) throws EolModelLoadingException {
 		URI fileUri = URI.create(urlString);
 		
 		URL fileUrl = null;
 		try {
 			fileUrl = fileUri.toURL();		
-			// System.err.println("[OK] fileUrl: " + fileUrl);
-		} catch (MalformedURLException e) {
-			//e.printStackTrace();
-			System.err.println("fileUri.toURL() - " + urlString);
+		} catch (Exception ex) {
+			throw new EolModelLoadingException(ex, this);
 		}
 		
-		URL fileSystemPathUrl = null;		
-		try {
-			fileSystemPathUrl = FileLocator.toFileURL(fileUrl);
-			// System.err.println("[OK] fileSystemPathUrl: " + fileSystemPathUrl);
-		} catch (IOException e) {
-			//e.printStackTrace();
-			System.err.println("FileLocator.toFileURL(fileUrl); - " + fileUrl);
+		// Only transform platform to file urls, return all others unchanged
+		if (fileUrl.getProtocol().contentEquals("platform"))
+		{
+			URL fileSystemPathUrl = null;		
+			try {
+				fileSystemPathUrl = FileLocator.toFileURL(fileUrl);
+			} catch (Exception ex) {
+				throw new EolModelLoadingException(ex, this);
+			}
+			
+			try {
+				return fileSystemPathUrl.toString();
+			} catch (Exception ex) {
+				throw new EolModelLoadingException(ex, this);	
+			}
 		}
-		
-		if (null != fileSystemPathUrl) {
-			return fileSystemPathUrl.toString();
-		} else {
-			return null;
+		else
+		{
+			return urlString;
 		}
 	}
 
@@ -76,38 +80,5 @@ public class EclipseRDFModel extends RDFModel {
 		System.out.println(listName + ": ");
 		list.forEach(e -> System.out.println(e));
 	}
-	
-	
-	// Stuff to delete later
-	
-	private static final String PLATFORM_URL_OWLDATA = "platform:/resource/org.eclipse.epsilon.examples.emc.rdf.OWLdata/owlDemoData.ttl";
-	private static final String PLATFORM_URL_OWLSCHEMA = "platform:/resource/org.eclipse.epsilon.examples.emc.rdf.OWLdata/owlDemoData.ttl";
-	
-	private void examplePlatformToFile() {
-		System.out.println(Platform.getLocation());
-		
-		URI fileUri = URI.create(PLATFORM_URL_OWLDATA);
-		
-		URL fileUrl = null;
-		try {
-			fileUrl = fileUri.toURL();
-				
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			System.err.println(readOnLoad);
-		}
-		
-		URL fileSystemPathUrl = null;		
-		try {
-			fileSystemPathUrl = FileLocator.toFileURL(fileUrl);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
-		System.out.println("platform URL: " + PLATFORM_URL_OWLDATA);
-		System.out.println("PATH: " + fileSystemPathUrl);
-	}
+
 }
