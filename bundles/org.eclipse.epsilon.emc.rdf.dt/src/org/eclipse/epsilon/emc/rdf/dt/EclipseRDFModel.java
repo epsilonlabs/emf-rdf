@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.epsilon.emc.rdf.RDFModel;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelLoadingException;
 
