@@ -30,45 +30,30 @@ public class EclipseRDFModel extends RDFModel {
 				newUrlString = processPlatformURLtoFileUrl(u);
 				goodUrls.add(newUrlString);
 			} catch (EolModelLoadingException e) {
-				System.err.println(e);
+				// System.err.println(e);
 			}
 		});
 		urlList.clear();
 		urlList.addAll(goodUrls);
-	}
-	
+	}	
 
 	// Will attempt to resolve a String to a URI and then URL, gets the file system path and returns it
 	// A File:/ URL is unchanged by this process, Platform:/ URLs become File:/ URLs
 	private String processPlatformURLtoFileUrl(String urlString) throws EolModelLoadingException {
-		URI fileUri = URI.create(urlString);
-		
-		URL fileUrl = null;
-		try {
-			fileUrl = fileUri.toURL();		
-		} catch (Exception ex) {
-			throw new EolModelLoadingException(ex, this);
-		}
-		
-		// Only transform platform to file urls, return all others unchanged
-		if (fileUrl.getProtocol().contentEquals("platform"))
-		{
-			URL fileSystemPathUrl = null;		
-			try {
-				fileSystemPathUrl = FileLocator.toFileURL(fileUrl);
-			} catch (Exception ex) {
-				throw new EolModelLoadingException(ex, this);
-			}
-			
-			try {
-				return fileSystemPathUrl.toString();
-			} catch (Exception ex) {
-				throw new EolModelLoadingException(ex, this);	
-			}
-		}
-		else
-		{
+
+		// Any URLS starting . / are possibly relative paths, they should work with Jena
+		if ((urlString.startsWith(".")) | (urlString.startsWith("/"))) {
 			return urlString;
+		}
+
+		URI fileUri = URI.create(urlString);
+		try {
+			URL fileUrl = fileUri.toURL();
+			URL fileSystemPathUrl = FileLocator.toFileURL(fileUrl);
+			return fileSystemPathUrl.toString();
+		} catch (Exception ex) {
+			System.err.println("Error processing URL: " + urlString);
+			throw new EolModelLoadingException(ex, this);
 		}
 	}
 
