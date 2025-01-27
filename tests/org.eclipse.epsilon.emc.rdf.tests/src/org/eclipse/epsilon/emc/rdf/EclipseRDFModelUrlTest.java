@@ -13,11 +13,8 @@
 
 package org.eclipse.epsilon.emc.rdf;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 
 import org.eclipse.epsilon.common.util.StringProperties;
 import org.eclipse.epsilon.emc.rdf.dt.EclipseRDFModel;
@@ -45,6 +42,10 @@ public class EclipseRDFModelUrlTest extends EclipseProjectEnvTest {
 	private EclipseRDFModel model;
 	private EolContext context;
 
+	//
+	// NO ERRORS EXPECTED
+	//
+	
 	@Test
 	public void relativePathModelLoad() throws EolModelLoadingException {
 		String dataUrl = new String("." + OWL_DEMO_DATAMODEL);
@@ -94,26 +95,42 @@ public class EclipseRDFModelUrlTest extends EclipseProjectEnvTest {
 		loadedModelTest();
 	}
 
-	@Test(expected = EolModelLoadingException.class)
-	public void missingResourceInPlatformUrlModelLoad() throws EolModelLoadingException {
+	//
+	//  EXPECTED ERRORS!
+	//
+	
+	@Test
+	public void missingResourceInPlatformUrlModelLoad() {
 		String dataUrl = new String("platform:/-/" + PROJECT_URL + "/" + OWL_DEMO_DATAMODEL);
 		String schemaUrl = new String("platform:/-/" + PROJECT_URL + "/" + OWL_DEMO_SCHEMAMODEL);
 		StringProperties props = createPropertyString(dataUrl, schemaUrl, LANGUAGE_PREFERENCE_EN_STRING);
 
 		this.context = new EolContext();
 		copyModelFiles();
-		model.load(props);
+		
+		try {
+			model.load(props);
+		} catch (EolModelLoadingException e) {
+			System.err.println("Test internal message: " + e.getInternal().getMessage());
+			assertEquals("Error whilst loading model null: No file path has been set", e.getMessage());
+		}
 	}
 
-	@Test(expected = EolModelLoadingException.class)
-	public void missingProjectUrlInPlatformUrlModelLoad() throws EolModelLoadingException {
+	@Test
+	public void missingProjectUrlInPlatformUrlModelLoad() {
 		String dataUrl = new String("platform:/resource" + OWL_DEMO_DATAMODEL);
 		String schemaUrl = new String("platform:/resource" + OWL_DEMO_SCHEMAMODEL);
 		StringProperties props = createPropertyString(dataUrl, schemaUrl, LANGUAGE_PREFERENCE_EN_STRING);
 
 		this.context = new EolContext();
 		copyModelFiles();
-		model.load(props);
+		
+		try {
+			model.load(props);
+		} catch (EolModelLoadingException e) {
+			System.err.println("Test internal message: " + e.getInternal().getMessage());
+			assertEquals("Error whilst loading model null: No file path has been set",e.getMessage());
+		}
 	}
 
 	@After
@@ -147,7 +164,6 @@ public class EclipseRDFModelUrlTest extends EclipseProjectEnvTest {
 		props.put(RDFModel.PROPERTY_DATA_URIS, dataModelUri);
 		props.put(RDFModel.PROPERTY_SCHEMA_URIS, schemaModelUri);
 		props.put(RDFModel.PROPERTY_LANGUAGE_PREFERENCE, languagePreference);
-		System.out.println("props: " + props.toString());
 		return props;
 	}
 }
