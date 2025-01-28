@@ -37,11 +37,11 @@ public class EclipseRDFModel extends RDFModel {
 		urlList.addAll(goodUrls);
 	}	
 
-	// Will attempt to resolve a String to a URI and then URL, gets the file system path and returns it
-	// A File:/ URL is unchanged by this process, Platform:/ URLs become File:/ URLs
+	// A File:/ URL or relative path starting '/' or '.' is unchanged by this process, Platform:/ URLs become File:/ URLs
+	// Attempts to resolve a String to a URI and then URL, then gets the File:/ URL and returns it
 	private String processPlatformURLtoFileUrl(String urlString) throws EolModelLoadingException {
 
-		// Any URLS starting . / are possibly relative paths, they should work with Jena
+		// Any URLS starting . / are possibly relative paths, they should work with Jena if correct
 		if ((urlString.startsWith(".")) | (urlString.startsWith("/"))) {
 			return urlString;
 		}
@@ -58,9 +58,11 @@ public class EclipseRDFModel extends RDFModel {
 	}
 
 	// Handy way to show the lists on the console
+	/*
 	private void showList (String listName, List<String> list) {
 		System.out.println(listName + ": ");
 		list.forEach(e -> System.out.println(e));
 	}
+	*/
 
 }

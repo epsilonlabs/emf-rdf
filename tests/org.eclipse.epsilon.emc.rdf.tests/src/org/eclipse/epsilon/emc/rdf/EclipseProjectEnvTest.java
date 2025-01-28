@@ -16,10 +16,12 @@ public class EclipseProjectEnvTest {
  * 
  * <p>
  * Note: all tests based on this class must run as JUnit Plug-In tests, not as
- * regular tests, and the ui.workbench product or Headless needs to be run. We need a
+ * regular tests, and the ui.workbench product (or Headless) needs to be run. We need a
  * working, open workbench for these tests.
  * </p>
  */
+	
+	private final int FILESYSTEM_SYNC_TIMEOUT_SECONDS = 10;
 	
 	private final String projectUrl;
 	
@@ -29,7 +31,7 @@ public class EclipseProjectEnvTest {
 	 * Creates a new project with this URL
 	 * 
 	 * @param projectUrl
-	 *            Project URL to use for a project resource in Eclipse IDE Workbench used for the test
+	 *            Project URL to use for a project resource in Eclipse IDE Workbench that the test will use
 	 */
 	public EclipseProjectEnvTest(String projectUrl) {
 		this.projectUrl = projectUrl;
@@ -46,8 +48,6 @@ public class EclipseProjectEnvTest {
 		}
 		testProject.create(null);
 		testProject.open(null);		
-		
-		//System.out.println("Test location URI: "+testProject.getLocationURI());		
 	}
 
 	@After
@@ -56,26 +56,23 @@ public class EclipseProjectEnvTest {
 		
 		int count = 0;
 		while (!testProject.isSynchronized(1)) {
-			count = checkTimeOut(count, 10,"Waiting for delete sync... ");			
+			count = checkTimeOut(count, FILESYSTEM_SYNC_TIMEOUT_SECONDS,"Waiting for delete sync... ");			
 		}
 	}
 	
 	public void copyIntoProject(String path) throws Exception {
-		//System.out.println("copyIntoProject() : "+path);
 		IFile destFile=null; 
 		try (InputStream source = getClass().getResourceAsStream(path)) {
 			destFile = testProject.getFile(new Path(path));
 			createParentFolders(destFile);
-			destFile.create(source, false, null);
-			//System.out.println("source: "+ path);
-			//System.out.println("destFile: "+ destFile.getFullPath());			
+			destFile.create(source, false, null);			
 		} catch (Exception e) {
 			System.out.println("ERROR: copyIntoProject() " +e);
 		}
 		if (null != destFile) {			
 			int count = 0;
 			while (!destFile.isSynchronized(1)) {	
-				count = checkTimeOut(count, 10,"Waiting for file sync");			
+				count = checkTimeOut(count, FILESYSTEM_SYNC_TIMEOUT_SECONDS,"Waiting for file sync");			
 			}
 		}
 	}
