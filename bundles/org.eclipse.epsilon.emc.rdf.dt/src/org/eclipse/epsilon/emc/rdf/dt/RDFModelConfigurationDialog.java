@@ -156,7 +156,6 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 	}
 
 	private String getIFilePlatformAsUrlString(IFile file) {
-		// Is there a better way to convert the full path to a platform url?
 		return "platform:/resource" + file.getFullPath().toPortableString();
 	}
 	
