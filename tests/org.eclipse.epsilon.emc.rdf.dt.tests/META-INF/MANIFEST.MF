@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Tests for RDF EMC Developer Tools
+Bundle-Name: Tests for EMC RDF developer tools
 Bundle-SymbolicName: org.eclipse.epsilon.emc.rdf.dt.tests
 Bundle-Version: 1.0.0.qualifier
 Require-Bundle: org.eclipse.epsilon.emc.rdf,
