@@ -51,6 +51,7 @@ public class RDFResource extends RDFModelElement {
 		return resource;
 	}
 
+	// TODO RDFResource.getProperty()
 	public Object getProperty(String property, IEolContext context) {
 		final RDFQualifiedName pName = RDFQualifiedName.from(property, this.owningModel::getNamespaceURI);
 		Collection<Object> value = listPropertyValues(pName, context, LiteralMode.VALUES_ONLY);
