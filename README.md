@@ -154,7 +154,7 @@ Language preferences do not apply if an explicit language tag is used: `x.proper
 
 ### Platform URL support
 
-Data and schema models can be loaded using Platform:/ URLs when using the driver in an Eclipse enviroment. All Platform URLs are converted to File URLs before being passed to Jena.
+Data and schema models can be loaded using `platform:/` URLs when using the driver in an Eclipse enviroment. All `platform:/` URLs are converted to `file:/` URLs before being passed to Jena.
 
 ### Data models, schema models and reasoners
 
