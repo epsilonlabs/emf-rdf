@@ -10,12 +10,20 @@
  * Contributors:
  *   Antonio Garcia-Dominguez - initial API and implementation
  ********************************************************************************/
-package org.eclipse.epsilon.emc.rdf;
+package org.eclipse.epsilon.emc.rdf.dt.tests;
 
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
-import org.eclipse.core.resources.*;
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Path;
 import org.junit.After;
 import org.junit.Before;
@@ -68,23 +76,21 @@ public class EclipseProjectEnvTest {
 		
 		int count = 0;
 		while (!testProject.isSynchronized(1)) {
-			count = checkTimeOut(count, FILESYSTEM_SYNC_TIMEOUT_SECONDS,"Waiting for delete sync... ");			
+			count = checkTimeOut(count, FILESYSTEM_SYNC_TIMEOUT_SECONDS,"Waiting for delete sync... ");
 		}
 	}
 	
-	public void copyIntoProject(String path) throws Exception {
+	public void copyIntoProject(String from, String to) throws Exception {
 		IFile destFile=null; 
-		try (InputStream source = getClass().getResourceAsStream(path)) {
-			destFile = testProject.getFile(new Path(path));
+		try (InputStream source = new FileInputStream(from)) {
+			destFile = testProject.getFile(new Path(to));
 			createParentFolders(destFile);
-			destFile.create(source, false, null);			
-		} catch (Exception e) {
-			System.out.println("ERROR: copyIntoProject() " +e);
+			destFile.create(source, false, null);
 		}
-		if (null != destFile) {			
+		if (null != destFile) {
 			int count = 0;
-			while (!destFile.isSynchronized(1)) {	
-				count = checkTimeOut(count, FILESYSTEM_SYNC_TIMEOUT_SECONDS,"Waiting for file sync");			
+			while (!destFile.isSynchronized(1)) {
+				count = checkTimeOut(count, FILESYSTEM_SYNC_TIMEOUT_SECONDS,"Waiting for file sync");
 			}
 		}
 	}
@@ -104,11 +110,11 @@ public class EclipseProjectEnvTest {
 		System.out.println(" - " + errorLabel + " Time out: " + current + "/" + limit );
 		if (current >= limit)
 		{
-			//System.err.println("Check time out error: " + errorLabel);	
+			//System.err.println("Check time out error: " + errorLabel);
 			throw new Exception("Check time out error: " + errorLabel);
 		}
 		delaySeconds(1);
-		return ++current;		
+		return ++current;
 	}
 	
 	private void delaySeconds(int seconds) {

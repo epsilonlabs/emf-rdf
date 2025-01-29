@@ -11,12 +11,14 @@
  *   Antonio Garcia-Dominguez - initial API and implementation
  ********************************************************************************/
 
-package org.eclipse.epsilon.emc.rdf;
+package org.eclipse.epsilon.emc.rdf.dt.tests;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.eclipse.epsilon.common.util.StringProperties;
+import org.eclipse.epsilon.emc.rdf.RDFModel;
+import org.eclipse.epsilon.emc.rdf.RDFResource;
 import org.eclipse.epsilon.emc.rdf.dt.EclipseRDFModel;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelLoadingException;
 import org.eclipse.epsilon.eol.execute.context.EolContext;
@@ -31,12 +33,14 @@ public class EclipseRDFModelUrlTest extends EclipseProjectEnvTest {
 
 	private static final String PROJECT_URL = "myProject";
 
-	private static final String OWL_DEMO_DATAMODEL = "/resources/OWL/owlDemoData.ttl";
-	private static final String OWL_DEMO_SCHEMAMODEL = "/resources/OWL/owlDemoSchema.ttl";
+	private static final String RESOURCES_BASEDIR = "../org.eclipse.epsilon.emc.rdf.tests";
+	private static final String OWL_DEMO_DATAMODEL_PROJECT_PATH = "/resources/OWL/owlDemoData.ttl";
+	private static final String OWL_DEMO_SCHEMAMODEL_PROJECT_PATH = "/resources/OWL/owlDemoSchema.ttl";
+
+	private static final String OWL_DEMO_DATAMODEL = RESOURCES_BASEDIR + OWL_DEMO_DATAMODEL_PROJECT_PATH;
+	private static final String OWL_DEMO_SCHEMAMODEL = RESOURCES_BASEDIR + OWL_DEMO_SCHEMAMODEL_PROJECT_PATH;
 	private static final String LANGUAGE_PREFERENCE_EN_STRING = "en";
 	
-	private static final String URI_BIGNAME42 = "urn:x-hp:eg/bigName42";
-	private static final String URI_ALIENBOX51 = "urn:x-hp:eg/alienBox51";
 	private static final String URI_WHITEBOX = "urn:x-hp:eg/whiteBoxZX";
 
 	private EclipseRDFModel model;
@@ -47,10 +51,8 @@ public class EclipseRDFModelUrlTest extends EclipseProjectEnvTest {
 	//
 	
 	@Test
-	public void relativePathModelLoad() throws EolModelLoadingException {
-		String dataUrl = new String("." + OWL_DEMO_DATAMODEL);
-		String schemaUrl = new String("." + OWL_DEMO_SCHEMAMODEL);
-		StringProperties props = createPropertyString(dataUrl, schemaUrl, LANGUAGE_PREFERENCE_EN_STRING);
+	public void relativePathModelLoad() throws Exception {
+		StringProperties props = createStringProperties(OWL_DEMO_DATAMODEL, OWL_DEMO_SCHEMAMODEL, LANGUAGE_PREFERENCE_EN_STRING);
 
 		this.context = new EolContext();
 		copyModelFiles();
@@ -58,10 +60,22 @@ public class EclipseRDFModelUrlTest extends EclipseProjectEnvTest {
 	}
 
 	@Test
-	public void relativeFileUrlModelLoad() throws EolModelLoadingException {
-		String dataUrl = new String("file:." + OWL_DEMO_DATAMODEL);
-		String schemaUrl = new String("file:." + OWL_DEMO_SCHEMAMODEL);
-		StringProperties props = createPropertyString(dataUrl, schemaUrl, LANGUAGE_PREFERENCE_EN_STRING);
+	public void relativeFileUrlModelLoad() throws Exception {
+		String dataUrl = "file:" + OWL_DEMO_DATAMODEL;
+		String schemaUrl = "file:" + OWL_DEMO_SCHEMAMODEL;
+		StringProperties props = createStringProperties(dataUrl, schemaUrl, LANGUAGE_PREFERENCE_EN_STRING);
+
+		this.context = new EolContext();
+		copyModelFiles();
+		model.load(props);
+		loadedModelTest();
+	}
+
+	@Test
+	public void longFileUrlModelLoad() throws Exception {
+		String dataUrl = getTestProjectURIString() + OWL_DEMO_DATAMODEL_PROJECT_PATH;
+		String schemaUrl = getTestProjectURIString() + OWL_DEMO_SCHEMAMODEL_PROJECT_PATH;
+		StringProperties props = createStringProperties(dataUrl, schemaUrl, LANGUAGE_PREFERENCE_EN_STRING);
 
 		this.context = new EolContext();
 		copyModelFiles();
@@ -70,23 +84,10 @@ public class EclipseRDFModelUrlTest extends EclipseProjectEnvTest {
 	}
 
 	@Test
-	public void longFileUrlModelLoad() throws EolModelLoadingException {
-		String dataUrl = new String(getTestProjectURIString() + OWL_DEMO_DATAMODEL);
-		String schemaUrl = new String(getTestProjectURIString() + OWL_DEMO_SCHEMAMODEL);
-		StringProperties props = createPropertyString(dataUrl, schemaUrl, LANGUAGE_PREFERENCE_EN_STRING);
-
-		this.context = new EolContext();
-		copyModelFiles();
-		model.load(props);
-		loadedModelTest();
-
-	}
-
-	@Test
-	public void platformUrlModelLoad() throws EolModelLoadingException {
-		String dataUrl = new String("platform:/resource/" + PROJECT_URL + "/" + OWL_DEMO_DATAMODEL);
-		String schemaUrl = new String("platform:/resource/" + PROJECT_URL + "/" + OWL_DEMO_SCHEMAMODEL);
-		StringProperties props = createPropertyString(dataUrl, schemaUrl, LANGUAGE_PREFERENCE_EN_STRING);
+	public void platformUrlModelLoad() throws Exception {
+		String dataUrl = "platform:/resource/" + PROJECT_URL + OWL_DEMO_DATAMODEL_PROJECT_PATH;
+		String schemaUrl = "platform:/resource/" + PROJECT_URL + OWL_DEMO_SCHEMAMODEL_PROJECT_PATH;
+		StringProperties props = createStringProperties(dataUrl, schemaUrl, LANGUAGE_PREFERENCE_EN_STRING);
 
 		this.context = new EolContext();
 		copyModelFiles();
@@ -98,38 +99,38 @@ public class EclipseRDFModelUrlTest extends EclipseProjectEnvTest {
 	//
 	//  EXPECTED ERRORS!
 	//
-	
+
 	@Test
-	public void missingResourceInPlatformUrlModelLoad() {
+	public void missingResourceInPlatformUrlModelLoad() throws Exception  {
 		String dataUrl = new String("platform:/-/" + PROJECT_URL + "/" + OWL_DEMO_DATAMODEL);
 		String schemaUrl = new String("platform:/-/" + PROJECT_URL + "/" + OWL_DEMO_SCHEMAMODEL);
-		StringProperties props = createPropertyString(dataUrl, schemaUrl, LANGUAGE_PREFERENCE_EN_STRING);
+		StringProperties props = createStringProperties(dataUrl, schemaUrl, LANGUAGE_PREFERENCE_EN_STRING);
 
 		this.context = new EolContext();
 		copyModelFiles();
-		
+
 		try {
 			model.load(props);
+			fail("A model loading exception was expected");
 		} catch (EolModelLoadingException e) {
-			System.err.println("Test internal message: " + e.getInternal().getMessage());
-			assertEquals("Error whilst loading model null: No file path has been set", e.getMessage());
+			assertTrue(e.getMessage().contains("protocol variation"));
 		}
 	}
 
 	@Test
-	public void missingProjectUrlInPlatformUrlModelLoad() {
-		String dataUrl = new String("platform:/resource" + OWL_DEMO_DATAMODEL);
-		String schemaUrl = new String("platform:/resource" + OWL_DEMO_SCHEMAMODEL);
-		StringProperties props = createPropertyString(dataUrl, schemaUrl, LANGUAGE_PREFERENCE_EN_STRING);
+	public void missingProjectUrlInPlatformUrlModelLoad() throws Exception  {
+		String dataUrl = "platform:/resource" + OWL_DEMO_DATAMODEL;
+		String schemaUrl = "platform:/resource" + OWL_DEMO_SCHEMAMODEL;
+		StringProperties props = createStringProperties(dataUrl, schemaUrl, LANGUAGE_PREFERENCE_EN_STRING);
 
 		this.context = new EolContext();
 		copyModelFiles();
-		
+
 		try {
 			model.load(props);
+			fail("A model loading exception was expected");
 		} catch (EolModelLoadingException e) {
-			System.err.println("Test internal message: " + e.getInternal().getMessage());
-			assertEquals("Error whilst loading model null: No file path has been set",e.getMessage());
+			assertTrue(e.getMessage().contains("protocol variation"));
 		}
 	}
 
@@ -139,8 +140,8 @@ public class EclipseRDFModelUrlTest extends EclipseProjectEnvTest {
 			model.dispose();
 		}
 	}
-	
-	private void loadedModelTest() {		
+
+	private void loadedModelTest() {
 		assertTrue(model != null);
 		RDFResource element = model.getElementById(URI_WHITEBOX);
 		Object motherBoard = element.getProperty("eg:motherBoard", context);
@@ -148,16 +149,12 @@ public class EclipseRDFModelUrlTest extends EclipseProjectEnvTest {
 			motherBoard instanceof RDFResource);
 	}
 
-	private void copyModelFiles() {
-		try {
-			super.copyIntoProject(OWL_DEMO_DATAMODEL);
-			super.copyIntoProject(OWL_DEMO_SCHEMAMODEL);
-		} catch (Exception e) {
-			// e.printStackTrace();
-		}
+	private void copyModelFiles() throws Exception {
+		super.copyIntoProject(OWL_DEMO_DATAMODEL, OWL_DEMO_DATAMODEL_PROJECT_PATH);
+		super.copyIntoProject(OWL_DEMO_SCHEMAMODEL, OWL_DEMO_SCHEMAMODEL_PROJECT_PATH);
 	}
 
-	protected StringProperties createPropertyString(String dataModelUri, String schemaModelUri,
+	protected StringProperties createStringProperties(String dataModelUri, String schemaModelUri,
 			String languagePreference) {
 		this.model = new EclipseRDFModel();
 		StringProperties props = new StringProperties();

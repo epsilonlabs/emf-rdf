@@ -5,10 +5,7 @@ Bundle-SymbolicName: org.eclipse.epsilon.emc.rdf.tests
 Bundle-Version: 1.0.0.qualifier
 Require-Bundle: org.junit;bundle-version="4.0.0",
  org.eclipse.epsilon.emc.rdf,
- org.eclipse.epsilon.emc.rdf.dt,
- org.eclipse.epsilon.eol.engine,
- org.eclipse.equinox.registry
+ org.eclipse.epsilon.eol.engine
 Bundle-Vendor: University of York
 Automatic-Module-Name: org.eclipse.epsilon.emc.rdf.tests
 Bundle-RequiredExecutionEnvironment: JavaSE-17
-Import-Package: org.eclipse.core.resources

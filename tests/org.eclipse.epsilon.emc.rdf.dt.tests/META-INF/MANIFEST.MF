@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Tests for RDF EMC Developer Tools
+Bundle-SymbolicName: org.eclipse.epsilon.emc.rdf.dt.tests
+Bundle-Version: 1.0.0.qualifier
+Require-Bundle: org.eclipse.epsilon.emc.rdf,
+ org.eclipse.epsilon.emc.rdf.dt,
+ org.eclipse.equinox.registry;bundle-version="3.0.0",
+ org.junit;bundle-version="[4.0.0,5.0.0)",
+ org.eclipse.epsilon.eol.engine;bundle-version="2.0.0",
+ org.eclipse.core.resources;bundle-version="3.0.0"
+Bundle-Vendor: University of York
+Automatic-Module-Name: org.eclipse.epsilon.emc.rdf.dt.tests
+Bundle-RequiredExecutionEnvironment: JavaSE-17
