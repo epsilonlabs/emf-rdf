@@ -12,12 +12,13 @@
  ********************************************************************************/
 package org.eclipse.epsilon.emc.rdf;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Collection;
 
 import org.eclipse.epsilon.common.util.StringProperties;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelLoadingException;
@@ -55,17 +56,19 @@ public class RDFModelOWLReasonerTest {
 	public void getMotherBoardTest() {
 		loadModelDefaults();
 		RDFResource element = model.getElementById(URI_WHITEBOX);
-		Object motherBoard = element.getProperty("eg:motherBoard", context);
+		@SuppressWarnings("unchecked")
+		Collection<RDFResource> motherBoardList = (Collection<RDFResource>) element.getProperty("eg:motherBoard", context);		
 		assertTrue("motherBoard has max cardinality of 1 should only have that value returned ",
-			motherBoard instanceof RDFResource);
+			motherBoardList.size() == 1);
 	}
 
 	@Test
 	public void getPropertyThatDoesNotExistAsNullTest() {
 		loadModelDefaults();
 		RDFResource element = model.getElementById(URI_ALIENBOX51);
-		Object motherBoard = element.getProperty("eg:motherBoard", context);
-		assertNull("URI_ALIENBOX51 computer does not have motherBoard ", motherBoard);
+		@SuppressWarnings("unchecked")
+		Collection<RDFResource> motherBoardList = (Collection<RDFResource>) element.getProperty("eg:motherBoard", context);
+		assertTrue("URI_ALIENBOX51 computer does not have motherBoard ", motherBoardList.isEmpty());
 	}
 
 	@Test
@@ -77,11 +80,13 @@ public class RDFModelOWLReasonerTest {
 			System.setErr(new PrintStream(errors));
 			loadModelDefaults();
 
-			// This will return only the first motherboard, but we actually have two
-			model.getElementById(URI_BIGNAME42).getProperty("eg:motherBoard", context);
+			// This will return all motherboards, we actually have two on URI_BIGNAME42			
+			@SuppressWarnings("unchecked")
+			Collection<RDFResource> motherBoardList = (Collection<RDFResource>) model.getElementById(URI_BIGNAME42).getProperty("eg:motherBoard", context);
+			assertTrue("URI_BIGNAME42 computer should report 2 motherBoard s ", motherBoardList.size() == 2);
 
 			String sErrors = errors.toString();
-			assertTrue("An error should be raised for max cardinality being exceeded",
+			assertFalse("An error should be raised for max cardinality being exceeded",
 				sErrors.contains("has a max cardinality 1, raw property values list contained"));
 		} finally {
 			System.setErr(oldErr);
