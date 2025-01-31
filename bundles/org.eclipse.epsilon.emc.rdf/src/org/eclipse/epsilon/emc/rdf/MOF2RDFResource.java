@@ -25,7 +25,6 @@ public class MOF2RDFResource extends RDFResource {
 		super(aResource, rdfModel);
 	}
 
-	// TODO MOF2RDFResource.getProperty()
 	public Object getProperty(String property, IEolContext context) {
 
 		Collection<Object> value = super.getCollectionOfProperyValues(property, context);

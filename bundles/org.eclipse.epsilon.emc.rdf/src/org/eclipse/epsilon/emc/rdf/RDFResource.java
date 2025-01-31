@@ -51,10 +51,8 @@ public class RDFResource extends RDFModelElement {
 		return resource;
 	}
 
-	// TODO RDFResource.getProperty()
 	public Object getProperty(String property, IEolContext context) {
 		// No additional processing of property values 
-		System.out.println("RDFResource.getProperty()");
 		return getCollectionOfProperyValues(property, context);		
 	}
 	
