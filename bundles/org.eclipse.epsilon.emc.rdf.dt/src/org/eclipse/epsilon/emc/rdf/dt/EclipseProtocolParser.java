@@ -17,7 +17,6 @@ import java.net.URL;
 import java.util.List;
 
 import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.epsilon.eol.exceptions.models.EolModelLoadingException;
 
 public class EclipseProtocolParser {
 	
