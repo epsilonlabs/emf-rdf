@@ -16,7 +16,7 @@
          point="org.eclipse.epsilon.common.dt.modelType">
       <modelType
             class="org.eclipse.epsilon.emc.rdf.dt.EclipseMOF2RDFModel"
-            dialog="org.eclipse.epsilon.emc.rdf.dt.RDFModelConfigurationDialog"
+            dialog="org.eclipse.epsilon.emc.rdf.dt.MOF2RDFModelConfigurationDialog"
             icon="icons/sw-cube.png"
             label="MOF2RDF Model"
             stable="false"
