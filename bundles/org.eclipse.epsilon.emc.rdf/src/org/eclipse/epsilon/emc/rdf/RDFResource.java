@@ -171,7 +171,7 @@ public class RDFResource extends RDFModelElement {
 		List<RDFResource> types = new ArrayList<>();
 		for (StmtIterator itStmt = resource.listProperties(RDF.type); itStmt.hasNext(); ) {
 			RDFNode node = itStmt.next().getObject();
-			types.add(this.owningModel.createResource((Resource) node, this.owningModel));
+			types.add(this.owningModel.createResource((Resource) node));
 		}
 		return types;
 	}
@@ -184,7 +184,7 @@ public class RDFResource extends RDFModelElement {
 		if (node instanceof Literal) {
 			return new RDFLiteral((Literal) node, this.owningModel);
 		} else if (node instanceof Resource) {
-			return this.owningModel.createResource((Resource) node, this.owningModel);
+			return this.owningModel.createResource((Resource) node);
 			
 		}
 		throw new IllegalArgumentException("Cannot convert " + node + " to a model object");

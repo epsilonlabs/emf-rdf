@@ -17,7 +17,8 @@ import org.apache.jena.rdf.model.Resource;
 public class MOF2RDFModel extends RDFModel {
 
 	@Override
-	protected MOF2RDFResource createResource(Resource aResource, RDFModel aModel) {
-		return new MOF2RDFResource(aResource, aModel);
+	protected MOF2RDFResource createResource(Resource aResource) {
+		return new MOF2RDFResource(aResource, this);
 	}
+
 }

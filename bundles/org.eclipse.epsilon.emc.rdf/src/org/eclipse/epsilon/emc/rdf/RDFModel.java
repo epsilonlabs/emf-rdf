@@ -85,8 +85,8 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		this.propertyGetter = new RDFPropertyGetter(this);
 	}
 	
-	protected RDFResource createResource(Resource aResource, RDFModel aModel) {
-		return new RDFResource(aResource, aModel);
+	protected RDFResource createResource(Resource aResource) {
+		return new RDFResource(aResource, this);
 	}
 
 	@Override
@@ -119,7 +119,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	public RDFResource getElementById(String uri) {
 		Resource res = model.getResource(uri);
 		if (res != null) {
-			return createResource(res, this);
+			return createResource(res);
 		}
 		return null;
 	}
@@ -231,7 +231,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 
 		for (ResIterator it = model.listSubjects(); it.hasNext(); ) {
 			Resource stmt = it.next();
-			elems.add(createResource(stmt, this));
+			elems.add(createResource(stmt));
 		}
 		
 		return elems;
@@ -245,7 +245,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		ResIterator itInstances = model.listResourcesWithProperty(RDF.type, typeR);
 		List<RDFModelElement> instances = new ArrayList<>();
 		while (itInstances.hasNext()) {
-			instances.add(createResource(itInstances.next(), this));
+			instances.add(createResource(itInstances.next()));
 		}
 
 		return instances;
