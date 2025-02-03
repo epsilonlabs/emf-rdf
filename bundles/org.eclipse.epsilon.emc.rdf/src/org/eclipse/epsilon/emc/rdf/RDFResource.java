@@ -40,12 +40,12 @@ public class RDFResource extends RDFModelElement {
 	}
 
 	protected Resource resource;
-	
+
 	public RDFResource(Resource aResource, RDFModel rdfModel) {
 		super(rdfModel);
 		this.resource = aResource;
 	}
-	
+
 	public Resource getResource() {
 		return resource;
 	}
@@ -54,7 +54,7 @@ public class RDFResource extends RDFModelElement {
 		// No additional processing of property values 
 		return getCollectionOfProperyValues(property, context);		
 	}
-	
+
 	/*
 	 * Returns a collection of objects for property values
 	 * If the initial attempt to get property values returns null,
@@ -133,7 +133,7 @@ public class RDFResource extends RDFModelElement {
 	// Filters a collection of property values by preferred languages
 	protected Collection<Object> filterByPreferredLanguage(Collection<Object> value) {
 		// If no preferred languages are specified, don't do any filtering
-		if (super.getModel().getLanguagePreference().isEmpty()) {
+		if (getModel().getLanguagePreference().isEmpty()) {
 			return value;
 		}
 
@@ -149,7 +149,7 @@ public class RDFResource extends RDFModelElement {
 			}
 		}
 
-		for (String tag : super.getModel().getLanguagePreference()) {
+		for (String tag : getModel().getLanguagePreference()) {
 			if (literalsByTag.containsKey(tag)) {
 				return new ArrayList<>(literalsByTag.get(tag));
 			}
