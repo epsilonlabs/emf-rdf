@@ -12,11 +12,11 @@
  ********************************************************************************/
 package org.eclipse.epsilon.emc.rdf.dt;
 
-import org.eclipse.epsilon.emc.rdf.RDFModel;
+import org.eclipse.epsilon.emc.rdf.MOF2RDFModel;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelLoadingException;
 
-public class EclipseRDFModel extends RDFModel {
-
+public class EclipseMOF2RDFModel extends MOF2RDFModel {
+	
 	@Override
 	protected void loadModel() throws EolModelLoadingException { 
 		// Change any platform:/ URLs to file:/ URLs in these lists...

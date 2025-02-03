@@ -29,9 +29,16 @@ import org.eclipse.epsilon.eol.execute.introspection.IPropertyGetter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
+/**
+ * Tests for the common querying behaviour across all RDF model types.
+ */
+@RunWith(Parameterized.class)
 @SuppressWarnings("unchecked")
-public class RDFModelTest {
+public class CommonQueryTest<T extends RDFModel> {
 	private static final String SPIDERMAN_URI = "http://example.org/#spiderman";
 	private static final String SPIDERMAN_NAME = "Spiderman";
 	private static final String SPIDERMAN_NAME_RU = "Человек-паук";
@@ -46,13 +53,26 @@ public class RDFModelTest {
 		ALL_NAMES.addAll(SPIDERMAN_NAMES);
 	}
 
-	private RDFModel model;
+	private Class<T> modelClass;
+	private T model;
 	private IPropertyGetter pGetter;
 	private EolContext context;
 
+	@Parameters
+	public static Object[][] params() {
+		return new Object[][] {
+			{ RDFModel.class },
+			{ MOF2RDFModel.class }
+		};
+	}
+
+	public CommonQueryTest(Class<T> modelClass) {
+		this.modelClass = modelClass;
+	}
+
 	@Before
-	public void setup() throws EolModelLoadingException {
-		this.model = new RDFModel();
+	public void setup() throws Exception {
+		this.model = modelClass.getConstructor().newInstance();
 		model.setDataUri("resources/spiderman.ttl");
 		model.load();
 
