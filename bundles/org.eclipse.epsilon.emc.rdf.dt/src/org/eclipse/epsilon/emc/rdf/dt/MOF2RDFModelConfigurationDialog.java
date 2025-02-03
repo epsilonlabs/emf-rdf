@@ -23,4 +23,5 @@ public class MOF2RDFModelConfigurationDialog extends RDFModelConfigurationDialog
 	protected String getModelType() {
 		return "MOF2RDF";
 	}
+
 }

@@ -30,7 +30,5 @@ public class EclipseMOF2RDFModel extends MOF2RDFModel {
 		// Call the RDFModel load as normal, no platform URLs are passed to Jena
 		super.loadModel();
 	}
-	
-
 
 }

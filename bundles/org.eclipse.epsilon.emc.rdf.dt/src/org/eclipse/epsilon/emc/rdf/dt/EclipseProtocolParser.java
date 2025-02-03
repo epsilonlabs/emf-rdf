@@ -24,16 +24,21 @@ public class EclipseProtocolParser {
 		// This class is not meant to be instantiated
 	}
 	
-	// Pushes a list of URLs through a process to turn any Platform:/ into File:/ 
-	static public void processEclipsePlatformUrlsToFileUrls(List<String> urlList) throws IOException {
+	/**
+	 * Transforms any {@code platform:/} URLs to {@code file:/} URLs.
+	 * Does not change any other URLs.
+	 */
+	public static void processEclipsePlatformUrlsToFileUrls(List<String> urlList) throws IOException {
 		for (int i = 0; i < urlList.size(); i++) {
 			urlList.set(i, processPlatformURLtoFileUrl(urlList.get(i)));
 		}
 	}
 
-	// A File:/ URL or relative path starting '/' or '.' is unchanged by this process, Platform:/ URLs become File:/ URLs
-	// Attempts to resolve a String to a URI and then URL, then gets the File:/ URL and returns it
-	static public String processPlatformURLtoFileUrl(String urlString) throws IOException {
+	/**
+	 * Transforms a {@code platform:/} URL into a {@code file:/} URL.
+	 * Does not change any other URLs.
+	 */
+	public static  String processPlatformURLtoFileUrl(String urlString) throws IOException {
 		if (!urlString.startsWith("platform:")) {
 			return urlString;
 		}

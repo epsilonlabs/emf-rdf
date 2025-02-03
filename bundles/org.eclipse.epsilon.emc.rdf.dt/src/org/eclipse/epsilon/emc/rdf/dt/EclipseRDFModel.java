@@ -16,7 +16,7 @@ import org.eclipse.epsilon.emc.rdf.RDFModel;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelLoadingException;
 
 public class EclipseRDFModel extends RDFModel {
-	
+
 	@Override
 	protected void loadModel() throws EolModelLoadingException { 
 		// Change any platform:/ URLs to file:/ URLs in these lists...
@@ -30,7 +30,5 @@ public class EclipseRDFModel extends RDFModel {
 		// Call the RDFModel load as normal, no platform URLs are passed to Jena
 		super.loadModel();
 	}
-	
-
 
 }
