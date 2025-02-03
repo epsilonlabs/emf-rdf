@@ -211,10 +211,10 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		 * configuration of this RDFModel. This is the same as in other popular
 		 * EMC drivers (e.g. the EmfModel class).
 		 */
-		loadCommaSeparatedProperty(properties, PROPERTY_DATA_URIS, this.dataURIs);
-		loadCommaSeparatedProperty(properties, PROPERTY_SCHEMA_URIS, this.schemaURIs);
-		loadCommaSeperatedPropertyPrefixes(properties);
-		loadCommaSeperatedLanguagePreference(properties);
+		loadProperty(properties, PROPERTY_DATA_URIS, this.dataURIs);
+		loadProperty(properties, PROPERTY_SCHEMA_URIS, this.schemaURIs);
+		loadPropertyPrefixes(properties);
+		loadPropertyLanguagePreference(properties);
 
 		load();
 	}
@@ -268,7 +268,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		}
 	}
 
-	private void loadCommaSeparatedProperty(StringProperties properties, String propertyName, List<String> targetList) {
+	private void loadProperty(StringProperties properties, String propertyName, List<String> targetList) {
 		targetList.clear();
 		{
 			String sUris = properties.getProperty(propertyName, "").strip();
@@ -360,7 +360,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	public static final String PROPERTY_PREFIXES = "prefixes";
 	protected final Map<String, String> customPrefixesMap = new HashMap<>();
 	
-	private void loadCommaSeperatedPropertyPrefixes (StringProperties properties) {
+	private void loadPropertyPrefixes (StringProperties properties) {
 		this.customPrefixesMap.clear();
 		String sPrefixes = properties.getProperty(PROPERTY_PREFIXES, "").strip();
 		if (!sPrefixes.isEmpty()) {
@@ -427,7 +427,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	public static final String PROPERTY_LANGUAGE_PREFERENCE = "languagePreference";
 	protected final List<String> languagePreference = new ArrayList<>();
 
-	private void loadCommaSeperatedLanguagePreference(StringProperties properties) throws EolModelLoadingException {
+	private void loadPropertyLanguagePreference(StringProperties properties) throws EolModelLoadingException {
 		this.languagePreference.clear();
 		String sLanguagePreference = properties.getProperty(PROPERTY_LANGUAGE_PREFERENCE, "").strip();
 		if (!sLanguagePreference.isEmpty()) {
@@ -454,6 +454,20 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	public static boolean isValidLanguageTag (String bcp47tag) {
 		boolean isValidBCP47 = !("und".equals(Locale.forLanguageTag(bcp47tag).toLanguageTag()));
 		return isValidBCP47;
+	}
+	
+	//
+	// PROPERTY JANA VALIDATE MODEL 
+	
+	public static final String PROPERTY_JENA_VALIDATE_MODEL = "jenaValidateModel";
+	protected final boolean jenaValidateModel = true;
+	
+	private void loadPropertyJaneValidateModel(StringProperties properties) {
+		// TODO load the boolean from the Property string PROPERTY_JENA_VALIDATE_MODEL
+	}
+	
+	public boolean isJenaValidateModel () {
+		return jenaValidateModel;
 	}
 	
 	//
