@@ -185,13 +185,17 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		return "RDF";
 	}
 
+	//
+	// Ordering of Groups in Dialogue window
+	
 	@Override
 	protected void createGroups(Composite control) {
 		createNameAliasGroup(control);
 		createDataModelRDFUrlsGroup(control);
 		createSchemaModelRDFUrlsGroup(control);
-		createNamespaceMappingGroup(control);
+		createNamespaceMappingGroup(control);  // Custom prefixes
 		createLanguagePreferenceGroup(control);
+		createJenaValidateModelGroup(control);
 	}
 
 	private Composite createNamespaceMappingGroup(Composite parent) {
@@ -511,7 +515,23 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		return groupContent;
 	}
 	
-	@Override
+	
+	protected final boolean DEFAULT_VALIDATION_SELECTION = true;
+	protected Button jenaValidateModelCheckBox;
+
+	private Composite createJenaValidateModelGroup(Composite parent) {
+		final Composite groupContent = DialogUtil.createGroupContainer(parent, "Model validation", 1);
+
+		jenaValidateModelCheckBox = new Button(groupContent, SWT.CHECK);
+		jenaValidateModelCheckBox.setText("Run Jena's model validation on loaded models");
+		jenaValidateModelCheckBox.setSelection(DEFAULT_VALIDATION_SELECTION);
+
+		groupContent.layout();
+		groupContent.pack();
+		return groupContent;
+	}
+	
+	@Override	
 	protected void loadProperties(){
 		super.loadProperties();
 		if (properties == null) return;
@@ -544,7 +564,9 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		}
 		
 		languagePreferenceText.setText(properties.getProperty(RDFModel.PROPERTY_LANGUAGE_PREFERENCE));
-
+		
+		jenaValidateModelCheckBox.setSelection(properties.getBooleanProperty(RDFModel.PROPERTY_JENA_VALIDATE_MODEL, DEFAULT_VALIDATION_SELECTION));		
+		
 		this.dataModelUrlListViewer.refresh();
 		this.schemaModelUrlListViewer.refresh();
 		this.nsMappingTable.refresh();
@@ -572,6 +594,8 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		
 		properties.put(RDFModel.PROPERTY_LANGUAGE_PREFERENCE,
 				languagePreferenceText.getText().replaceAll("\\s", ""));
+		
+		properties.put(RDFModel.PROPERTY_JENA_VALIDATE_MODEL, jenaValidateModelCheckBox.getSelection());
 	}
 
 	protected void validateForm() {
