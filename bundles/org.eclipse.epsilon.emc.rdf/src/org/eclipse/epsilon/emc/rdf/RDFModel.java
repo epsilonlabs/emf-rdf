@@ -215,6 +215,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		loadProperty(properties, PROPERTY_SCHEMA_URIS, this.schemaURIs);
 		loadPropertyPrefixes(properties);
 		loadPropertyLanguagePreference(properties);
+		loadPropertyJaneValidateModel(properties);
 
 		load();
 	}
@@ -458,12 +459,14 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	
 	//
 	// PROPERTY JANA VALIDATE MODEL 
-	
+	protected final boolean DEFAULT_VALIDATION_SELECTION = true;
 	public static final String PROPERTY_JENA_VALIDATE_MODEL = "jenaValidateModel";
-	protected final boolean jenaValidateModel = true;
+	protected boolean jenaValidateModel = DEFAULT_VALIDATION_SELECTION;
 	
 	private void loadPropertyJaneValidateModel(StringProperties properties) {
 		// TODO load the boolean from the Property string PROPERTY_JENA_VALIDATE_MODEL
+		jenaValidateModel = properties.getBooleanProperty(RDFModel.PROPERTY_JENA_VALIDATE_MODEL, DEFAULT_VALIDATION_SELECTION);
+		System.out.println(this + "Loaded jenaValidateModel: " + jenaValidateModel);
 	}
 	
 	public boolean isJenaValidateModel () {
