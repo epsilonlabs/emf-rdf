@@ -44,6 +44,13 @@ import org.eclipse.epsilon.eol.models.CachedModel;
 import org.eclipse.epsilon.eol.models.IRelativePathResolver;
 
 public class RDFModel extends CachedModel<RDFModelElement> {
+
+	public static final String PROPERTY_DATA_URIS = "uris";
+	public static final String PROPERTY_SCHEMA_URIS = "schemaUris";
+	public static final String PROPERTY_LANGUAGE_PREFERENCE = "languagePreference";
+	public static final String PROPERTY_PREFIXES = "prefixes";
+	public static final String PROPERTY_VALIDATE_MODEL = "jenaValidateModel";
+	public static final boolean DEFAULT_VALIDATION_SELECTION = true;
 	
 	// Model loading and properties are located at the bottom of this Class
 	
@@ -310,10 +317,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 				
 		}
 	}
-	
-	
-	
-	
+		
 	@Override
 	protected void disposeModel() {
 		model = null;
@@ -351,7 +355,6 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	//
 	// PROPERTY DATA URIS
 	
-	public static final String PROPERTY_DATA_URIS = "uris";
 	protected final List<String> dataURIs = new ArrayList<>();
 	
 	public List<String> getDataUris() {
@@ -366,7 +369,6 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	//
 	// PROPERTY SCHEMA URIS
 	
-	public static final String PROPERTY_SCHEMA_URIS = "schemaUris";
 	protected final List<String> schemaURIs = new ArrayList<>();
 	
 	public List<String> getSchemaUris() {
@@ -391,7 +393,6 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	 * should be added to the prefix->URI map of the loaded RDF resource. These
 	 * pairs will take precedence over existing pairs in the resource.
 	 */
-	public static final String PROPERTY_PREFIXES = "prefixes";
 	protected final Map<String, String> customPrefixesMap = new HashMap<>();
 	
 	private void loadPropertyPrefixes (StringProperties properties) {
@@ -458,7 +459,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	//
 	// PROPERTY LANGUAGE PREFERENCE
 	
-	public static final String PROPERTY_LANGUAGE_PREFERENCE = "languagePreference";
+
 	protected final List<String> languagePreference = new ArrayList<>();
 
 	private void loadPropertyLanguagePreference(StringProperties properties) throws EolModelLoadingException {
@@ -493,8 +494,8 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	//
 	// PROPERTY JANA VALIDATE MODEL 
 	
-	protected final boolean DEFAULT_VALIDATION_SELECTION = true;
-	public static final String PROPERTY_VALIDATE_MODEL = "jenaValidateModel";
+
+
 	protected boolean validateModel = DEFAULT_VALIDATION_SELECTION;
 	
 	private void loadPropertyValidateModel(StringProperties properties) {
