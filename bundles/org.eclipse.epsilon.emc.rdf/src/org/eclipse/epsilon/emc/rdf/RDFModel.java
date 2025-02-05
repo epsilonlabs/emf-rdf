@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.jena.ontology.OntModel;
+import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -31,6 +32,7 @@ import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.reasoner.ReasonerRegistry;
+import org.apache.jena.reasoner.ValidityReport;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.epsilon.common.util.StringProperties;
 import org.eclipse.epsilon.eol.exceptions.EolRuntimeException;
@@ -215,9 +217,10 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		loadProperty(properties, PROPERTY_SCHEMA_URIS, this.schemaURIs);
 		loadPropertyPrefixes(properties);
 		loadPropertyLanguagePreference(properties);
-		loadPropertyJaneValidateModel(properties);
+		loadPropertyValidateModel(properties);
 
 		load();
+		validateModel();
 	}
 	
 	@Override
@@ -248,7 +251,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 			}
 
 			//Create an OntModel to handle the data model being loaded or inferred from data and schema
-			this.model = ModelFactory.createOntologyModel();
+			this.model = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM_RULE_INF);
 			
 			if (reasonerType == ReasonerType.NONE) {
 				// Only the OntModel bits are added to the dataModel being loaded.
@@ -280,6 +283,36 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 			}
 		}
 	}
+	
+	//
+	// VALIDATE MODEL
+	
+	ValidityReport modelValidityReport = null;
+	private void validateModel() {	
+		// TODO Validate the ontModel
+		
+		if (validateModel) {
+			modelValidityReport = model.validate();
+			
+			if (!modelValidityReport.isClean()) {
+				// Throw error
+				System.err.println("oModel jena Validation Clean: " + modelValidityReport.isClean());
+			}
+						
+			if(!modelValidityReport.isValid()) {
+				// Throw error
+				System.err.println("oModel jena Validation Valid: " + modelValidityReport.isValid());	
+			    for (Iterator o = modelValidityReport.getReports(); o.hasNext(); ) {
+			        ValidityReport.Report report = (ValidityReport.Report)o.next();
+			        System.out.println(" - " + report);
+			    }
+			}
+				
+		}
+	}
+	
+	
+	
 	
 	@Override
 	protected void disposeModel() {
@@ -459,18 +492,18 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	
 	//
 	// PROPERTY JANA VALIDATE MODEL 
-	protected final boolean DEFAULT_VALIDATION_SELECTION = true;
-	public static final String PROPERTY_JENA_VALIDATE_MODEL = "jenaValidateModel";
-	protected boolean jenaValidateModel = DEFAULT_VALIDATION_SELECTION;
 	
-	private void loadPropertyJaneValidateModel(StringProperties properties) {
+	protected final boolean DEFAULT_VALIDATION_SELECTION = true;
+	public static final String PROPERTY_VALIDATE_MODEL = "jenaValidateModel";
+	protected boolean validateModel = DEFAULT_VALIDATION_SELECTION;
+	
+	private void loadPropertyValidateModel(StringProperties properties) {
 		// TODO load the boolean from the Property string PROPERTY_JENA_VALIDATE_MODEL
-		jenaValidateModel = properties.getBooleanProperty(RDFModel.PROPERTY_JENA_VALIDATE_MODEL, DEFAULT_VALIDATION_SELECTION);
-		System.out.println(this + "Loaded jenaValidateModel: " + jenaValidateModel);
+		validateModel = properties.getBooleanProperty(RDFModel.PROPERTY_VALIDATE_MODEL, DEFAULT_VALIDATION_SELECTION);
 	}
 	
-	public boolean isJenaValidateModel () {
-		return jenaValidateModel;
+	public boolean hasJenaValidatedModel () {
+		return validateModel;
 	}
 	
 	//

@@ -49,7 +49,9 @@ import org.eclipse.swt.widgets.Text;
 
 public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialog {
 	private static final String[] RDFFILE_EXTENSIONS = new String[] { "*.rdf", "*.ttl", "*.nt", "*.nq", "*.trig", "*.owl", "*.jsonld", "*.trdf", "*.rt", "*.rpb", "*.pbrdf", "*.rj", "*.trix", "*.*"};
-
+	
+	protected static final boolean DEFAULT_VALIDATION_SELECTION = true;
+	
 	private static final String SAMPLE_URL = "http://changeme";
 
 	protected class PrefixEditingSupport extends EditingSupport {
@@ -195,7 +197,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		createSchemaModelRDFUrlsGroup(control);
 		createNamespaceMappingGroup(control);  // Custom prefixes
 		createLanguagePreferenceGroup(control);
-		createJenaValidateModelGroup(control);
+		createValidateModelGroup(control);
 	}
 
 	private Composite createNamespaceMappingGroup(Composite parent) {
@@ -494,7 +496,6 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 	
 	protected Label languagePreferenceLabel;
 	protected Text languagePreferenceText;
-
 	private Composite createLanguagePreferenceGroup(Composite parent) {
 		final Composite groupContent = DialogUtil.createGroupContainer(parent, "Language tag preference", 1);
 		
@@ -516,15 +517,14 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 	}
 	
 	
-	protected final boolean DEFAULT_VALIDATION_SELECTION = true;
-	protected Button jenaValidateModelCheckBox;
-
-	private Composite createJenaValidateModelGroup(Composite parent) {
+	
+	protected Button validateModelCheckBox;
+	private Composite createValidateModelGroup(Composite parent) {
 		final Composite groupContent = DialogUtil.createGroupContainer(parent, "Model validation", 1);
 
-		jenaValidateModelCheckBox = new Button(groupContent, SWT.CHECK);
-		jenaValidateModelCheckBox.setText("Run Jena's model validation on loaded models");
-		jenaValidateModelCheckBox.setSelection(DEFAULT_VALIDATION_SELECTION);
+		validateModelCheckBox = new Button(groupContent, SWT.CHECK);
+		validateModelCheckBox.setText("Run Jena's model validation on loaded models");
+		validateModelCheckBox.setSelection(DEFAULT_VALIDATION_SELECTION);
 
 		groupContent.layout();
 		groupContent.pack();
@@ -565,7 +565,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		
 		languagePreferenceText.setText(properties.getProperty(RDFModel.PROPERTY_LANGUAGE_PREFERENCE));
 		
-		jenaValidateModelCheckBox.setSelection(properties.getBooleanProperty(RDFModel.PROPERTY_JENA_VALIDATE_MODEL, DEFAULT_VALIDATION_SELECTION));		
+		validateModelCheckBox.setSelection(properties.getBooleanProperty(RDFModel.PROPERTY_VALIDATE_MODEL, DEFAULT_VALIDATION_SELECTION));		
 		
 		this.dataModelUrlListViewer.refresh();
 		this.schemaModelUrlListViewer.refresh();
@@ -595,7 +595,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		properties.put(RDFModel.PROPERTY_LANGUAGE_PREFERENCE,
 				languagePreferenceText.getText().replaceAll("\\s", ""));
 		
-		properties.put(RDFModel.PROPERTY_JENA_VALIDATE_MODEL, jenaValidateModelCheckBox.getSelection());
+		properties.put(RDFModel.PROPERTY_VALIDATE_MODEL, validateModelCheckBox.getSelection());
 	}
 
 	protected void validateForm() {
