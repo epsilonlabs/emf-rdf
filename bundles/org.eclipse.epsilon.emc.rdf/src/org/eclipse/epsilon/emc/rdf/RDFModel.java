@@ -227,7 +227,23 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		loadPropertyValidateModel(properties);
 
 		load();
-		validateModel();
+		
+		// After Loading all scheme, data models and inferring the full model, validate
+		if (validateModel) {
+			validateModel();
+		}
+	}
+
+	private void loadProperty(StringProperties properties, String propertyName, List<String> targetList) {
+		targetList.clear();
+		{
+			String sUris = properties.getProperty(propertyName, "").strip();
+			if (!sUris.isEmpty()) {
+				for (String uri : sUris.split(",")) {
+					targetList.add(uri.strip());
+				}
+			}
+		}
 	}
 	
 	@Override
@@ -278,43 +294,30 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 			throw new EolModelLoadingException(ex, this);
 		}
 	}
-
-	private void loadProperty(StringProperties properties, String propertyName, List<String> targetList) {
-		targetList.clear();
-		{
-			String sUris = properties.getProperty(propertyName, "").strip();
-			if (!sUris.isEmpty()) {
-				for (String uri : sUris.split(",")) {
-					targetList.add(uri.strip());
-				}
-			}
-		}
-	}
 	
 	//
 	// VALIDATE MODEL
 	
 	ValidityReport modelValidityReport = null;
-	private void validateModel() {	
+
+	private void validateModel() {
 		// TODO Validate the ontModel
-		
-		if (validateModel) {
-			modelValidityReport = model.validate();
-			
-			if (!modelValidityReport.isClean()) {
-				// Throw error
-				System.err.println("oModel jena Validation Clean: " + modelValidityReport.isClean());
+
+		modelValidityReport = model.validate();
+
+		if (!modelValidityReport.isClean()) {
+			// Throw error
+			System.err.println("ontModel Validation Clean: " + modelValidityReport.isClean());
+		}
+
+		if (!modelValidityReport.isValid()) {
+			// Throw error
+
+			System.err.println("ontModel Validation Valid: " + modelValidityReport.isValid());
+			for (Iterator o = modelValidityReport.getReports(); o.hasNext();) {
+				ValidityReport.Report report = (ValidityReport.Report) o.next();
+				System.out.println(" - " + report);
 			}
-						
-			if(!modelValidityReport.isValid()) {
-				// Throw error
-				System.err.println("oModel jena Validation Valid: " + modelValidityReport.isValid());	
-			    for (Iterator o = modelValidityReport.getReports(); o.hasNext(); ) {
-			        ValidityReport.Report report = (ValidityReport.Report)o.next();
-			        System.out.println(" - " + report);
-			    }
-			}
-				
 		}
 	}
 		
