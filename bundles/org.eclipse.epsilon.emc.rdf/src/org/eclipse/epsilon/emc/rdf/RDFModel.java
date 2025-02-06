@@ -49,7 +49,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	public static final String PROPERTY_SCHEMA_URIS = "schemaUris";
 	public static final String PROPERTY_LANGUAGE_PREFERENCE = "languagePreference";
 	public static final String PROPERTY_PREFIXES = "prefixes";
-	public static final String PROPERTY_VALIDATE_MODEL = "jenaValidateModel";
+	public static final String PROPERTY_VALIDATE_MODEL = "enableModelValidation";
 	public static final boolean DEFAULT_VALIDATION_SELECTION = true;
 	
 	// Model loading and properties are located at the bottom of this Class
