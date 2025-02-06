@@ -230,7 +230,11 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		
 		// After Loading all scheme, data models and inferring the full model, validate
 		if (validateModel) {
-			validateModel();
+			try {
+				validateModel();
+			} catch (Exception e) {
+				throw new EolModelLoadingException(e, this);
+			}
 		}
 	}
 
@@ -297,27 +301,25 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	
 	//
 	// VALIDATE MODEL
-	
-	ValidityReport modelValidityReport = null;
 
-	private void validateModel() {
-		// TODO Validate the ontModel
+	private void validateModel() throws Exception {
+		/*
+		 * The way the model is validated by Jena depends on how the new OntModel was
+		 * created by the ModelFactory.
+		 */
 
-		modelValidityReport = model.validate();
-
-		if (!modelValidityReport.isClean()) {
-			// Throw error
-			System.err.println("ontModel Validation Clean: " + modelValidityReport.isClean());
-		}
-
-		if (!modelValidityReport.isValid()) {
-			// Throw error
-
-			System.err.println("ontModel Validation Valid: " + modelValidityReport.isValid());
+		ValidityReport modelValidityReport = model.validate();
+		
+		if (!modelValidityReport.isValid() | (!modelValidityReport.isClean())) {
+			// Throw error with a string containing the validity report 
+			String reportString = "The loaded model is not valid or not clean\n";
+			int i = 1;
 			for (Iterator o = modelValidityReport.getReports(); o.hasNext();) {
 				ValidityReport.Report report = (ValidityReport.Report) o.next();
-				System.out.println(" - " + report);
+				reportString = reportString.concat(" " + i + ", " + report.toString());
+				i++;
 			}
+			throw new Exception(reportString.toString());
 		}
 	}
 		
