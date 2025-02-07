@@ -10,11 +10,11 @@ For instructions on how to set up a development environment, please see [`CONTRI
 Currently, the driver can:
 
 * Read and query one or more RDF documents in the formats supported by Jena (Turtle and RDF/XML have been tested).
+* Trigger the OWL reasoner in Jena during loading.
 
 For now, the driver has these limitations:
 
 * Does *not* support modifying or saving RDF documents.
-* Does *not* integrate the OWL or RDFS support in Jena.
 
 The driver requires Epsilon 2.1 or newer: it will not work on Epsilon 1.x due to breaking API changes from 1.x to 2.x.
 
