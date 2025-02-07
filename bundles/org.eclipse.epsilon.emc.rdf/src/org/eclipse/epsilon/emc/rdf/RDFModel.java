@@ -50,7 +50,8 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	public static final String PROPERTY_LANGUAGE_PREFERENCE = "languagePreference";
 	public static final String PROPERTY_PREFIXES = "prefixes";
 	public static final String PROPERTY_VALIDATE_MODEL = "enableModelValidation";
-	public static final boolean DEFAULT_VALIDATION_SELECTION = true;
+	public static final String VALIDATION_SELECTION_DEFAULT = "jena";
+	public static final String VALIDATION_SELECTION_NONE = "none";
 	
 	// Model loading and properties are located at the bottom of this Class
 	
@@ -229,7 +230,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		load();
 		
 		// After Loading all scheme, data models and inferring the full model, validate
-		if (validateModel) {
+		if (validationProperty.contains(VALIDATION_SELECTION_DEFAULT)) {
 			try {
 				validateModel();
 			} catch (Exception e) {
@@ -501,15 +502,14 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	
 
 
-	protected boolean validateModel = DEFAULT_VALIDATION_SELECTION;
+	protected String validationProperty = VALIDATION_SELECTION_DEFAULT;
 	
 	private void loadPropertyValidateModel(StringProperties properties) {
-		// TODO load the boolean from the Property string PROPERTY_JENA_VALIDATE_MODEL
-		validateModel = properties.getBooleanProperty(RDFModel.PROPERTY_VALIDATE_MODEL, DEFAULT_VALIDATION_SELECTION);
+		validationProperty = properties.getProperty(RDFModel.PROPERTY_VALIDATE_MODEL, VALIDATION_SELECTION_DEFAULT);
 	}
 	
-	public boolean hasJenaValidatedModel () {
-		return validateModel;
+	public String getValidationProperty () {
+		return validationProperty;
 	}
 	
 	//
