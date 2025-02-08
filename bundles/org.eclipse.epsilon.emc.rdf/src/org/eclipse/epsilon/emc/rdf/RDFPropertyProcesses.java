@@ -33,8 +33,8 @@ public class RDFPropertyProcesses {
 
 	public static ExtendedIterator<Statement> getPropertyStatementIterator(RDFQualifiedName propertyName, Resource resource) {
 		ExtendedIterator<Statement> propertyStatementIt = null;
-		// Filter all Property (Predicate) statements by prefix and local name
-		if (propertyName.prefix == null) {
+		// Filter all Property (Predicate) statements by namespace URI and local name
+		if (propertyName.namespaceURI == null) {
 			propertyStatementIt = resource.listProperties()
 				.filterKeep(stmt -> propertyName.localName.equals(stmt.getPredicate().getLocalName()));
 		} else {

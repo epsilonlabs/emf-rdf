@@ -3,9 +3,12 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Developer Tools for EMC RDF Lensing
 Bundle-SymbolicName: org.eclipse.epsilon.emc.rdf.lens.dt;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Require-Bundle: org.eclipse.epsilon.emc.rdf.lens;bundle-version="1.0.0",
+Export-Package: org.eclipse.epsilon.emc.rdf.lens.dt
+Require-Bundle: org.eclipse.epsilon.emc.rdf;bundle-version="1.0.0",
+ org.eclipse.epsilon.emc.rdf.lens;bundle-version="1.0.0",
+ org.eclipse.epsilon.emc.rdf.dt;bundle-version="1.0.0",
  org.eclipse.epsilon.common.dt;bundle-version="2.1.0",
- org.eclipse.epsilon.emc.emf.dt;bundle-version="2.1.0"
+ org.eclipse.epsilon.emc.emf;bundle-version="2.1.0"
 Bundle-Vendor: University of York
 Automatic-Module-Name: org.eclipse.epsilon.emc.rdf.lens.dt
 Bundle-RequiredExecutionEnvironment: JavaSE-17

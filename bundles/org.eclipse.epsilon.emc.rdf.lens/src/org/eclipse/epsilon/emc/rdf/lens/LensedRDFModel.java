@@ -16,12 +16,9 @@ import org.eclipse.epsilon.eol.exceptions.EolRuntimeException;
 import org.eclipse.epsilon.eol.exceptions.models.EolEnumerationValueNotFoundException;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelElementTypeNotFoundException;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelLoadingException;
-import org.eclipse.epsilon.eol.exceptions.models.EolModelNotFoundException;
 import org.eclipse.epsilon.eol.exceptions.models.EolNotInstantiableModelElementTypeException;
 import org.eclipse.epsilon.eol.models.CachedModel;
-import org.eclipse.epsilon.eol.models.IModel;
 import org.eclipse.epsilon.eol.models.IRelativePathResolver;
-import org.eclipse.epsilon.eol.models.ModelRepository;
 
 /**
  * Provides a lens over an RDF model, only showing the elements that match the types
@@ -30,6 +27,11 @@ import org.eclipse.epsilon.eol.models.ModelRepository;
 public class LensedRDFModel extends CachedModel<LensedRDFResource> {
 
 	protected class LensingEmfModel extends EmfModel {
+		public LensingEmfModel() {
+			this.setReadOnLoad(false);
+			this.setStoredOnDisposal(false);
+		}
+
 		@Override
 		public String getFullyQualifiedName(EClassifier eClassifier) {
 			return super.getFullyQualifiedName(eClassifier);
@@ -38,12 +40,16 @@ public class LensedRDFModel extends CachedModel<LensedRDFResource> {
 
 	public static final String PROPERTY_RDF_MODEL_NAME = "lensed.rdf.model.name";
 
-	private final ModelRepository modelRepository;
 	private RDFModel rdfModel;
 	private LensingEmfModel emfModel = new LensingEmfModel();
 
-	public LensedRDFModel(ModelRepository modelRepo) {
-		this.modelRepository = modelRepo;
+	public LensedRDFModel() {
+		this(new RDFModel());
+	}
+
+	public LensedRDFModel(RDFModel rdfModel) {
+		this.rdfModel = rdfModel;
+		this.propertyGetter = new LensedRDFPropertyGetter();
 	}
 
 	@Override
@@ -129,7 +135,7 @@ public class LensedRDFModel extends CachedModel<LensedRDFResource> {
 
 		List<RDFModelElement> instanceResources = rdfModel.getAllOfTypeFromModel(typeResource.getResource());
 		List<LensedRDFResource> lensed = instanceResources.stream()
-			.map(ir -> new LensedRDFResource(this, ir, eClass))
+			.map(ir -> new LensedRDFResource(this, (RDFResource) ir, eClass))
 			.collect(Collectors.toList());
 
 		return lensed;
@@ -145,23 +151,7 @@ public class LensedRDFModel extends CachedModel<LensedRDFResource> {
 	@Override
 	public void load(StringProperties properties, IRelativePathResolver resolver) throws EolModelLoadingException {
 		super.load(properties, resolver);
-
-		String rdfModelName = properties.getProperty(PROPERTY_RDF_MODEL_NAME);
-		if (rdfModelName == null) {
-			throw new IllegalArgumentException(PROPERTY_RDF_MODEL_NAME + " is required but missing");
-		}
-		try {
-			IModel referencedModel = modelRepository.getModelByName(rdfModelName);
-			if (referencedModel instanceof RDFModel referencedRDF) {
-				this.rdfModel = referencedRDF;
-			} else {
-				throw new EolModelLoadingException(
-					new IllegalArgumentException(String.format("%s is not an RDF model", rdfModelName)), this);
-			}
-		} catch (EolModelNotFoundException e) {
-			throw new EolModelLoadingException(e, this);
-		}
-
+		this.rdfModel.load(properties, resolver);
 		this.emfModel.load(properties, resolver);
 	}
 

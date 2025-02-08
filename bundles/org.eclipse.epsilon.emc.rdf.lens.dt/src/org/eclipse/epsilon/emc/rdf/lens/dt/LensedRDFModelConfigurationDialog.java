@@ -1,32 +1,31 @@
 package org.eclipse.epsilon.emc.rdf.lens.dt;
 
 import org.eclipse.epsilon.common.dt.util.DialogUtil;
-import org.eclipse.epsilon.emc.emf.dt.EmfMetaModelConfigurationDialog;
-import org.eclipse.epsilon.emc.rdf.lens.LensedRDFModel;
+import org.eclipse.epsilon.emc.emf.EmfModel;
+import org.eclipse.epsilon.emc.rdf.dt.RDFModelConfigurationDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-public class LensedRDFModelConfigurationDialog extends EmfMetaModelConfigurationDialog {
+public class LensedRDFModelConfigurationDialog extends RDFModelConfigurationDialog {
 
-	private Text modelNameText;
+	private Text ePackageURIText;
 
 	@Override
 	protected void createGroups(Composite control) {
 		super.createGroups(control);
-		createRDFModelNameGroup(control);
-		createFilesGroup(control);
+		createEPackageURIGroup(control);
 	}
 
-	private Composite createRDFModelNameGroup(Composite parent) {
-		final Composite groupContent = DialogUtil.createGroupContainer(parent, "RDF Model", 2);
+	private Composite createEPackageURIGroup(Composite parent) {
+		final Composite groupContent = DialogUtil.createGroupContainer(parent, "Ecore EPackage", 2);
 
 		Label modelNameLabel = new Label(groupContent, SWT.NONE);
-		modelNameLabel.setText("Name: ");
-		modelNameText = new Text(groupContent, SWT.BORDER);
-		modelNameText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		modelNameLabel.setText("URI: ");
+		ePackageURIText = new Text(groupContent, SWT.BORDER);
+		ePackageURIText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		groupContent.layout();
 		groupContent.pack();
@@ -38,13 +37,24 @@ public class LensedRDFModelConfigurationDialog extends EmfMetaModelConfiguration
 		super.loadProperties();
 
 		if (properties == null) return;
-		modelNameText.setText(properties.getProperty(LensedRDFModel.PROPERTY_RDF_MODEL_NAME));
+		ePackageURIText.setText(properties.getProperty(EmfModel.PROPERTY_METAMODEL_URI));
 	}
 	
 	@Override
 	protected void storeProperties(){
 		super.storeProperties();
-		properties.put(LensedRDFModel.PROPERTY_RDF_MODEL_NAME, modelNameText.getText());
+		properties.put(EmfModel.PROPERTY_METAMODEL_URI, ePackageURIText.getText());
 	}
 
+	@Override
+	protected String getModelName() {
+		return "Ecore Lens over RDF Model";
+	}
+
+	@Override
+	protected String getModelType() {
+		return "EcoreLensRDFModel";
+	}
+
+	
 }

@@ -1,1 +1,5 @@
 FictionWork.all.println('Fiction works: ');
+
+for (fw in FictionWork.all) {
+  fw.genres.println(fw.title + ' has these genres: ');
+}

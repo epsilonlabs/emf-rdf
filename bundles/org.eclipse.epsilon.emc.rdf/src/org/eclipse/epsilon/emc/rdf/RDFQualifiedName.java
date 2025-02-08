@@ -27,13 +27,7 @@ import java.util.regex.Pattern;
  * There is a class invariant that:
  * </p>
  *
- * <code>this.prefix != null if and only if this.namespaceURI != null</code>.
- *
- * <p>
- * This invariant is enforced by only allowing construction from the outside
- * through {@link #from(String, Function)} or through the
- * {@link #withLanguageTag(String)} and {@link #withLocalName(String)} methods.
- * </p>
+ * <code>this.namespaceURI != null if this.prefix != null</code>.
  */
 public class RDFQualifiedName {
 
@@ -72,10 +66,12 @@ public class RDFQualifiedName {
 	/**
 	 * Parses a property where the prefix (if any) has already been resolved to
 	 * a namespace URI, and the local name matches {@code localName(@language)?}.
-	 *
-	 * NOTE: this method is intentionally private. See class comment.
 	 */
-	private static RDFQualifiedName from(String prefix, String nsURI, String localNameWithOptionalTag) {
+	public static RDFQualifiedName from(String prefix, String nsURI, String localNameWithOptionalTag) {
+		if (prefix != null && nsURI == null) {
+			throw new IllegalArgumentException("Namespace URI cannot be null if prefix is not null");
+		}
+		
 		int atIdx = localNameWithOptionalTag.indexOf('@');
 		String localName = null, languageTag = null;
 		if (atIdx == -1) {

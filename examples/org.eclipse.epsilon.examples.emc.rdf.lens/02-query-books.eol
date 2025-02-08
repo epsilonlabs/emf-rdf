@@ -1,1 +1,3 @@
 Book.all.println('Books: ');
+
+Book.all.title.println('Titles of the books: ');

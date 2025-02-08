@@ -18,8 +18,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.jena.rdf.model.AnonId;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.RDFVisitor;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
@@ -78,29 +80,39 @@ public class RDFResource extends RDFModelElement {
 	}
 
 	//Returns a filtered list of property Values, with prefixes and raw value handling
-	protected Collection<Object> listPropertyValues(RDFQualifiedName propertyName, IEolContext context, LiteralMode literalMode) {
+	public Collection<Object> listPropertyValues(RDFQualifiedName propertyName, IEolContext context, LiteralMode literalMode) {
 		ExtendedIterator<Statement> itStatements; 
 		itStatements = RDFPropertyProcesses.getPropertyStatementIterator(propertyName, resource);	
 		itStatements = RDFPropertyProcesses.filterPropertyStatementsIteratorWithLanguageTag(propertyName, itStatements);
 
 		// Build a collection Objects for the rawValues of the Objects for the Properties remaining 
 		Collection<Object> rawPropertyValues;
-		if (propertyName.prefix == null) {
+		if (propertyName.namespaceURI == null) {
 			// If no prefix was specified, watch out for ambiguity and issue warning in that case
 			ListMultimap<String, Object> values = MultimapBuilder.hashKeys().arrayListValues().build();
 			while (itStatements.hasNext()) {
 				Statement stmt = itStatements.next();
-				values.put(stmt.getPredicate().getURI(),
-						convertToModelObject(stmt.getObject()));
+				Object converted = convertToModelObject(stmt.getObject());
+				String stmtUri = stmt.getPredicate().getURI();
+				if (converted instanceof Collection<?> c) {
+					values.putAll(stmtUri, c);
+				} else if (converted != null) {
+					values.put(stmtUri, converted);
+				}
 			}
 
 			final Set<String> distinctKeys = values.keySet();
 			if (distinctKeys.size() > 1) {
-				context.getWarningStream().println(String.format(
+				String warningText = String.format(
 					"Ambiguous access to property '%s': multiple prefixes found (%s)",
 					propertyName,
 					String.join(", ", distinctKeys)
-				));
+				);
+				if (context != null) {
+					context.getWarningStream().println(warningText);
+				} else {
+					System.err.println(warningText);
+				}
 			}
 
 			rawPropertyValues = values.values();
@@ -109,7 +121,12 @@ public class RDFResource extends RDFModelElement {
 			final List<Object> values = new ArrayList<>();
 			while (itStatements.hasNext()) {
 				Statement stmt = itStatements.next();
-				values.add(convertToModelObject(stmt.getObject()));
+				Object converted = convertToModelObject(stmt.getObject());
+				if (converted instanceof Collection<?> c) {
+					values.addAll(c);
+				} else if (converted != null) {
+					values.add(converted);
+				}
 			}
 			rawPropertyValues = values;
 		}
@@ -181,13 +198,44 @@ public class RDFResource extends RDFModelElement {
 	}
 
 	protected Object convertToModelObject(RDFNode node) {
-		if (node instanceof Literal) {
-			return new RDFLiteral((Literal) node, this.owningModel);
-		} else if (node instanceof Resource) {
-			return this.owningModel.createResource((Resource) node);
-			
-		}
-		throw new IllegalArgumentException("Cannot convert " + node + " to a model object");
+		return node.visitWith(new RDFVisitor() {
+			@Override
+			public Object visitURI(Resource r, String uri) {
+				return RDFResource.this.owningModel.createResource(r);
+			}
+
+			@Override
+			public Object visitLiteral(Literal l) {
+				return new RDFLiteral(l, RDFResource.this.owningModel);
+			}
+
+			@Override
+			public Object visitBlank(Resource r, AnonId id) {
+				if (r.hasProperty(RDF.type, RDF.List)) {
+					List<Object> values = new ArrayList<>();
+					values.add(convertToModelObject(r.getProperty(RDF.first).getObject()));
+
+					// TODO: check if Jena has a better API for collections.
+					//
+					// This is inefficient at the moment, as it's O(n^2) instead
+					// of O(n) as it should be.
+					RDFNode restNode = r.getProperty(RDF.rest).getObject();
+					if (!RDF.nil.equals(restNode)) {
+						Object convertedRest = convertToModelObject(restNode);
+						if (convertedRest instanceof Collection<?> c) {
+							values.addAll(c);
+						} else {
+							values.add(convertedRest);
+						}
+					}
+					return values;
+				}
+
+				// TODO add support for containers
+
+				return null;
+			}
+		});
 	}
 
 	@Override
