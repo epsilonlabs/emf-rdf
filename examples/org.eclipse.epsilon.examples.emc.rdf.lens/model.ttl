@@ -3,11 +3,11 @@
 @prefix books: <http://eclipse.org/epsilon/rdf/books#> .
 @prefix fiction: <http://eclipse.org/epsilon/rdf/fiction#> .
 
-<#quijote> a owl:NamedIndividual ;
+<#quijote>
   books:title "El Quijote" ;
   books:publisher "P Ublisher" ;
   fiction:genres ( "Narration" "Picaresque" "Chivalric romance" ) .
 
-<#titanic> a owl:NamedIndividual ;
+<#titanic>
   fiction:title "Titanic" ;
   fiction:genres ( "Romance" ) .

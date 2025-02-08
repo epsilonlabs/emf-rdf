@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.epsilon.eol.eclipse.dt.launching.EolLaunchConfigurationDelegate">
+    <stringAttribute key="implementation_name" value="Parallel"/>
+    <listAttribute key="models">
+        <listEntry value="aliases=&#10;reuseUnmodifiedFileBasedMetamodels=true&#10;modelFile=/org.eclipse.epsilon.examples.emc.rdf.lens/book.flexmi&#10;metamodelUri=&#10;concurrent=false&#10;type=EMF&#10;readOnLoad=true&#10;storeOnDisposal=false&#10;expand=true&#10;fileBasedMetamodelUri=platform\:/resource/org.eclipse.epsilon.examples.emc.rdf.lens/book.emf&#10;metamodelFile=/org.eclipse.epsilon.examples.emc.rdf.lens/book.emf&#10;cached=true&#10;name=M&#10;modelUri=platform\:/resource/org.eclipse.epsilon.examples.emc.rdf.lens/book.flexmi&#10;isMetamodelFileBased=true&#10;validate=false"/>
+    </listAttribute>
+    <booleanAttribute key="org.eclipse.debug.core.ATTR_FORCE_SYSTEM_CONSOLE_ENCODING" value="false"/>
+    <intAttribute key="parallelism" value="11"/>
+    <listAttribute key="parameters"/>
+    <stringAttribute key="source" value="/org.eclipse.epsilon.examples.emc.rdf.lens/02-query-books.eol"/>
+</launchConfiguration>

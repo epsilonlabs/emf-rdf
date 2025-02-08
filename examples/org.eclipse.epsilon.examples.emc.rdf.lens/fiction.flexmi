@@ -1,0 +1,5 @@
+<?nsuri http://eclipse.org/epsilon/rdf/fiction?>
+<_>
+  <fiction title="El Quijote" genres="Narration,Picaresque,Chivalric romance" />
+  <fiction title="Titanic" genres="Romance" />
+</_>
