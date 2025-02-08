@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.epsilon.common.dt.modelType">
+      <modelType
+            class="org.eclipse.epsilon.emc.rdf.lens.LensedRDFModel"
+            dialog="org.eclipse.epsilon.emc.rdf.lens.dt.LensedRDFModelConfigurationDialog"
+            icon="icons/sw-cube.png"
+            label="Ecore Lens over RDF Model"
+            type="EcoreLensRDFModel">
+      </modelType>
+   </extension>
+
+</plugin>
