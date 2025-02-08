@@ -1,0 +1,2 @@
+Book.all.println('Books: ');
+FictionWork.all.println('Fiction works: ');
