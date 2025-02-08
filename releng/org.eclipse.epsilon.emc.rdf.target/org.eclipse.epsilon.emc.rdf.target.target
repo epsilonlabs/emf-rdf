@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?pde?>
 <!-- generated with https://github.com/eclipse-cbi/targetplatform-dsl -->
-<target name="EMC RDF Target Platform" sequenceNumber="1739019306">
+<target name="EMC RDF Target Platform" sequenceNumber="1739029148">
   <locations>
     <location includeMode="planner" includeAllPlatforms="false" includeSource="true" includeConfigurePhase="true" type="InstallableUnit">
       <unit id="org.eclipse.license.feature.group" version="0.0.0"/>
@@ -107,6 +107,8 @@
       <unit id="org.eclipse.epsilon.egl.dt" version="0.0.0"/>
       <unit id="org.eclipse.epsilon.pinset.engine" version="0.0.0"/>
       <unit id="org.eclipse.epsilon.pinset.dt" version="0.0.0"/>
+      <unit id="org.eclipse.epsilon.flexmi" version="0.0.0"/>
+      <unit id="org.eclipse.epsilon.flexmi.dt" version="0.0.0"/>
       <repository location="http://download.eclipse.org/epsilon/updates/2.5/"/>
     </location>
     <location includeDependencyDepth="infinite" includeDependencyScopes="compile,test,runtime" includeSource="true" missingManifest="generate" type="Maven" label="MavenDependencies">

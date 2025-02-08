@@ -112,6 +112,8 @@ location "http://download.eclipse.org/epsilon/updates/2.5/" {
 	org.eclipse.epsilon.egl.dt lazy
 	org.eclipse.epsilon.pinset.engine lazy
 	org.eclipse.epsilon.pinset.dt lazy
+	org.eclipse.epsilon.flexmi lazy
+	org.eclipse.epsilon.flexmi.dt lazy
 }
 
 maven MavenDependencies scope=compile,test,runtime dependencyDepth=infinite missingManifest=generate includeSources {
