@@ -238,16 +238,18 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	}
 
 	@Override
-	protected Collection<RDFModelElement> getAllOfTypeFromModel(String type)
-			throws EolModelElementTypeNotFoundException {
+	protected Collection<RDFModelElement> getAllOfTypeFromModel(String type) throws EolModelElementTypeNotFoundException {
 		Resource typeR = getTypeResourceByName(type);
+		List<RDFModelElement> instances = getAllOfTypeFromModel(typeR);
+		return instances;
+	}
 
-		ResIterator itInstances = model.listResourcesWithProperty(RDF.type, typeR);
+	public List<RDFModelElement> getAllOfTypeFromModel(Resource typeResource) {
+		ResIterator itInstances = model.listResourcesWithProperty(RDF.type, typeResource);
 		List<RDFModelElement> instances = new ArrayList<>();
 		while (itInstances.hasNext()) {
 			instances.add(createResource(itInstances.next()));
 		}
-
 		return instances;
 	}
 
