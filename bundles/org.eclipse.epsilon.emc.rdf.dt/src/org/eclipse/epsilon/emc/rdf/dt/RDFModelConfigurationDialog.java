@@ -193,7 +193,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		createNameAliasGroup(control);
 		createDataModelRDFUrlsGroup(control);
 		createSchemaModelRDFUrlsGroup(control);
-		createNamespaceMappingGroup(control);  // Custom prefixes
+		createNamespaceMappingGroup(control);
 		createLanguagePreferenceGroup(control);
 		createValidateModelGroup(control);
 	}
@@ -516,19 +516,16 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 	
 	
 	protected String validateModel;
+
 	protected Button validateModelCheckBox;
 	private Composite createValidateModelGroup(Composite parent) {
 		final Composite groupContent = DialogUtil.createGroupContainer(parent, "Model validation", 1);
 
 		validateModelCheckBox = new Button(groupContent, SWT.CHECK);
 		validateModelCheckBox.setText("Run Jena's model validation on loaded models");
-		
-		if (validateModel.contains(RDFModel.VALIDATION_SELECTION_DEFAULT)) {
-			validateModelCheckBox.setSelection(true);
-		} else {
-			validateModelCheckBox.setSelection(false);
-		}
-		
+		boolean isJenaValidationEnabled = RDFModel.VALIDATION_SELECTION_JENA.equals(validateModel);
+		validateModelCheckBox.setSelection(isJenaValidationEnabled);
+
 		groupContent.layout();
 		groupContent.pack();
 		return groupContent;
@@ -568,10 +565,9 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		
 		languagePreferenceText.setText(properties.getProperty(RDFModel.PROPERTY_LANGUAGE_PREFERENCE));
 		
-		validateModel = properties.getProperty(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.VALIDATION_SELECTION_DEFAULT); // Load any saved property and default to Jena if none
-		if (validateModel == RDFModel.VALIDATION_SELECTION_NONE) {
-			validateModelCheckBox.setSelection(false);
-		}
+		// Load any saved property and default to Jena if none
+		validateModel = properties.getProperty(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.VALIDATION_SELECTION_JENA);
+		validateModelCheckBox.setSelection(RDFModel.VALIDATION_SELECTION_JENA.equals(validateModel));
 		
 		this.dataModelUrlListViewer.refresh();
 		this.schemaModelUrlListViewer.refresh();
@@ -601,8 +597,8 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		properties.put(RDFModel.PROPERTY_LANGUAGE_PREFERENCE,
 				languagePreferenceText.getText().replaceAll("\\s", ""));
 		
-		if(validateModelCheckBox.getSelection()) {
-			properties.put(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.VALIDATION_SELECTION_DEFAULT);	
+		if (validateModelCheckBox.getSelection()) {
+			properties.put(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.VALIDATION_SELECTION_JENA);
 		} else {
 			properties.put(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.VALIDATION_SELECTION_NONE);
 		}

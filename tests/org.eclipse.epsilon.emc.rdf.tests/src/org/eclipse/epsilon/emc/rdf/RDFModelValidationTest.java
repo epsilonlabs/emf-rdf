@@ -72,7 +72,7 @@ public class RDFModelValidationTest {
 		props.put(RDFModel.PROPERTY_DATA_URIS, dataModelUri);
 		props.put(RDFModel.PROPERTY_SCHEMA_URIS, OWL_DEMO_SCHEMAMODEL);
 		props.put(RDFModel.PROPERTY_LANGUAGE_PREFERENCE, LANGUAGE_PREFERENCE_EN_STRING);
-		props.put(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.VALIDATION_SELECTION_DEFAULT); // There is a known issues in the model required for tests
+		props.put(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.VALIDATION_SELECTION_JENA); // There is a known issues in the model required for tests
 		model.load(props);
 
 		this.context = new EolContext();
