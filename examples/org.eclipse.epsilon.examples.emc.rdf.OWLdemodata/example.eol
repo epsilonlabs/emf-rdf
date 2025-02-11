@@ -3,11 +3,11 @@ Computer.all.println(); // Print all the computers available
 System.out.println("\n\n RDF MODEL\n");
 var bigName42 = RDFModel.getElementById('urn:x-hp:eg/bigName42');  // Use the Alias from the Launch Model configuration and get bigName42 computer
 bigName42.println(); 
-bigName42.motherBoard.types.println(); // Show what motherboard the system has (max Cardinality hides 2nd hasMotherBoard property)
-bigName42.types.println();
+bigName42.`eg:motherBoard`.println(); // Show what motherboard the system has (max Cardinality hides 2nd hasMotherBoard property)
+bigName42.println();
 
 System.out.println("\n\n MOF2RDF MODEL\n");
-var bigName42 = MOF2RDFModel.getElementById('urn:x-hp:eg/bigName42');  // Use the Alias from the Launch Model configuration and get bigName42 computer
+bigName42 = MOF2RDFModel.getElementById('urn:x-hp:eg/bigName42');  // Use the Alias from the Launch Model configuration and get bigName42 computer
 bigName42.println(); 
-bigName42.motherBoard.types.println(); // Show what motherboard the system has (max Cardinality hides 2nd hasMotherBoard property)
-bigName42.types.println();
+bigName42.`eg:motherBoard`.println(); // Show what motherboard the system has (max Cardinality hides 2nd hasMotherBoard property)
+bigName42.println();

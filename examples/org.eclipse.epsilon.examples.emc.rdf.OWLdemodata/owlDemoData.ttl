@@ -1,4 +1,5 @@
 @prefix : <urn:x-hp:eg/> .
+@prefix eg: <urn:x-hp:eg/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 
 :alienBox51 a :GamingComputer .
