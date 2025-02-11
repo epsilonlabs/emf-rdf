@@ -60,6 +60,7 @@ public class LensedRDFResource {
 		} else if (rawValue.isEmpty()) {
 			return null;
 		} else {
+			// TODO warn if there's actually more than one
 			return rawValue.iterator().next();
 		}
 	}
