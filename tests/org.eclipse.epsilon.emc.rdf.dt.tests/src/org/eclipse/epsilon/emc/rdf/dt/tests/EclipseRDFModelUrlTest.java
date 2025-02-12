@@ -164,7 +164,7 @@ public class EclipseRDFModelUrlTest extends EclipseProjectEnvTest {
 		props.put(RDFModel.PROPERTY_DATA_URIS, dataModelUri);
 		props.put(RDFModel.PROPERTY_SCHEMA_URIS, schemaModelUri);
 		props.put(RDFModel.PROPERTY_LANGUAGE_PREFERENCE, languagePreference);
-		props.put(RDFModel.PROPERTY_VALIDATE_MODEL, false);  // Throws model validity errors not related to path problems
+		props.put(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.VALIDATION_SELECTION_NONE);  // Throws model validity errors for computer with 2 motherboards (expected to fail Jena Validation)
 		return props;
 	}
 }
