@@ -49,7 +49,7 @@ import org.eclipse.swt.widgets.Text;
 
 public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialog {
 	private static final String[] RDFFILE_EXTENSIONS = new String[] { "*.rdf", "*.ttl", "*.nt", "*.nq", "*.trig", "*.owl", "*.jsonld", "*.trdf", "*.rt", "*.rpb", "*.pbrdf", "*.rj", "*.trix", "*.*"};
-	
+
 	private static final String SAMPLE_URL = "http://changeme";
 
 	protected class PrefixEditingSupport extends EditingSupport {
