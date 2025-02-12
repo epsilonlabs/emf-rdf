@@ -26,7 +26,7 @@ public class LensedRDFResource {
 		return eClass;
 	}
 
-	public RDFResource getResource() {
+	public RDFResource getRawRDFResource() {
 		return resource;
 	}
 

@@ -6,7 +6,7 @@ b.genres.isDefined().println('Has genres as a book? ');
 
 ''.println();
 
-b.resource.println('As a raw RDF resource: ');
-b.resource.title.println('Title as a raw RDF resource: ');
-b.resource.genres.isDefined().println('Has genres as a raw RDF resource? ');
-b.resource.genres.println('Genres as a raw RDF resource: ');
+b.rawRDFResource.println('As a raw RDF resource: ');
+b.rawRDFResource.title.println('Title as a raw RDF resource: ');
+b.rawRDFResource.genres.isDefined().println('Has genres as a raw RDF resource? ');
+b.rawRDFResource.genres.println('Genres as a raw RDF resource: ');
