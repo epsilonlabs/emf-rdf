@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.jena.ontology.OntModel;
+import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -339,7 +340,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 			}
 
 			//Create an OntModel to handle the data model being loaded or inferred from data and schema
-			this.model = ModelFactory.createOntologyModel();
+			this.model = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM_RULE_INF);
 			
 			if (reasonerType == ReasonerType.NONE) {
 				// Only the OntModel bits are added to the dataModel being loaded.
