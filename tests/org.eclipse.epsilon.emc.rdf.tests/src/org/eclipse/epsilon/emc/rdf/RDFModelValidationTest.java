@@ -14,6 +14,7 @@ package org.eclipse.epsilon.emc.rdf;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -48,20 +49,16 @@ public class RDFModelValidationTest {
 		} catch (EolModelLoadingException e) {
 			String sErrors = e.getMessage();
 			assertTrue("The model loaded should FAIL validation (6 errors relating to BigName42 having 2 motherboards)",
-					sErrors.contains("Error whilst loading model null: The loaded model is not valid or not clean"));
+					sErrors.contains("not valid"));
+			return;
 		}
+		fail();
 
 	}
 
 	@Test
 	public void loadValidModel() throws EolModelLoadingException {
-		try {
-			loadModel(OWL_DEMO_DATAMODEL_VALID);
-		} catch (EolModelLoadingException e) {
-			String sErrors = e.getMessage();
-			assertFalse("The model loaded should NOT FAIL validation",
-					sErrors.contains("Error whilst loading model null: The loaded model is not valid or not clean"));
-		}
+		loadModel(OWL_DEMO_DATAMODEL_VALID);
 	}
 
 	// Functions not tests
@@ -72,7 +69,7 @@ public class RDFModelValidationTest {
 		props.put(RDFModel.PROPERTY_DATA_URIS, dataModelUri);
 		props.put(RDFModel.PROPERTY_SCHEMA_URIS, OWL_DEMO_SCHEMAMODEL);
 		props.put(RDFModel.PROPERTY_LANGUAGE_PREFERENCE, LANGUAGE_PREFERENCE_EN_STRING);
-		props.put(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.VALIDATION_SELECTION_JENA); // There is a known issues in the model required for tests
+		props.put(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.VALIDATION_SELECTION_JENA);
 		model.load(props);
 
 		this.context = new EolContext();
