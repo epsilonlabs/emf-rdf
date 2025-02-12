@@ -3,6 +3,7 @@ var b = Book.all.first;
 b.println('As a book: ');
 b.title.println('Title as a book: ');
 b.genres.isDefined().println('Has genres as a book? ');
+b.eClass.println('EClass of the book: ');
 
 ''.println();
 
