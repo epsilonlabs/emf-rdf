@@ -1,0 +1,12 @@
+var b = Book.all.first;
+
+b.println('As a book: ');
+b.title.println('Title as a book: ');
+b.genres.isDefined().println('Has genres as a book? ');
+
+''.println();
+
+b.resource.println('As a raw RDF resource: ');
+b.resource.title.println('Title as a raw RDF resource: ');
+b.resource.genres.isDefined().println('Has genres as a raw RDF resource? ');
+b.resource.genres.println('Genres as a raw RDF resource: ');

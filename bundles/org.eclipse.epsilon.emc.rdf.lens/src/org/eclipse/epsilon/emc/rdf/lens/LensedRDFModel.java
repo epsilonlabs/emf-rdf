@@ -87,6 +87,8 @@ public class LensedRDFModel extends CachedModel<LensedRDFResource> {
 	public boolean owns(Object instance) {
 		if (instance instanceof LensedRDFResource lensed) {
 			return lensed.getModel() == this;
+		} else if (instance instanceof RDFResource rdf) {
+			return rdf.getModel() == this.rdfModel;
 		}
 		return false;
 	}
