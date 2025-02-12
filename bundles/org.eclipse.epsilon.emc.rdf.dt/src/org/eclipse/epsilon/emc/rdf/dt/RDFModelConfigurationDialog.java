@@ -194,7 +194,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		createLanguagePreferenceGroup(control);
 	}
 
-	private Composite createNamespaceMappingGroup(Composite parent) {
+	protected Composite createNamespaceMappingGroup(Composite parent) {
 		final Composite groupContent = DialogUtil.createGroupContainer(parent, "Custom prefixes", 2);
 
 		nsMappingTable = new TableViewer(groupContent, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.MULTI);
@@ -278,7 +278,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 	}
 
 	private String dataModelLastPath = null;
-	private Composite createDataModelRDFUrlsGroup(Composite parent) {
+	protected Composite createDataModelRDFUrlsGroup(Composite parent) {
 		final Composite groupContent = DialogUtil.createGroupContainer(parent, "Data Model URLs to load", 2);
 
 		dataModelUrlListViewer = new TableViewer(groupContent, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.MULTI);
@@ -383,7 +383,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 	}
 
 	private String schemaModelLastPath = null;
-	private Composite createSchemaModelRDFUrlsGroup(Composite parent) {
+	protected Composite createSchemaModelRDFUrlsGroup(Composite parent) {
 		final Composite groupContent = DialogUtil.createGroupContainer(parent, "Schema Model URLs to load", 2);
 
 		schemaModelUrlListViewer = new TableViewer(groupContent, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.MULTI);
@@ -491,7 +491,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 	protected Label languagePreferenceLabel;
 	protected Text languagePreferenceText;
 
-	private Composite createLanguagePreferenceGroup(Composite parent) {
+	protected Composite createLanguagePreferenceGroup(Composite parent) {
 		final Composite groupContent = DialogUtil.createGroupContainer(parent, "Language tag preference", 1);
 		
 		languagePreferenceLabel = new Label(groupContent, SWT.NONE);
