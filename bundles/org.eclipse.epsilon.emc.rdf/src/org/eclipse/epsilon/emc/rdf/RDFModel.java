@@ -68,6 +68,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 
 	protected final List<String> languagePreference = new ArrayList<>();
 	protected final Map<String, String> customPrefixesMap = new HashMap<>();
+	protected String validationMode = VALIDATION_SELECTION_DEFAULT;
 
 	// TODO add to this list to cover reasoner types in the ReasonerRegistry Class
 	public enum ReasonerType {
@@ -176,7 +177,8 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		 */
 		loadCommaSeparatedProperty(properties, PROPERTY_DATA_URIS, this.dataURIs);
 		loadCommaSeparatedProperty(properties, PROPERTY_SCHEMA_URIS, this.schemaURIs);
-		loadPropertyValidateModel(properties);
+
+		this.validationMode = properties.getProperty(RDFModel.PROPERTY_VALIDATE_MODEL, VALIDATION_SELECTION_JENA);
 
 		this.customPrefixesMap.clear();
 		String sPrefixes = properties.getProperty(PROPERTY_PREFIXES, "").strip();
@@ -212,7 +214,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		load();
 		
 		// After Loading all scheme, data models and inferring the full model, validate
-		if (validationProperty.contains(VALIDATION_SELECTION_JENA)) {
+		if (VALIDATION_SELECTION_JENA.equals(validationMode)) {
 			try {
 				validateModel();
 			} catch (Exception e) {
@@ -361,37 +363,42 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		}
 	}
 
-	private void validateModel() throws Exception {
+	protected void validateModel() throws Exception {
 		/*
 		 * The way the model is validated by Jena depends on how the new OntModel was
 		 * created by the ModelFactory.
 		 */
 
 		ValidityReport modelValidityReport = model.validate();
-		
-		if (!modelValidityReport.isValid() | (!modelValidityReport.isClean())) {
-			// Throw error with a string containing the validity report 
-			String reportString = "The loaded model is not valid or not clean\n";
+		if (!modelValidityReport.isValid() || !modelValidityReport.isClean()) {
+			StringBuilder sb = new StringBuilder("The loaded model is not valid or not clean\n");
 			int i = 1;
 			for (Iterator<Report> o = modelValidityReport.getReports(); o.hasNext();) {
 				ValidityReport.Report report = (ValidityReport.Report) o.next();
-				reportString = reportString.concat(" " + i + ", " + report.toString());
+				sb.append(String.format(" %d: %s", i, report.toString()));
 				i++;
 			}
-			throw new Exception(reportString.toString());
+			throw new Exception(sb.toString());
 		}
 	}
-		
-	protected String validationProperty = VALIDATION_SELECTION_DEFAULT;
-	
-	private void loadPropertyValidateModel(StringProperties properties) {
-		validationProperty = properties.getProperty(RDFModel.PROPERTY_VALIDATE_MODEL, VALIDATION_SELECTION_JENA);
+
+	public String getValidationMode () {
+		return validationMode;
 	}
-	
-	public String getValidationProperty () {
-		return validationProperty;
+
+	/**
+	 * Changes the internal consistency validation mode used during loading.
+	 *
+	 * @param mode New mode. Must be one of {@code RDFModel#VALIDATION_SELECTION_NONE} or
+	 *             {@code RDFModel#VALIDATION_SELECTION_JENA}.
+	 */
+	public void setValidationMode(String mode) {
+		if (!VALIDATION_SELECTION_JENA.equals(mode) && !VALIDATION_SELECTION_NONE.equals(mode)) {
+			throw new IllegalArgumentException("Unknown validation mode " + mode);
+		}
+		this.validationMode = mode;
 	}
-		
+
 	@Override
 	protected void disposeModel() {
 		model = null;
