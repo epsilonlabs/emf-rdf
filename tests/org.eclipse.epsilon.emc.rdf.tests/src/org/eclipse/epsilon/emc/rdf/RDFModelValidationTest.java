@@ -12,19 +12,11 @@
  ********************************************************************************/
 package org.eclipse.epsilon.emc.rdf;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.Collection;
-
 import org.eclipse.epsilon.common.util.StringProperties;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelLoadingException;
-import org.eclipse.epsilon.eol.execute.context.EolContext;
-import org.junit.After;
 import org.junit.Test;
 
 public class RDFModelValidationTest {
@@ -34,26 +26,20 @@ public class RDFModelValidationTest {
 	private static final String OWL_DEMO_SCHEMAMODEL = "resources/OWL/owlDemoSchema.ttl";
 
 	private static final String LANGUAGE_PREFERENCE_EN_STRING = "en";
-	private static final String URI_BIGNAME42 = "urn:x-hp:eg/bigName42";
-	private static final String URI_ALIENBOX51 = "urn:x-hp:eg/alienBox51";
-	private static final String URI_WHITEBOX = "urn:x-hp:eg/whiteBoxZX";
 
 	private RDFModel model;
-	private EolContext context;
 
 	@Test
 	public void loadInvalidModel() {
 
 		try {
 			loadModel(OWL_DEMO_DATAMODEL_INVALID);
+			fail("An exception was expected");
 		} catch (EolModelLoadingException e) {
 			String sErrors = e.getMessage();
 			assertTrue("The model loaded should FAIL validation (6 errors relating to BigName42 having 2 motherboards)",
 					sErrors.contains("not valid"));
-			return;
 		}
-		fail();
-
 	}
 
 	@Test
@@ -71,8 +57,6 @@ public class RDFModelValidationTest {
 		props.put(RDFModel.PROPERTY_LANGUAGE_PREFERENCE, LANGUAGE_PREFERENCE_EN_STRING);
 		props.put(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.VALIDATION_SELECTION_JENA);
 		model.load(props);
-
-		this.context = new EolContext();
 	}
 
 }
