@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.jena.ontology.OntModel;
+import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -31,6 +32,8 @@ import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.reasoner.ReasonerRegistry;
+import org.apache.jena.reasoner.ValidityReport;
+import org.apache.jena.reasoner.ValidityReport.Report;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.epsilon.common.util.StringProperties;
 import org.eclipse.epsilon.eol.exceptions.EolRuntimeException;
@@ -57,9 +60,15 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	 * pairs will take precedence over existing pairs in the resource.
 	 */
 	public static final String PROPERTY_PREFIXES = "prefixes";
+	public static final String PROPERTY_VALIDATE_MODEL = "enableModelValidation";
+
+	public static final String VALIDATION_SELECTION_JENA = "jena";
+	public static final String VALIDATION_SELECTION_NONE = "none";
+	public static final String VALIDATION_SELECTION_DEFAULT = VALIDATION_SELECTION_JENA;
 
 	protected final List<String> languagePreference = new ArrayList<>();
 	protected final Map<String, String> customPrefixesMap = new HashMap<>();
+	protected String validationMode = VALIDATION_SELECTION_DEFAULT;
 
 	// TODO add to this list to cover reasoner types in the ReasonerRegistry Class
 	public enum ReasonerType {
@@ -169,6 +178,8 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		loadCommaSeparatedProperty(properties, PROPERTY_DATA_URIS, this.dataURIs);
 		loadCommaSeparatedProperty(properties, PROPERTY_SCHEMA_URIS, this.schemaURIs);
 
+		this.validationMode = properties.getProperty(RDFModel.PROPERTY_VALIDATE_MODEL, VALIDATION_SELECTION_JENA);
+
 		this.customPrefixesMap.clear();
 		String sPrefixes = properties.getProperty(PROPERTY_PREFIXES, "").strip();
 		if (!sPrefixes.isEmpty()) {
@@ -201,6 +212,15 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		}
 
 		load();
+		
+		// After Loading all scheme, data models and inferring the full model, validate
+		if (VALIDATION_SELECTION_JENA.equals(validationMode)) {
+			try {
+				validateModel();
+			} catch (Exception e) {
+				throw new EolModelLoadingException(e, this);
+			}
+		}
 	}
 
 	protected void loadCommaSeparatedProperty(StringProperties properties, String propertyName, List<String> targetList) {
@@ -322,7 +342,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 			}
 
 			//Create an OntModel to handle the data model being loaded or inferred from data and schema
-			this.model = ModelFactory.createOntologyModel();
+			this.model = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM_RULE_INF);
 			
 			if (reasonerType == ReasonerType.NONE) {
 				// Only the OntModel bits are added to the dataModel being loaded.
@@ -341,6 +361,42 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		} catch (Exception ex) {
 			throw new EolModelLoadingException(ex, this);
 		}
+	}
+
+	protected void validateModel() throws Exception {
+		/*
+		 * The way the model is validated by Jena depends on how the new OntModel was
+		 * created by the ModelFactory.
+		 */
+
+		ValidityReport modelValidityReport = model.validate();
+		if (!modelValidityReport.isValid() || !modelValidityReport.isClean()) {
+			StringBuilder sb = new StringBuilder("The loaded model is not valid or not clean\n");
+			int i = 1;
+			for (Iterator<Report> o = modelValidityReport.getReports(); o.hasNext();) {
+				ValidityReport.Report report = (ValidityReport.Report) o.next();
+				sb.append(String.format(" %d: %s", i, report.toString()));
+				i++;
+			}
+			throw new Exception(sb.toString());
+		}
+	}
+
+	public String getValidationMode() {
+		return validationMode;
+	}
+
+	/**
+	 * Changes the internal consistency validation mode used during loading.
+	 *
+	 * @param mode New mode. Must be one of {@code RDFModel#VALIDATION_SELECTION_NONE} or
+	 *             {@code RDFModel#VALIDATION_SELECTION_JENA}.
+	 */
+	public void setValidationMode(String mode) {
+		if (!VALIDATION_SELECTION_JENA.equals(mode) && !VALIDATION_SELECTION_NONE.equals(mode)) {
+			throw new IllegalArgumentException("Unknown validation mode " + mode);
+		}
+		this.validationMode = mode;
 	}
 
 	@Override
