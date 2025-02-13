@@ -382,7 +382,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		}
 	}
 
-	public String getValidationMode () {
+	public String getValidationMode() {
 		return validationMode;
 	}
 
