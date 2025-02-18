@@ -36,14 +36,14 @@ public class EclipseRDFModelUrlTest extends EclipseProjectEnvTest {
 	private static final String PROJECT_URL = "myProject";
 
 	private static final String RESOURCES_BASEDIR = "../org.eclipse.epsilon.emc.rdf.tests";
-	private static final String OWL_DEMO_DATAMODEL_PROJECT_PATH = "/resources/OWL/owlDemoData.ttl";
+	private static final String OWL_DEMO_DATAMODEL_PROJECT_PATH = "/resources/OWL/owlDemoData_valid.ttl";
 	private static final String OWL_DEMO_SCHEMAMODEL_PROJECT_PATH = "/resources/OWL/owlDemoSchema.ttl";
 
 	private static final String OWL_DEMO_DATAMODEL = RESOURCES_BASEDIR + OWL_DEMO_DATAMODEL_PROJECT_PATH;
 	private static final String OWL_DEMO_SCHEMAMODEL = RESOURCES_BASEDIR + OWL_DEMO_SCHEMAMODEL_PROJECT_PATH;
 	private static final String LANGUAGE_PREFERENCE_EN_STRING = "en";
 	
-	private static final String URI_WHITEBOX = "urn:x-hp:eg/whiteBoxZX";
+	private static final String URI_BIGNAME42 = "urn:x-hp:eg/bigName42";
 
 	private EclipseRDFModel model;
 	private EolContext context;
@@ -145,7 +145,7 @@ public class EclipseRDFModelUrlTest extends EclipseProjectEnvTest {
 
 	private void loadedModelTest() {
 		assertTrue(model != null);
-		RDFResource element = model.getElementById(URI_WHITEBOX);
+		RDFResource element = model.getElementById(URI_BIGNAME42);
 		@SuppressWarnings("unchecked")
 		Collection<RDFResource> motherBoardList = (Collection<RDFResource>) element.getProperty("eg:motherBoard", context);		
 		motherBoardList.forEach(m -> System.err.println(m));
