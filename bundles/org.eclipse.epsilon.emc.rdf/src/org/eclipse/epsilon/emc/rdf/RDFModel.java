@@ -342,16 +342,14 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 			}
 
 			//Create an OntModel to handle the data model being loaded or inferred from data and schema
-			this.model = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM_RULE_INF);
-			
 			if (reasonerType == ReasonerType.NONE) {
 				// Only the OntModel bits are added to the dataModel being loaded.
-				this.model.add(dataModel);
+				this.model = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM_RULE_INF, dataModel);
 			} else {
 				// OntModel bits are added and the reasoner will add schema bits to the dataModel being loaded.
 				Reasoner reasoner = ReasonerRegistry.getOWLReasoner();
-				InfModel infmodel = ModelFactory.createInfModel(reasoner, dataModel, schemaModel);
-				this.model.add(infmodel);
+				InfModel infmodel = ModelFactory.createInfModel(reasoner, schemaModel, dataModel);
+				this.model = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM_RULE_INF, infmodel);
 			}
 
 			// Copy the Name prefix maps from the loaded Model dataModel to the new OntModel dataModel representation
