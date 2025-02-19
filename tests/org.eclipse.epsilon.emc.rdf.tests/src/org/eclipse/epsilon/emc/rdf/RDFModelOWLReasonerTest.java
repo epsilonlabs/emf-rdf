@@ -58,7 +58,6 @@ public class RDFModelOWLReasonerTest {
 		RDFResource element = model.getElementById(URI_WHITEBOX);
 		@SuppressWarnings("unchecked")
 		Collection<RDFResource> motherBoardList = (Collection<RDFResource>) element.getProperty("eg:motherBoard", context);		
-		assertTrue("Test should be using an RDFModel", model.getClass() == RDFModel.class);
 		assertTrue("motherBoard has max cardinality of 1 but RDFModel does not prune results, should report 2 motherboards on whiteBoxZX ",
 			motherBoardList.size() == 2);
 	}

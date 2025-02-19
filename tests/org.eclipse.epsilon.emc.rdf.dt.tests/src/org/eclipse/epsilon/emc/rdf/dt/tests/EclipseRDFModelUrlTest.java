@@ -148,7 +148,6 @@ public class EclipseRDFModelUrlTest extends EclipseProjectEnvTest {
 		RDFResource element = model.getElementById(URI_BIGNAME42);
 		@SuppressWarnings("unchecked")
 		Collection<RDFResource> motherBoardList = (Collection<RDFResource>) element.getProperty("eg:motherBoard", context);		
-		motherBoardList.forEach(m -> System.err.println(m));
 		assertTrue("motherBoard has max cardinality of 1 should only have that value returned ",
 			motherBoardList.size() == 1);
 	}
