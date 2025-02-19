@@ -1,47 +1,107 @@
+@prefix : <urn:x-hp:eg/> .
 @prefix eg: <urn:x-hp:eg/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <urn:x-hp:eg/> .
 
-eg:DTPGraphics a eg:GraphicsCard .
+[ rdf:type owl:Ontology
+ ] .
 
-eg:GamingComputer a owl:Class ;
-    owl:equivalentClass [ owl:intersectionOf ( [ a owl:Restriction ;
-                        owl:hasValue eg:gamingGraphics ;
-                        owl:onProperty eg:hasComponent ] [ a owl:Restriction ;
-                        owl:onProperty eg:bundle ;
-                        owl:someValuesFrom eg:GameBundle ] eg:Computer ) ] .
+#################################################################
+#    Object Properties
+#################################################################
 
-eg:budgetGraphics a eg:GraphicsCard .
+###  urn:x-hp:eg/hasBundle
+eg:hasBundle rdf:type owl:ObjectProperty ;
+             rdfs:domain eg:Computer .
 
-eg:hasGraphics a owl:ObjectProperty ;
-    rdfs:range eg:GraphicsCard ;
-    rdfs:subPropertyOf eg:hasComponent .
 
-eg:Bundle a owl:Class .
+###  urn:x-hp:eg/hasComponent
+eg:hasComponent rdf:type owl:ObjectProperty ,
+                         owl:TransitiveProperty .
 
-eg:GameBundle a owl:Class ;
-    rdfs:subClassOf eg:Bundle .
 
-eg:MotherBoard a owl:Class .
+###  urn:x-hp:eg/hasGraphics
+eg:hasGraphics rdf:type owl:ObjectProperty ;
+               rdfs:subPropertyOf eg:hasComponent ;
+               rdfs:range eg:GraphicsCard .
 
-eg:gamingGraphics a eg:GraphicsCard .
 
-eg:bundle a owl:ObjectProperty ;
-    rdfs:domain eg:Computer .
+###  urn:x-hp:eg/motherBoard
+eg:motherBoard rdf:type owl:ObjectProperty ;
+                  rdfs:subPropertyOf eg:hasComponent ;
+                  rdfs:domain eg:Computer ;
+                  rdfs:range eg:MotherBoard .
 
-eg:motherBoard a owl:ObjectProperty ;
-    rdfs:domain eg:Computer ;
-    rdfs:range eg:MotherBoard ;
-    rdfs:subPropertyOf eg:hasComponent .
 
-eg:Computer a owl:Class ;
-    rdfs:subClassOf [ owl:intersectionOf ( [ a owl:Restriction ;
-                        owl:maxCardinality "1"^^xsd:nonNegativeInteger ;
-                        owl:onProperty eg:motherBoard ] ) ] .
+#################################################################
+#    Classes
+#################################################################
 
-eg:hasComponent a owl:ObjectProperty,
-        owl:TransitiveProperty .
+###  urn:x-hp:eg/Bundle
+eg:Bundle rdf:type owl:Class .
 
-eg:GraphicsCard a owl:Class .
+
+###  urn:x-hp:eg/Computer
+eg:Computer rdf:type owl:Class ;
+            rdfs:subClassOf [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                     owl:onProperty eg:motherBoard ;
+                                                     owl:maxCardinality "1"^^xsd:nonNegativeInteger
+                                                   ]
+                                                 ) ;
+                              rdf:type owl:Class
+                            ] .
+
+
+###  urn:x-hp:eg/GameBundle
+eg:GameBundle rdf:type owl:Class ;
+              rdfs:subClassOf eg:Bundle .
+
+
+###  urn:x-hp:eg/GamingComputer
+eg:GamingComputer rdf:type owl:Class ;
+                  owl:equivalentClass [ owl:intersectionOf ( eg:Computer
+                                                             [ rdf:type owl:Restriction ;
+                                                               owl:onProperty eg:hasBundle ;
+                                                               owl:someValuesFrom eg:GameBundle
+                                                             ]
+                                                             [ rdf:type owl:Restriction ;
+                                                               owl:onProperty eg:hasComponent ;
+                                                               owl:hasValue eg:gamingGraphics
+                                                             ]
+                                                           ) ;
+                                        rdf:type owl:Class
+                                      ] .
+
+
+###  urn:x-hp:eg/GraphicsCard
+eg:GraphicsCard rdf:type owl:Class .
+
+
+###  urn:x-hp:eg/MotherBoard
+eg:MotherBoard rdf:type owl:Class .
+
+
+#################################################################
+#    Individuals
+#################################################################
+
+###  urn:x-hp:eg/DTPGraphics
+eg:DTPGraphics rdf:type owl:NamedIndividual ,
+                        eg:GraphicsCard .
+
+
+###  urn:x-hp:eg/budgetGraphics
+eg:budgetGraphics rdf:type owl:NamedIndividual ,
+                           eg:GraphicsCard .
+
+
+###  urn:x-hp:eg/gamingGraphics
+eg:gamingGraphics rdf:type owl:NamedIndividual ,
+                           eg:GraphicsCard .
+
+
+###  Generated by the OWL API (version 4.5.29.2024-05-13T12:11:03Z) https://github.com/owlcs/owlapi

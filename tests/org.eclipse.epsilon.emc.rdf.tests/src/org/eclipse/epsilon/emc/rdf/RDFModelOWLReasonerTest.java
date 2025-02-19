@@ -58,8 +58,8 @@ public class RDFModelOWLReasonerTest {
 		RDFResource element = model.getElementById(URI_WHITEBOX);
 		@SuppressWarnings("unchecked")
 		Collection<RDFResource> motherBoardList = (Collection<RDFResource>) element.getProperty("eg:motherBoard", context);		
-		assertTrue("motherBoard has max cardinality of 1 should only have that value returned ",
-			motherBoardList.size() == 1);
+		assertTrue("motherBoard has max cardinality of 1 but RDFModel does not prune results, should report 2 motherboards on whiteBoxZX ",
+			motherBoardList.size() == 2);
 	}
 
 	@Test
@@ -83,7 +83,7 @@ public class RDFModelOWLReasonerTest {
 			// This will return all motherboards, we actually have two on URI_BIGNAME42			
 			@SuppressWarnings("unchecked")
 			Collection<RDFResource> motherBoardList = (Collection<RDFResource>) model.getElementById(URI_BIGNAME42).getProperty("eg:motherBoard", context);
-			assertTrue("URI_BIGNAME42 computer should report 2 motherBoard s ", motherBoardList.size() == 2);
+			assertTrue("URI_BIGNAME42 computer should report 2 motherBoards ", motherBoardList.size() == 2);
 
 			String sErrors = errors.toString();
 			assertFalse("An error should be raised for max cardinality being exceeded",
