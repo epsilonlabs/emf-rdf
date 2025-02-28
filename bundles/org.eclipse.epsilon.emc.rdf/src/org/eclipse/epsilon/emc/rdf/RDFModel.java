@@ -69,7 +69,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	public static final String VALIDATION_SELECTION_JENA_VALID = "Jena valid";
 	public static final String VALIDATION_SELECTION_JENA_CLEAN = "Jena clean";
 	public static final String VALIDATION_SELECTION_NONE = "none";
-	public static final String VALIDATION_SELECTION_DEFAULT = VALIDATION_SELECTION_JENA_VALID;
+	public static final String VALIDATION_SELECTION_DEFAULT = VALIDATION_SELECTION_JENA_CLEAN;
 	public static final String VALIDATION_MODES[] = { VALIDATION_SELECTION_JENA_VALID,
 			VALIDATION_SELECTION_JENA_CLEAN, VALIDATION_SELECTION_NONE };	
 	protected String validationMode = VALIDATION_SELECTION_DEFAULT;
@@ -372,15 +372,42 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		 */
 
 		ValidityReport modelValidityReport = model.validate();
-		if (!modelValidityReport.isValid() || !modelValidityReport.isClean()) {
-			StringBuilder sb = new StringBuilder("The loaded model is not valid or not clean\n");
-			int i = 1;
-			for (Iterator<Report> o = modelValidityReport.getReports(); o.hasNext();) {
-				ValidityReport.Report report = (ValidityReport.Report) o.next();
-				sb.append(String.format(" %d: %s", i, report.toString()));
-				i++;
+
+		switch (validationMode) {
+		case VALIDATION_SELECTION_JENA_CLEAN:
+		case VALIDATION_SELECTION_JENA_VALID:
+			if (!modelValidityReport.isValid() || !modelValidityReport.isClean()) {
+				StringBuilder sb = new StringBuilder("The loaded model is ");
+
+				if (!modelValidityReport.isValid()) {
+					sb.append("not ");
+				}
+				sb.append("valid");
+
+				if (validationMode.equals(VALIDATION_SELECTION_JENA_CLEAN)) {
+					sb.append(" and ");
+					if (!modelValidityReport.isClean()) {
+						sb.append("not ");
+					}
+					sb.append("clean");
+				}
+				
+				sb.append("\n");
+				
+				// Build report string (valid models still report warnings)
+				int i = 1;
+				for (Iterator<Report> o = modelValidityReport.getReports(); o.hasNext();) {
+					ValidityReport.Report report = (ValidityReport.Report) o.next();
+					sb.append(String.format(" %d: %s", i, report.toString()));
+					i++;
+				}
+				
+				throw new Exception(sb.toString());
 			}
-			throw new Exception(sb.toString());
+			break;
+		// Add more validation options here
+		default:
+			break;
 		}
 	}
 
