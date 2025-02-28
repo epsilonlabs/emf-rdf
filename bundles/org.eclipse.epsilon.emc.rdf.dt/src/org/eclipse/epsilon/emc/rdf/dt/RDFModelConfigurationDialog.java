@@ -520,9 +520,8 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 	private Composite createValidateModelGroup(Composite parent) {
 		final Composite groupContent = DialogUtil.createGroupContainer(parent, "Model validation", 1);
 
-		String[] items = new String[] {RDFModel.VALIDATION_SELECTION_NONE,RDFModel.VALIDATION_SELECTION_JENA};
 		validateModelCombo = new Combo(groupContent,SWT.READ_ONLY);	
-		validateModelCombo.setItems(items);
+		validateModelCombo.setItems(RDFModel.VALIDATION_MODES);
 		
 		if(validateModelCombo.getText() == "") {
 			validateModelCombo.setText(RDFModel.VALIDATION_SELECTION_DEFAULT);
@@ -570,7 +569,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		// Load any saved property and default to Jena if none
 		validateModelCombo.setText(
 				properties.getProperty(RDFModel.PROPERTY_VALIDATE_MODEL
-						, RDFModel.VALIDATION_SELECTION_JENA)
+						, RDFModel.VALIDATION_SELECTION_DEFAULT)
 				);
 		
 		this.dataModelUrlListViewer.refresh();
