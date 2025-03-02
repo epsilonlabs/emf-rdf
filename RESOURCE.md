@@ -36,3 +36,4 @@ schemaModels:
 ```
 
 The `.rdfres` file can then be loaded and used by any EMF-compatible tool as usual.
+Note that the elements in `dataModels` and `schemaModels` can be arbitrary URIs understood by the [RIOT](https://jena.apache.org/documentation/io/) system in Jena, and not just relative paths from the folder of the `.rdfres` file.
