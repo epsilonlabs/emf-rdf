@@ -2,6 +2,8 @@
 
 This repository includes a prototype implementation of an EMF resource for RDF graphs, on top of [Apache Jena](https://jena.apache.org/).
 
+It can be installed from the repository's update site: see [`README`](./README.md) for details.
+
 ## Differences with emf-triple
 
 This implementation has some major differences with [emf-triple](https://github.com/ghillairet/emftriple):
