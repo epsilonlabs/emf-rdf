@@ -187,7 +187,5 @@ If there are multiple maximum cardinality restrictions, the most restrictive one
 There is an option to enable model validation on an inferred model before it is used. The options for validation are:
 
 - None
-- Jena Valid
-- Jena Clean
-
-Jena Valid, validation passes (reports true) if the model has no internal inconsistencies even though there may be some warnings. Jena Clean validation only passes if the model has not internal inconsistencies and does not report any warnings.  
+- Jena Valid: validation passes if the model has no internal inconsistencies, even though there may be some warnings.
+- Jena Clean: validation passes if the model has no internal inconsistencies *and* there are no warnings.
