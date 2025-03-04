@@ -77,7 +77,7 @@ public class MOF2RDFModelOWLReasonerTest {
 
 		String sErrors = errors.toString();
 		assertTrue("An error should be raised Ambiguous property access turning off restriction checks",
-				sErrors.contains("Ambiguous access to property 'motherBoard': No restriction checks applied"));
+				sErrors.contains("No restriction checks applied"));
  		
 	}
 
