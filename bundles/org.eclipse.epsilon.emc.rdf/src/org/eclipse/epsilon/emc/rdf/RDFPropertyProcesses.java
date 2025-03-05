@@ -25,6 +25,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.eclipse.epsilon.eol.execute.context.IEolContext;
 public class RDFPropertyProcesses {
 
 	private RDFPropertyProcesses() {
@@ -58,36 +59,77 @@ public class RDFPropertyProcesses {
 		return propertyStatements;
 	}
 
-	public static MaxCardinalityRestriction getPropertyStatementMaxCardinalityRestriction(RDFQualifiedName propertyName, Resource resource) {
+	public static MaxCardinalityRestriction getPropertyStatementMaxCardinalityRestriction(RDFQualifiedName propertyName, Resource resource, IEolContext context) {
 		// Gets all the propertyStatements and finds all the MaxCardinality restrictions, keeps the most restrictive (lowest maxCardinality)
 		MaxCardinalityRestriction mostRestrictiveMaxCardinality = null;
 
 		OntResource ontResource = resource.as(OntResource.class);
+		OntProperty mostRestrictiveMaxCardinalityProperty = null;
+		
+		System.out.println("\nMaxCardinalityRestriction check on " 
+				+ "\n resource: " + resource  
+				+ "\n propertyName: " + propertyName
+				+ "\n");
 
 		// TODO re-evaluate if it is OK to use listRDFTypes(true) if we've triggered reasoning
 		for (ExtendedIterator<Resource> itRDFType = ontResource.listRDFTypes(false); itRDFType.hasNext(); ) {
 			Resource rdfType = itRDFType.next();
 			OntClass ontClass = rdfType.as(OntClass.class);
+
 			for (ExtendedIterator<OntProperty> itProp = ontClass.listDeclaredProperties(); itProp.hasNext(); ) {
+				
 				OntProperty prop = itProp.next();
-				if (propertyName.localName.equals(prop.getLocalName()) && Objects.equals(propertyName.namespaceURI, prop.getNameSpace())) {
-					for (ExtendedIterator<Restriction> itRestriction = prop.listReferringRestrictions(); itRestriction.hasNext(); ) {
-						Restriction restriction = itRestriction.next();
-						if (restriction.isMaxCardinalityRestriction()) {
-							MaxCardinalityRestriction maxCardinalityRestriction = restriction.asMaxCardinalityRestriction();
-							if (mostRestrictiveMaxCardinality == null) {
-								mostRestrictiveMaxCardinality = maxCardinalityRestriction;
-							} else {
-								if (mostRestrictiveMaxCardinality.getMaxCardinality() > maxCardinalityRestriction.getMaxCardinality()) {
+				if ((propertyName.localName.equals(prop.getLocalName()))
+						&& ((Objects.equals(propertyName.namespaceURI, prop.getNameSpace()))
+								|| (null == propertyName.prefix))) {
+
+					if (null != mostRestrictiveMaxCardinalityProperty) {
+						// You've run into ambiguity around the name of the property - raise a warning
+                        if (mostRestrictiveMaxCardinalityProperty.equals(prop)) {
+                            // same property, don't need to look at it again                       	
+                        	System.out.println("  Duplicate (skip) > "
+                            + "(mostRestrictiveMaxCardinalityProperty) " + mostRestrictiveMaxCardinalityProperty 
+                            + " == "
+                            + prop + " (property)");
+                          } else {
+  						   // You've run into ambiguity around the name of the property - raise a warning
+                        	System.out.println("  Ambiguous > " 
+                                    + "(mostRestrictiveMaxCardinalityProperty) " + mostRestrictiveMaxCardinalityProperty 
+                                    + " == "
+                                    + prop + " (property)");
+      						context.getWarningStream().println(String.format(
+    								"Ambiguous access to property with no prefix '%s': most restrictive Max Cardinality found was %s",
+    								mostRestrictiveMaxCardinality.getMaxCardinality(), propertyName));
+                          }
+					} else {
+					
+						System.out.println("  Search restrictions on (ITR) property > " + prop.toString() ); 
+						System.out.println("	localName: " + propertyName.localName + " : " +  prop.getLocalName());
+						System.out.println("	nameSpace: " + propertyName.namespaceURI + " : " + prop.getNameSpace());
+						System.out.println("	   prefix: " + propertyName.prefix );
+						
+						for (ExtendedIterator<Restriction> itRestriction = prop.listReferringRestrictions(); itRestriction
+								.hasNext();) {
+							Restriction restriction = itRestriction.next();
+							if (restriction.isMaxCardinalityRestriction()) {
+								MaxCardinalityRestriction maxCardinalityRestriction = restriction
+										.asMaxCardinalityRestriction();
+								if (mostRestrictiveMaxCardinality == null) {
 									mostRestrictiveMaxCardinality = maxCardinalityRestriction;
+								} else {
+									if (mostRestrictiveMaxCardinality.getMaxCardinality() > maxCardinalityRestriction
+											.getMaxCardinality()) {
+										mostRestrictiveMaxCardinality = maxCardinalityRestriction;										
+									}
 								}
 							}
 						}
+						mostRestrictiveMaxCardinalityProperty = prop;	
 					}
 				}
-			}
-		}
 
+			}
+		}	
 		return mostRestrictiveMaxCardinality;
 	}
 

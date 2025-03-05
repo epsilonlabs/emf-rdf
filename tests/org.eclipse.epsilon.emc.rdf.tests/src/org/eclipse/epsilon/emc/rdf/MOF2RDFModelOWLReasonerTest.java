@@ -55,58 +55,57 @@ public class MOF2RDFModelOWLReasonerTest {
 	@Test
 	public void getMotherBoardTest() {
 		loadModelDefaults();
+		ByteArrayOutputStream errors = new ByteArrayOutputStream();
+		context.setWarningStream(new PrintStream(errors)); // capture error warnings here
+		
 		RDFResource element = model.getElementById(URI_WHITEBOX);
 		Object motherBoard = element.getProperty("eg:motherBoard", context);
+		
 		assertTrue("motherBoard has max cardinality of 1 should only have that value returned ",
-			motherBoard instanceof MOF2RDFResource);
+			motherBoard instanceof MOF2RDFResource);		
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Test
 	public void getMotherBoardNoPrefixTest() {
 		loadModelDefaults();
-		RDFResource element = model.getElementById(URI_WHITEBOX);
-		
 		ByteArrayOutputStream errors = new ByteArrayOutputStream();
 		context.setWarningStream(new PrintStream(errors));
 		
-		Collection<MOF2RDFResource> motherBoard = 
-				(Collection<MOF2RDFResource>) element.getProperty("motherBoard", context);
+		RDFResource element = model.getElementById(URI_WHITEBOX);
+		MOF2RDFResource motherBoard = (MOF2RDFResource) element.getProperty("motherBoard", context);
 
-		assertTrue("2 motherboards should have been reported, with no restrictions ", 2 == motherBoard.size());
+		assertTrue("1 motherboard should have been reported, with warning ", null != motherBoard);
 
 		String sErrors = errors.toString();
-		assertTrue("An error should be raised Ambiguous property access turning off restriction checks",
-				sErrors.contains("No restriction checks applied"));
- 		
+		assertTrue("A warning should be raised for the Ambiguous property access, and the most restrictive Max Cardinality found",
+				sErrors.contains("The list of raw property values has been pruned"));
+		System.err.println(sErrors);
 	}
 
 	@Test
 	public void getPropertyThatDoesNotExistAsNullTest() {
 		loadModelDefaults();
+		
 		RDFResource element = model.getElementById(URI_ALIENBOX51);
 		Object motherBoard = element.getProperty("eg:motherBoard", context);
+		
 		assertNull("URI_ALIENBOX51 computer does not have motherBoard ", motherBoard);
 	}
 
 	@Test
 	public void getMotherBoardTestIssuesWarning() throws IOException {
+		loadModelDefaults();
 		ByteArrayOutputStream errors = new ByteArrayOutputStream();
+		context.setWarningStream(new PrintStream(errors));
+		
+		// This will return only the first motherboard, but we actually have two
+		model.getElementById(URI_BIGNAME42).getProperty("eg:motherBoard", context);
 
-		PrintStream oldErr = System.err;
-		try {
-			System.setErr(new PrintStream(errors));
-			loadModelDefaults();
+		String sErrors = errors.toString();
+		assertTrue("An error should be raised for max cardinality being exceeded",
+			sErrors.contains("has a max cardinality 1, raw property values list contained"));
+		//System.err.println(sErrors);
 
-			// This will return only the first motherboard, but we actually have two
-			model.getElementById(URI_BIGNAME42).getProperty("eg:motherBoard", context);
-
-			String sErrors = errors.toString();
-			assertTrue("An error should be raised for max cardinality being exceeded",
-				sErrors.contains("has a max cardinality 1, raw property values list contained"));
-		} finally {
-			System.setErr(oldErr);
-		}
 	}
 
 	// Functions not tests

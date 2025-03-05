@@ -29,38 +29,29 @@ public class MOF2RDFResource extends RDFResource {
 
 		Collection<Object> value = super.getCollectionOfProperyValues(property, context);
 
+		// Restriction checking on property 
 		final RDFQualifiedName pName = RDFQualifiedName.from(property, this.owningModel::getNamespaceURI);
+		
+		// Perform Cardinality checks
+		MaxCardinalityRestriction maxCardinality = RDFPropertyProcesses
+				.getPropertyStatementMaxCardinalityRestriction(pName, resource, context);
 
-		if(null == pName.prefix) {
-			// If no prefix was specified, ambiguity disables restriction checks and issues warning
-			context.getWarningStream().println(String.format(
-					"Ambiguous access to property with no prefix '%s': No restriction checks applied",
-					property));
-			return value;
-		}
-		else {
-			// Restriction checking on property 
-			
-			// Perform Cardinality checks
-			MaxCardinalityRestriction maxCardinality = RDFPropertyProcesses
-					.getPropertyStatementMaxCardinalityRestriction(pName, resource);
-	
-			// Check collection of rawValues is less than the MaxCardinality and prune
-			if (null != maxCardinality) {
-				if (value.size() > maxCardinality.getMaxCardinality()) {
-					//TODO move this warning to context.getWarningStream()
-					System.err.println("Property [" + pName + "] has a max cardinality "
-							+ maxCardinality.getMaxCardinality() + ", raw property values list contained " + value.size()
-							+ ".\n The list of raw property values has been pruned, it contained: " + value);
-	
-					value = value.stream().limit(maxCardinality.getMaxCardinality()).collect(Collectors.toList());
-				}
-				if (maxCardinality.getMaxCardinality() == 1) {
-					// If the maximum cardinality is 1, return the single value (not a collection)
-					return value.isEmpty() ? null : value.iterator().next();
-				}
+		// Check collection of rawValues is less than the MaxCardinality and prune
+		if (null != maxCardinality) {
+			if (value.size() > maxCardinality.getMaxCardinality()) {
+				//TODO move this warning to context.getWarningStream()
+				context.getWarningStream().println("Property [" + pName + "] has a max cardinality "
+						+ maxCardinality.getMaxCardinality() + ", raw property values list contained " + value.size()
+						+ ".\n The list of raw property values has been pruned, it contained: " + value);
+
+				value = value.stream().limit(maxCardinality.getMaxCardinality()).collect(Collectors.toList());
+			}
+			if (maxCardinality.getMaxCardinality() == 1) {
+				// If the maximum cardinality is 1, return the single value (not a collection)
+				return value.isEmpty() ? null : value.iterator().next();
 			}
 		}
+	
 		return value;
 
 	}
