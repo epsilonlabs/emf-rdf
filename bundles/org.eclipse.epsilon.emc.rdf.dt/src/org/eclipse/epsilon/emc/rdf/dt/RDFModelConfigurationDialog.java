@@ -568,9 +568,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		
 		// Load any saved property and default to Jena if none
 		validateModelCombo.setText(
-				properties.getProperty(RDFModel.PROPERTY_VALIDATE_MODEL
-						, RDFModel.VALIDATION_SELECTION_DEFAULT)
-				);
+				properties.getProperty(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.VALIDATION_SELECTION_DEFAULT));
 		
 		this.dataModelUrlListViewer.refresh();
 		this.schemaModelUrlListViewer.refresh();
