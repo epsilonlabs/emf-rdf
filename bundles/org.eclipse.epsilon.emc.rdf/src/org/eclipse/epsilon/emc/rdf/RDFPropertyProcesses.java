@@ -101,14 +101,16 @@ public class RDFPropertyProcesses {
 								MaxCardinalityRestriction maxCardinalityRestriction = restriction.asMaxCardinalityRestriction();
 								if (mostRestrictiveMaxCardinality == null) {
 									mostRestrictiveMaxCardinality = maxCardinalityRestriction;
+									mostRestrictiveMaxCardinalityProperty = prop;
 								} else {
 									if (mostRestrictiveMaxCardinality.getMaxCardinality() > maxCardinalityRestriction.getMaxCardinality()) {
 										mostRestrictiveMaxCardinality = maxCardinalityRestriction;
+										mostRestrictiveMaxCardinalityProperty = prop;
 									}
 								}
 							}
 						}
-						mostRestrictiveMaxCardinalityProperty = prop;
+						
 					}
 					
 				}
