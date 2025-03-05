@@ -523,7 +523,7 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 		validateModelCombo = new Combo(groupContent,SWT.READ_ONLY);	
 		validateModelCombo.setItems(RDFModel.VALIDATION_MODES);
 		
-		if(validateModelCombo.getText() == "") {
+		if(validateModelCombo.getText().isBlank()) {
 			validateModelCombo.setText(RDFModel.VALIDATION_SELECTION_DEFAULT);
 		}
 
