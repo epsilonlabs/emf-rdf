@@ -85,6 +85,13 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 			throw new IllegalArgumentException("Validation mode not found: " + newId);
 		}
 	}
+	
+	public class RDFValidationException extends RuntimeException { 
+	    public RDFValidationException(String errorMessage) {
+	        super(errorMessage);
+	    }
+	}
+	
 	public static ValidationMode VALIDATION_SELECTION_DEFAULT = ValidationMode.JENA_CLEAN;
 	protected ValidationMode validationMode = VALIDATION_SELECTION_DEFAULT;
 
@@ -414,7 +421,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 					i++;
 				}
 				
-				throw new Exception(sb.toString());
+				throw new RDFValidationException(sb.toString());
 			}
 			break;
 		// Add more validation options here
