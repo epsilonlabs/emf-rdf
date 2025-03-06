@@ -31,14 +31,13 @@ public class RDFModelValidationTest {
 
 	@Test
 	public void loadInvalidModel() {
-
 		try {
 			loadModel(OWL_DEMO_DATAMODEL_INVALID);
 			fail("An exception was expected");
 		} catch (EolModelLoadingException e) {
 			String sErrors = e.getMessage();
 			assertTrue("The model loaded should FAIL validation (6 errors relating to BigName42 having 2 motherboards)",
-					sErrors.contains("not valid"));
+					sErrors.contains("not valid and not clean"));
 		}
 	}
 
@@ -55,7 +54,7 @@ public class RDFModelValidationTest {
 		props.put(RDFModel.PROPERTY_DATA_URIS, dataModelUri);
 		props.put(RDFModel.PROPERTY_SCHEMA_URIS, OWL_DEMO_SCHEMAMODEL);
 		props.put(RDFModel.PROPERTY_LANGUAGE_PREFERENCE, LANGUAGE_PREFERENCE_EN_STRING);
-		props.put(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.VALIDATION_SELECTION_JENA_CLEAN);
+		props.put(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.ValidationMode.JENA_CLEAN.getId());
 		model.load(props);
 	}
 
