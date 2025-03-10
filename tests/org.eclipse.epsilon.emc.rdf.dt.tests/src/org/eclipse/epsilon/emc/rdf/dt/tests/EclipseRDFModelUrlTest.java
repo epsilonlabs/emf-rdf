@@ -170,7 +170,7 @@ public class EclipseRDFModelUrlTest extends EclipseProjectEnvTest {
 		 * Throws model validity errors for computer with 2 motherboards (expected to
 		 * fail Jena validation).
 		 */
-		props.put(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.ValidationMode.NONE);
+		props.put(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.ValidationMode.NONE.getId());
 		return props;
 	}
 }
