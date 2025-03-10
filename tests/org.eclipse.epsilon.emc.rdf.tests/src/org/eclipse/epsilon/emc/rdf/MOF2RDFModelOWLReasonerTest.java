@@ -78,7 +78,6 @@ public class MOF2RDFModelOWLReasonerTest {
 		String sErrors = errors.toString();
 		assertTrue("A warning should be raised for the raw property values exceeding the max cardinality",
 				sErrors.contains("The list of raw property values has been pruned"));
-		System.err.println(sErrors);
 	}
 
 	@Test
