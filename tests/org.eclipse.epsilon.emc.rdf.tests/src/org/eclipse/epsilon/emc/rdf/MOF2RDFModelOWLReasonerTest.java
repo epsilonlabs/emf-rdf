@@ -12,6 +12,7 @@
  ********************************************************************************/
 package org.eclipse.epsilon.emc.rdf;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -54,11 +55,29 @@ public class MOF2RDFModelOWLReasonerTest {
 	@Test
 	public void getMotherBoardTest() {
 		loadModelDefaults();
+		ByteArrayOutputStream errors = new ByteArrayOutputStream();
+		context.setWarningStream(new PrintStream(errors)); // capture error warnings here
+		
 		RDFResource element = model.getElementById(URI_WHITEBOX);
 		Object motherBoard = element.getProperty("eg:motherBoard", context);
-		System.out.println(motherBoard.getClass());
+		
 		assertTrue("motherBoard has max cardinality of 1 should only have that value returned ",
-			motherBoard instanceof MOF2RDFResource);
+			motherBoard instanceof MOF2RDFResource);		
+	}
+	
+	@Test
+	public void getMotherBoardNoPrefixTest() {
+		loadModelDefaults();
+		ByteArrayOutputStream errors = new ByteArrayOutputStream();
+		context.setWarningStream(new PrintStream(errors));
+
+		RDFResource element = model.getElementById(URI_WHITEBOX);
+		MOF2RDFResource motherBoard = (MOF2RDFResource) element.getProperty("motherBoard", context);
+		assertNotNull("1 motherboard should have been reported", motherBoard);
+
+		String sErrors = errors.toString();
+		assertTrue("A warning should be raised for the raw property values exceeding the max cardinality",
+				sErrors.contains("The list of raw property values has been pruned"));
 	}
 
 	@Test
@@ -71,22 +90,16 @@ public class MOF2RDFModelOWLReasonerTest {
 
 	@Test
 	public void getMotherBoardTestIssuesWarning() throws IOException {
+		loadModelDefaults();
 		ByteArrayOutputStream errors = new ByteArrayOutputStream();
+		context.setWarningStream(new PrintStream(errors));
 
-		PrintStream oldErr = System.err;
-		try {
-			System.setErr(new PrintStream(errors));
-			loadModelDefaults();
+		// This will return only the first motherboard, but we actually have two
+		model.getElementById(URI_BIGNAME42).getProperty("eg:motherBoard", context);
 
-			// This will return only the first motherboard, but we actually have two
-			model.getElementById(URI_BIGNAME42).getProperty("eg:motherBoard", context);
-
-			String sErrors = errors.toString();
-			assertTrue("An error should be raised for max cardinality being exceeded",
-				sErrors.contains("has a max cardinality 1, raw property values list contained"));
-		} finally {
-			System.setErr(oldErr);
-		}
+		String sErrors = errors.toString();
+		assertTrue("An error should be raised for max cardinality being exceeded",
+			sErrors.contains("has a max cardinality 1, raw property values list contained"));
 	}
 
 	// Functions not tests
