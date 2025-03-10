@@ -36,6 +36,7 @@ import org.apache.jena.reasoner.ValidityReport;
 import org.apache.jena.reasoner.ValidityReport.Report;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.epsilon.common.util.StringProperties;
+import org.eclipse.epsilon.emc.rdf.RDFModel.ValidationMode.RDFModelValidationReport;
 import org.eclipse.epsilon.eol.exceptions.EolRuntimeException;
 import org.eclipse.epsilon.eol.exceptions.models.EolEnumerationValueNotFoundException;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelElementTypeNotFoundException;
@@ -68,21 +69,99 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	// Model validation options
 	public static final String PROPERTY_VALIDATE_MODEL = "enableModelValidation";
 	public enum ValidationMode {
-		NONE("none"), JENA_VALID("jena-valid"), JENA_CLEAN("jena-clean");
+		NONE("none") {
+			@Override
+			public RDFModelValidationReport validate(RDFModel modelToValidate) {
+				// Do nothing return true so as not to throw an exception fault
+				return new RDFModelValidationReport(true, "Validation set to NONE.");
+			}
+		},
+		JENA_VALID("jena-valid") {
+			@Override
+			public RDFModelValidationReport validate(RDFModel modelToValidate) {
+				ValidityReport jenaValidationReport = modelToValidate.getOntModel().validate(); // Calls Jena's Validation API
+				String reportText = getJenaValidityModelString(jenaValidationReport);
+				if (jenaValidationReport.isValid() && jenaValidationReport.getReports().hasNext()) {
+					System.err.println(reportText); // Send warning messages
+				}
+				return new RDFModelValidationReport(jenaValidationReport.isValid(), reportText);
+			}
+		},
+		JENA_CLEAN("jena-clean") {
+			@Override
+			public RDFModelValidationReport validate(RDFModel modelToValidate) {
+				ValidityReport jenaValidationReport = modelToValidate.getOntModel().validate(); // Calls Jena's Validation API
+				return new RDFModelValidationReport(jenaValidationReport.isClean(),
+						getJenaValidityModelString(jenaValidationReport));
+			}
+		};
+
+		public abstract RDFModelValidationReport validate(RDFModel modelToValidate);
+
+		public class RDFModelValidationReport {
+			public RDFModelValidationReport(boolean isValid, String text) {
+				super();
+				this.text = text;
+				this.isValid = isValid;
+			}
+
+			private final String text;
+			private final boolean isValid;
+
+			public boolean isValid() {
+				return isValid;
+			}
+
+			public String getText() {
+				return text;
+			}
+		}
 
 		private final String id;
 
-		ValidationMode(String id) {	this.id = id; }
+		ValidationMode(String id) {
+			this.id = id;
+		}
 
-		public String getId() {	return id; }
+		public String getId() {
+			return id;
+		}
 
 		public final static ValidationMode fromString(String newId) {
 			for (ValidationMode mode : ValidationMode.values()) {
-				if (mode.id.equalsIgnoreCase(newId)) {					
+				if (mode.id.equalsIgnoreCase(newId)) {
 					return mode;
 				}
 			}
 			throw new IllegalArgumentException("Validation mode not found: " + newId);
+		}
+
+		protected String getJenaValidityModelString(ValidityReport modelValidityReport) {
+			StringBuilder sb = new StringBuilder("The loaded model is ");
+
+			if (!modelValidityReport.isValid()) {
+				sb.append("not ");
+			}
+			sb.append("valid");
+
+			if (this.equals(ValidationMode.JENA_CLEAN)) {
+				sb.append(" and ");
+				if (!modelValidityReport.isClean()) {
+					sb.append("not ");
+				}
+				sb.append("clean");
+			}
+
+			sb.append("\n");
+
+			// Build report string (valid models still report warnings)
+			int i = 1;
+			for (Iterator<Report> o = modelValidityReport.getReports(); o.hasNext();) {
+				ValidityReport.Report report = (ValidityReport.Report) o.next();
+				sb.append(String.format("%d. %s", i, report.toString()));
+				i++;
+			}
+			return sb.toString();
 		}
 	}
 	
@@ -114,6 +193,10 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	protected final List<String> schemaURIs = new ArrayList<>();
 	protected final List<String> dataURIs = new ArrayList<>();
 	protected OntModel model;
+	
+	public OntModel getOntModel() {
+		return model;
+	}
 
 	public RDFModel() {
 		this.propertyGetter = new RDFPropertyGetter(this);
@@ -384,34 +467,6 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		}
 	}
 
-	protected String getJenaValidityModelString(ValidityReport modelValidityReport) {
-		StringBuilder sb = new StringBuilder("The loaded model is ");
-
-		if (!modelValidityReport.isValid()) {
-			sb.append("not ");
-		}
-		sb.append("valid");
-
-		if (validationMode.equals(ValidationMode.JENA_CLEAN)) {
-			sb.append(" and ");
-			if (!modelValidityReport.isClean()) {
-				sb.append("not ");
-			}
-			sb.append("clean");
-		}
-		
-		sb.append("\n");
-		
-		// Build report string (valid models still report warnings)
-		int i = 1;
-		for (Iterator<Report> o = modelValidityReport.getReports(); o.hasNext();) {
-			ValidityReport.Report report = (ValidityReport.Report) o.next();
-			sb.append(String.format("%d. %s", i, report.toString()));
-			i++;
-		}
-		return sb.toString();
-	}
-	
 	private String lastValidationReport = null;
 	public String getReportForLastValidation() {
 		if (null == lastValidationReport) {
@@ -422,44 +477,10 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	}
 	
 	protected void validateModel() throws Exception {
-		/*
-		 * The way the model is validated by Jena depends on how the new OntModel was
-		 * created by the ModelFactory.
-		 */
-
-		switch (validationMode) {
-		case JENA_VALID:
-			ValidityReport modelValidityReportValid = model.validate();  // Calls Jena's Validation API
-			lastValidationReport = getJenaValidityModelString(modelValidityReportValid);
-			if (modelValidityReportValid.isValid()) {
-				// report warning if any
-				if(modelValidityReportValid.getReports().hasNext()) {
-					System.err.println(getJenaValidityModelString(modelValidityReportValid));
-				}
-			} else {
-				throw new RDFValidationException(getJenaValidityModelString(modelValidityReportValid));
-			}					
-			break;
-		case JENA_CLEAN:
-			ValidityReport modelValidityReportClean = model.validate();  // Calls Jena's Validation API
-			lastValidationReport = getJenaValidityModelString(modelValidityReportClean);
-			if (modelValidityReportClean.isClean()) {
-				// report warning if any
-				if ( modelValidityReportClean.getReports().hasNext()) {
-					System.err.println(getJenaValidityModelString(modelValidityReportClean));
-				}
-			} else {
-				throw new RDFValidationException(getJenaValidityModelString(modelValidityReportClean));
-			}
-			break;
-		// Add more validation options here
-		case NONE:
-			// No validation required
-			break;
-		default:
-			// Should never get here, it would be an unknown validation mode
-			throw new RDFValidationException("Unknown validation mode has been selected: " + validationMode.getId());
-			//break;
+		RDFModelValidationReport report = validationMode.validate(this);
+		this.lastValidationReport = report.getText();
+		if (!report.isValid()) {
+			throw new RDFValidationException(report.getText());
 		}
 	}
 
