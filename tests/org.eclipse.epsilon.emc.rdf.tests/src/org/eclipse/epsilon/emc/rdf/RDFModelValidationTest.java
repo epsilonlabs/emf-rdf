@@ -11,12 +11,12 @@
  *   Antonio Garcia-Dominguez - initial API and implementation
  ********************************************************************************/
 package org.eclipse.epsilon.emc.rdf;
+import static org.eclipse.epsilon.emc.rdf.RDFModel.ValidationMode;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.PrintStream;
 
 import org.eclipse.epsilon.common.util.StringProperties;
@@ -25,9 +25,11 @@ import org.junit.Test;
 
 public class RDFModelValidationTest {
 	
-	private static final RDFModel.ValidationMode NONE = RDFModel.ValidationMode.NONE;
-	private static final RDFModel.ValidationMode JENA_VALID = RDFModel.ValidationMode.JENA_VALID;
-	private static final RDFModel.ValidationMode JENA_CLEAN = RDFModel.ValidationMode.JENA_CLEAN;
+	private static final ValidationMode NONE = ValidationMode.NONE;
+	private static final ValidationMode JENA_VALID = ValidationMode.JENA_VALID;
+	private static final ValidationMode JENA_CLEAN = ValidationMode.JENA_CLEAN;
+	
+	
 	
 	private static final String OWL_DEMO_DATAMODEL_VALID = "resources/OWL/owlDemoData_valid.ttl";
 	private static final String OWL_DEMO_DATAMODEL_INVALID = "resources/OWL/owlDemoData.ttl";	
@@ -69,7 +71,6 @@ public class RDFModelValidationTest {
 			fail("An exception was expected");
 		} catch (EolModelLoadingException e) {
 			String sErrors = e.getMessage();
-			//System.out.println(sErrors);
 			assertTrue("The model loaded should FAIL validation (6 errors relating to BigName42 having 2 motherboards)",
 					sErrors.contains("not valid"));
 		}
@@ -82,7 +83,6 @@ public class RDFModelValidationTest {
 			fail("An exception was expected");
 		} catch (EolModelLoadingException e) {
 			String sErrors = e.getMessage();
-			//System.out.println(sErrors);
 			assertTrue("The model loaded should FAIL validation (6 errors relating to BigName42 having 2 motherboards)",
 					sErrors.contains("not valid and not clean"));
 		}
