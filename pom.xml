@@ -12,7 +12,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <tycho.version>4.0.3</tycho.version>
     <tycho.scmUrl>scm:git:https://github.com/epsilonlabs/emc-rdf.git</tycho.scmUrl>
-    <java.source.version>17</java.source.version>
+    <java.source.version>11</java.source.version>
     <java.target.version>11</java.target.version>
   </properties>
 

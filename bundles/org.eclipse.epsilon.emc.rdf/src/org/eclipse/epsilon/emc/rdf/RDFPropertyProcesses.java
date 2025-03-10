@@ -57,7 +57,15 @@ public class RDFPropertyProcesses {
 		return propertyStatements;
 	}
 
-	protected record MaxCardRestrictedProperty(OntProperty property, MaxCardinalityRestriction restriction) implements Comparable<MaxCardRestrictedProperty> {
+	protected static class MaxCardRestrictedProperty implements Comparable<MaxCardRestrictedProperty> {
+		public final OntProperty property;
+		public final MaxCardinalityRestriction restriction;
+
+		public MaxCardRestrictedProperty(OntProperty property, MaxCardinalityRestriction restriction) {
+			this.property = property;
+			this.restriction = restriction;
+		}
+
 		public static MaxCardRestrictedProperty mostRestrictive(MaxCardRestrictedProperty mostRestrictive, OntProperty prop) {
 			for (ExtendedIterator<Restriction> itRestriction = prop.listReferringRestrictions(); itRestriction.hasNext();) {
 				Restriction restriction = itRestriction.next();
