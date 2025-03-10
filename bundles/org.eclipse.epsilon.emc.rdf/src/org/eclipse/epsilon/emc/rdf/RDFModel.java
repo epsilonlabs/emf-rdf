@@ -412,9 +412,13 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		return sb.toString();
 	}
 	
-	private String lastValidationReport = "Validation has not been run yet";
+	private String lastValidationReport = null;
 	public String getReportForLastValidation() {
-		return String.format("Validation mode: %s\nReported:\n%s", validationMode.getId() ,lastValidationReport);
+		if (null == lastValidationReport) {
+			return "Validation has not been run yet";
+		} else {
+			return String.format("Validation mode: %s\nReported:\n%s", validationMode.getId(), lastValidationReport);
+		}
 	}
 	
 	protected void validateModel() throws Exception {
