@@ -92,7 +92,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	    }
 	}
 	
-	public static ValidationMode VALIDATION_SELECTION_DEFAULT = ValidationMode.JENA_CLEAN;
+	public static final ValidationMode VALIDATION_SELECTION_DEFAULT = ValidationMode.JENA_CLEAN;
 	protected ValidationMode validationMode = VALIDATION_SELECTION_DEFAULT;
 
 	// TODO add to this list to cover reasoner types in the ReasonerRegistry Class
@@ -384,7 +384,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		}
 	}
 
-	private String getJenaValidityModelString(ValidityReport modelValidityReport) {
+	protected String getJenaValidityModelString(ValidityReport modelValidityReport) {
 		StringBuilder sb = new StringBuilder("The loaded model is ");
 
 		if (!modelValidityReport.isValid()) {
