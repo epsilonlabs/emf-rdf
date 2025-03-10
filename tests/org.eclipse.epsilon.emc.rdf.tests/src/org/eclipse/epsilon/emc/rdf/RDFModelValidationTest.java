@@ -28,9 +28,7 @@ public class RDFModelValidationTest {
 	private static final ValidationMode NONE = ValidationMode.NONE;
 	private static final ValidationMode JENA_VALID = ValidationMode.JENA_VALID;
 	private static final ValidationMode JENA_CLEAN = ValidationMode.JENA_CLEAN;
-	
-	
-	
+
 	private static final String OWL_DEMO_DATAMODEL_VALID = "resources/OWL/owlDemoData_valid.ttl";
 	private static final String OWL_DEMO_DATAMODEL_INVALID = "resources/OWL/owlDemoData.ttl";	
 	private static final String SPIDERMAN_UNCLEAN = "resources/spiderman_unclean.ttl" + "," + "resources/foaf.rdf";
