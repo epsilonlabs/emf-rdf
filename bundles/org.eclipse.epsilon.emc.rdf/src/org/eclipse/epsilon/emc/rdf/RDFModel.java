@@ -463,18 +463,12 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		}
 	}
 
-	public String getValidationMode() {
-		return validationMode.getId();
+	public ValidationMode getValidationMode() {
+		return validationMode;
 	}
 
-	/**
-	 * Changes the internal consistency validation mode used during loading.
-	 *
-	 * @param mode New mode. Must be one of {@code RDFModel#VALIDATION_SELECTION_NONE} or
-	 *             {@code RDFModel#VALIDATION_SELECTION_JENA}.
-	 */
-	public void setValidationMode(String mode) {
-		validationMode = ValidationMode.fromString(mode);
+	public void setValidationMode(ValidationMode mode) {
+		validationMode = mode;
 	}
 
 	@Override
