@@ -17,14 +17,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
@@ -164,7 +162,7 @@ public class StoreModelTest {
 		try {
 			originalModel.store(scratch.getRoot().toString());
 		} catch (Exception e) {
-			fail("store(String location) with no URIs should not generate and Exception" + e);
+			fail("store(String location) with no URIs should not generate an Exception" + e);
 		}
 		
 		try (Stream<Path> walk = Files.walk(scratch.getRoot().toPath())) {
