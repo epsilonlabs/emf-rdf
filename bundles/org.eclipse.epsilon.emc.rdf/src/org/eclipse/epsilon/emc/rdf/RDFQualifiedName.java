@@ -13,8 +13,11 @@
 package org.eclipse.epsilon.emc.rdf;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+
+import org.apache.jena.ontology.OntProperty;
 
 /**
  * <p>
@@ -94,6 +97,11 @@ public class RDFQualifiedName {
 	
 	public RDFQualifiedName withLanguageTag(String newLanguageTag) {
 		return new RDFQualifiedName(prefix, namespaceURI, localName, newLanguageTag);
+	}
+
+	public boolean matches(OntProperty prop) {
+		return localName.equals(prop.getLocalName())
+			&& (null == prefix || Objects.equals(namespaceURI, prop.getNameSpace()));
 	}
 
 	@Override
