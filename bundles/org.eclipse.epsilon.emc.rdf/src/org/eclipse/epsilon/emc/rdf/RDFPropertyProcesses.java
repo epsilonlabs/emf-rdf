@@ -63,20 +63,18 @@ public class RDFPropertyProcesses {
 		// Gets all the propertyStatements and finds all the MaxCardinality restrictions, keeps the most restrictive (lowest maxCardinality)
 		MaxCardinalityRestriction mostRestrictiveMaxCardinality = null;
 		OntProperty mostRestrictiveMaxCardinalityProperty = null;
-		
 		OntResource ontResource = resource.as(OntResource.class);
-		
+
 		// TODO re-evaluate if it is OK to use listRDFTypes(true) if we've triggered reasoning
 		for (ExtendedIterator<Resource> itRDFType = ontResource.listRDFTypes(false); itRDFType.hasNext();) {
 			Resource rdfType = itRDFType.next();
 			OntClass ontClass = rdfType.as(OntClass.class);
 
 			for (ExtendedIterator<OntProperty> itProp = ontClass.listDeclaredProperties(); itProp.hasNext();) {
-
 				OntProperty prop = itProp.next();
-				if ((propertyName.localName.equals(prop.getLocalName()))
-						&& ((Objects.equals(propertyName.namespaceURI, prop.getNameSpace()))
-								|| (null == propertyName.prefix))) {
+				if (propertyName.localName.equals(prop.getLocalName())
+						&& (Objects.equals(propertyName.namespaceURI, prop.getNameSpace())
+								|| null == propertyName.prefix)) {
 
 					if (null != mostRestrictiveMaxCardinalityProperty) {
 						if (mostRestrictiveMaxCardinalityProperty.equals(prop)) {
@@ -86,18 +84,15 @@ public class RDFPropertyProcesses {
 							context.getWarningStream().println(String.format(
 									"Ambiguous access to property with no prefix '%s':"
 									+"\n Most restrictive Max Cardinality found was %s %s,"
-									+" but also found this a similar property %s",
+									+" but also found a similar property %s",
 									propertyName, mostRestrictiveMaxCardinalityProperty,
 									mostRestrictiveMaxCardinality.getMaxCardinality(), prop));
 						}
 					} else {
-
 						for (ExtendedIterator<Restriction> itRestriction = prop
 								.listReferringRestrictions(); itRestriction.hasNext();) {
-							
 							Restriction restriction = itRestriction.next();
 							if (restriction.isMaxCardinalityRestriction()) {
-								
 								MaxCardinalityRestriction maxCardinalityRestriction = restriction.asMaxCardinalityRestriction();
 								if (mostRestrictiveMaxCardinality == null) {
 									mostRestrictiveMaxCardinality = maxCardinalityRestriction;

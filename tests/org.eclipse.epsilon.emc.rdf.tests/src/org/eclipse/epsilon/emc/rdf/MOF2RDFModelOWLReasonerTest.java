@@ -12,13 +12,13 @@
  ********************************************************************************/
 package org.eclipse.epsilon.emc.rdf;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Collection;
 
 import org.eclipse.epsilon.common.util.StringProperties;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelLoadingException;
@@ -70,14 +70,13 @@ public class MOF2RDFModelOWLReasonerTest {
 		loadModelDefaults();
 		ByteArrayOutputStream errors = new ByteArrayOutputStream();
 		context.setWarningStream(new PrintStream(errors));
-		
+
 		RDFResource element = model.getElementById(URI_WHITEBOX);
 		MOF2RDFResource motherBoard = (MOF2RDFResource) element.getProperty("motherBoard", context);
-
-		assertTrue("1 motherboard should have been reported, with warning ", null != motherBoard);
+		assertNotNull("1 motherboard should have been reported", motherBoard);
 
 		String sErrors = errors.toString();
-		assertTrue("A warning should be raised for the Ambiguous property access, and the most restrictive Max Cardinality found",
+		assertTrue("A warning should be raised for the raw property values exceeding the max cardinality",
 				sErrors.contains("The list of raw property values has been pruned"));
 		System.err.println(sErrors);
 	}
@@ -85,10 +84,8 @@ public class MOF2RDFModelOWLReasonerTest {
 	@Test
 	public void getPropertyThatDoesNotExistAsNullTest() {
 		loadModelDefaults();
-		
 		RDFResource element = model.getElementById(URI_ALIENBOX51);
 		Object motherBoard = element.getProperty("eg:motherBoard", context);
-		
 		assertNull("URI_ALIENBOX51 computer does not have motherBoard ", motherBoard);
 	}
 
@@ -97,15 +94,13 @@ public class MOF2RDFModelOWLReasonerTest {
 		loadModelDefaults();
 		ByteArrayOutputStream errors = new ByteArrayOutputStream();
 		context.setWarningStream(new PrintStream(errors));
-		
+
 		// This will return only the first motherboard, but we actually have two
 		model.getElementById(URI_BIGNAME42).getProperty("eg:motherBoard", context);
 
 		String sErrors = errors.toString();
 		assertTrue("An error should be raised for max cardinality being exceeded",
 			sErrors.contains("has a max cardinality 1, raw property values list contained"));
-		//System.err.println(sErrors);
-
 	}
 
 	// Functions not tests
