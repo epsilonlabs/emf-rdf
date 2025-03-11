@@ -44,6 +44,7 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.epsilon.common.util.StringProperties;
+import org.eclipse.epsilon.emc.rdf.RDFModel.ValidationMode.RDFModelValidationReport;
 import org.eclipse.epsilon.eol.exceptions.EolRuntimeException;
 import org.eclipse.epsilon.eol.exceptions.models.EolEnumerationValueNotFoundException;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelElementTypeNotFoundException;
@@ -67,16 +68,119 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	 * should be added to the prefix->URI map of the loaded RDF resource. These
 	 * pairs will take precedence over existing pairs in the resource.
 	 */
+	
 	public static final String PROPERTY_PREFIXES = "prefixes";
-	public static final String PROPERTY_VALIDATE_MODEL = "enableModelValidation";
-
-	public static final String VALIDATION_SELECTION_JENA = "jena";
-	public static final String VALIDATION_SELECTION_NONE = "none";
-	public static final String VALIDATION_SELECTION_DEFAULT = VALIDATION_SELECTION_JENA;
-
+	
 	protected final List<String> languagePreference = new ArrayList<>();
 	protected final Map<String, String> customPrefixesMap = new HashMap<>();
-	protected String validationMode = VALIDATION_SELECTION_DEFAULT;
+	
+	// Model validation options
+	public static final String PROPERTY_VALIDATE_MODEL = "enableModelValidation";
+	public enum ValidationMode {
+		NONE("none") {
+			@Override
+			public RDFModelValidationReport validate(RDFModel modelToValidate) {
+				// Do nothing return true so as not to throw an exception fault
+				return new RDFModelValidationReport(true, "Validation set to NONE.");
+			}
+		},
+		JENA_VALID("jena-valid") {
+			@Override
+			public RDFModelValidationReport validate(RDFModel modelToValidate) {
+				ValidityReport jenaValidationReport = modelToValidate.getOntModel().validate(); // Calls Jena's Validation API
+				String reportText = getJenaValidityModelString(jenaValidationReport);
+				if (jenaValidationReport.isValid() && jenaValidationReport.getReports().hasNext()) {
+					System.err.println(reportText); // Send warning messages
+				}
+				return new RDFModelValidationReport(jenaValidationReport.isValid(), reportText);
+			}
+		},
+		JENA_CLEAN("jena-clean") {
+			@Override
+			public RDFModelValidationReport validate(RDFModel modelToValidate) {
+				ValidityReport jenaValidationReport = modelToValidate.getOntModel().validate(); // Calls Jena's Validation API
+				return new RDFModelValidationReport(jenaValidationReport.isClean(),
+						getJenaValidityModelString(jenaValidationReport));
+			}
+		};
+
+		public abstract RDFModelValidationReport validate(RDFModel modelToValidate);
+
+		public class RDFModelValidationReport {
+			public RDFModelValidationReport(boolean isValid, String text) {
+				super();
+				this.text = text;
+				this.isValid = isValid;
+			}
+
+			private final String text;
+			private final boolean isValid;
+
+			public boolean isValid() {
+				return isValid;
+			}
+
+			public String getText() {
+				return text;
+			}
+		}
+
+		private final String id;
+
+		ValidationMode(String id) {
+			this.id = id;
+		}
+
+		public String getId() {
+			return id;
+		}
+
+		public final static ValidationMode fromString(String newId) {
+			for (ValidationMode mode : ValidationMode.values()) {
+				if (mode.id.equalsIgnoreCase(newId)) {
+					return mode;
+				}
+			}
+			throw new IllegalArgumentException("Validation mode not found: " + newId);
+		}
+
+		protected String getJenaValidityModelString(ValidityReport modelValidityReport) {
+			StringBuilder sb = new StringBuilder("The loaded model is ");
+
+			if (!modelValidityReport.isValid()) {
+				sb.append("not ");
+			}
+			sb.append("valid");
+
+			if (this.equals(ValidationMode.JENA_CLEAN)) {
+				sb.append(" and ");
+				if (!modelValidityReport.isClean()) {
+					sb.append("not ");
+				}
+				sb.append("clean");
+			}
+
+			sb.append("\n");
+
+			// Build report string (valid models still report warnings)
+			int i = 1;
+			for (Iterator<Report> o = modelValidityReport.getReports(); o.hasNext();) {
+				ValidityReport.Report report = (ValidityReport.Report) o.next();
+				sb.append(String.format("%d. %s", i, report.toString()));
+				i++;
+			}
+			return sb.toString();
+		}
+	}
+	
+	public class RDFValidationException extends RuntimeException { 
+	    public RDFValidationException(String errorMessage) {
+	        super(errorMessage);
+	    }
+	}
+	
+	public static final ValidationMode VALIDATION_SELECTION_DEFAULT = ValidationMode.JENA_CLEAN;
+	protected ValidationMode validationMode = VALIDATION_SELECTION_DEFAULT;
 
 	// TODO add to this list to cover reasoner types in the ReasonerRegistry Class
 	public enum ReasonerType {
@@ -102,6 +206,10 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 	protected Dataset dataModelSet = DatasetFactory.create();		// DefaultModel empty, using NamedModels
 	
 	protected OntModel model;	// read-only
+	
+	public OntModel getOntModel() {
+		return model;
+	}
 
 	public RDFModel() {
 		this.propertyGetter = new RDFPropertyGetter(this);
@@ -191,7 +299,7 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		loadCommaSeparatedProperty(properties, PROPERTY_DATA_URIS, this.dataURIs);
 		loadCommaSeparatedProperty(properties, PROPERTY_SCHEMA_URIS, this.schemaURIs);
 
-		this.validationMode = properties.getProperty(RDFModel.PROPERTY_VALIDATE_MODEL, VALIDATION_SELECTION_JENA);
+		this.validationMode =  ValidationMode.fromString(properties.getProperty(RDFModel.PROPERTY_VALIDATE_MODEL, VALIDATION_SELECTION_DEFAULT.getId()));
 
 		this.customPrefixesMap.clear();
 		String sPrefixes = properties.getProperty(PROPERTY_PREFIXES, "").strip();
@@ -227,12 +335,10 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		load();
 		
 		// After Loading all scheme, data models and inferring the full model, validate
-		if (VALIDATION_SELECTION_JENA.equals(validationMode)) {
-			try {
-				validateModel();
-			} catch (Exception e) {
-				throw new EolModelLoadingException(e, this);
-			}
+		try {
+			validateModel();
+		} catch (Exception e) {
+			throw new EolModelLoadingException(e, this);
 		}
 	}
 
@@ -407,40 +513,29 @@ public class RDFModel extends CachedModel<RDFModelElement> {
 		}
 	}
 
+	private String lastValidationReport = null;
+	public String getReportForLastValidation() {
+		if (null == lastValidationReport) {
+			return "Validation has not been run yet";
+		} else {
+			return String.format("Validation mode: %s\nReported:\n%s", validationMode.getId(), lastValidationReport);
+		}
+	}
+	
 	protected void validateModel() throws Exception {
-		/*
-		 * The way the model is validated by Jena depends on how the new OntModel was
-		 * created by the ModelFactory.
-		 */
-
-		ValidityReport modelValidityReport = model.validate();
-		if (!modelValidityReport.isValid() || !modelValidityReport.isClean()) {
-			StringBuilder sb = new StringBuilder("The loaded model is not valid or not clean\n");
-			int i = 1;
-			for (Iterator<Report> o = modelValidityReport.getReports(); o.hasNext();) {
-				ValidityReport.Report report = (ValidityReport.Report) o.next();
-				sb.append(String.format(" %d: %s", i, report.toString()));
-				i++;
-			}
-			throw new Exception(sb.toString());
+		RDFModelValidationReport report = validationMode.validate(this);
+		this.lastValidationReport = report.getText();
+		if (!report.isValid()) {
+			throw new RDFValidationException(report.getText());
 		}
 	}
 
-	public String getValidationMode() {
+	public ValidationMode getValidationMode() {
 		return validationMode;
 	}
 
-	/**
-	 * Changes the internal consistency validation mode used during loading.
-	 *
-	 * @param mode New mode. Must be one of {@code RDFModel#VALIDATION_SELECTION_NONE} or
-	 *             {@code RDFModel#VALIDATION_SELECTION_JENA}.
-	 */
-	public void setValidationMode(String mode) {
-		if (!VALIDATION_SELECTION_JENA.equals(mode) && !VALIDATION_SELECTION_NONE.equals(mode)) {
-			throw new IllegalArgumentException("Unknown validation mode " + mode);
-		}
-		this.validationMode = mode;
+	public void setValidationMode(ValidationMode mode) {
+		validationMode = mode;
 	}
 
 	@Override

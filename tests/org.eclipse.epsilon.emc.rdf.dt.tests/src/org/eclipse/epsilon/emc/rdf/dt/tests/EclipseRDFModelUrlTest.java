@@ -21,6 +21,7 @@ import java.util.Collection;
 import org.eclipse.epsilon.common.util.StringProperties;
 import org.eclipse.epsilon.emc.rdf.RDFModel;
 import org.eclipse.epsilon.emc.rdf.RDFResource;
+import org.eclipse.epsilon.emc.rdf.RDFModel.ValidationMode;
 import org.eclipse.epsilon.emc.rdf.dt.EclipseRDFModel;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelLoadingException;
 import org.eclipse.epsilon.eol.execute.context.EolContext;
@@ -164,12 +165,7 @@ public class EclipseRDFModelUrlTest extends EclipseProjectEnvTest {
 		props.put(RDFModel.PROPERTY_DATA_URIS, dataModelUri);
 		props.put(RDFModel.PROPERTY_SCHEMA_URIS, schemaModelUri);
 		props.put(RDFModel.PROPERTY_LANGUAGE_PREFERENCE, languagePreference);
-
-		/*
-		 * Throws model validity errors for computer with 2 motherboards (expected to
-		 * fail Jena validation).
-		 */
-		props.put(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.VALIDATION_SELECTION_NONE);
+		props.put(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.ValidationMode.NONE.getId());
 		return props;
 	}
 }

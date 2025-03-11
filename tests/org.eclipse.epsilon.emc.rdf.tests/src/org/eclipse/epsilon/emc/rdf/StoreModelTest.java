@@ -221,7 +221,7 @@ public class StoreModelTest {
 				+ "," + OWL_DEMO_DATAMODEL_INVALID);			
 		propsOriginalModel.put(RDFModel.PROPERTY_SCHEMA_URIS, OWL_DEMO_SCHEMAMODEL);
 		propsOriginalModel.put(RDFModel.PROPERTY_LANGUAGE_PREFERENCE, LANGUAGE_PREFERENCE_EN_STRING);
-		propsOriginalModel.put(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.VALIDATION_SELECTION_NONE);
+		propsOriginalModel.put(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.ValidationMode.NONE.getId());
 		originalModel.load(propsOriginalModel);
 	}
 	
@@ -233,7 +233,7 @@ public class StoreModelTest {
 				+ "," + scratchDatamodelInvalidFile);			
 		scratchCopyProperties.put(RDFModel.PROPERTY_SCHEMA_URIS, OWL_DEMO_SCHEMAMODEL);
 		scratchCopyProperties.put(RDFModel.PROPERTY_LANGUAGE_PREFERENCE, LANGUAGE_PREFERENCE_EN_STRING);
-		scratchCopyProperties.put(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.VALIDATION_SELECTION_NONE);
+		scratchCopyProperties.put(RDFModel.PROPERTY_VALIDATE_MODEL, RDFModel.ValidationMode.NONE.getId());
 		
 		return scratchCopyProperties;
 	}
