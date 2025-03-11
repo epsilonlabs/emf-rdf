@@ -519,15 +519,15 @@ public class RDFModelConfigurationDialog extends AbstractModelConfigurationDialo
 	
 	protected Combo validateModelCombo;
 	private Composite createValidateModelGroup(Composite parent) {
-		final Composite groupContent = DialogUtil.createGroupContainer(parent, "Model validation", 1);
+		final Composite groupContent = DialogUtil.createGroupContainer(parent, "Model validation", 2);
+
+		Label validationModeLabel = new Label(groupContent, SWT.NONE);
+		validationModeLabel.setText("Mode:");
 
 		validateModelCombo = new Combo(groupContent,SWT.READ_ONLY);
-		
-		ArrayList<String> modes = new ArrayList<String>();
 		for (ValidationMode mode : RDFModel.ValidationMode.values()) {
 			validateModelCombo.add(mode.getId());
-		}		
-		
+		}
 		if(validateModelCombo.getText().isBlank()) {
 			validateModelCombo.setText(RDFModel.VALIDATION_SELECTION_DEFAULT.getId());
 		}
