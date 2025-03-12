@@ -13,6 +13,8 @@
 package org.eclipse.epsilon.rdf.emf.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,8 +41,8 @@ public class ValidationTest {
 	}
 	
 	private final File VALIDATION_BLANK = new File("resources/rdfresConfigs/Validation_blank.rdfres");
-//	private final File VALIDATION_NONE = new File("resources/rdfresConfigs/Validation_none.rdfres");
-//	private final File VALIDATION_JENA_VALID = new File("resources/rdfresConfigs/Validation_jena-valid.rdfres");
+	private final File VALIDATION_NONE = new File("resources/rdfresConfigs/Validation_none.rdfres");
+	private final File VALIDATION_JENA_VALID = new File("resources/rdfresConfigs/Validation_jena-valid.rdfres");
 	private final File VALIDATION_JENA_CLEAN = new File("resources/rdfresConfigs/Validation_jena-clean.rdfres");
 	private final File VALIDATION_RUBBISH = new File("resources/rdfresConfigs/Validation_rubbish.rdfres");
 	
@@ -59,10 +61,16 @@ public class ValidationTest {
 	}
 	
 	@Test
-	public void ValidationRubbish () throws IOException {
-		RDFGraphResourceImpl graph = getGraphResourceImpl(VALIDATION_RUBBISH);
-		ValidationMode mode = graph.getValidationMode();		
-		// Exception should be raised
+	public void ValidationRubbish() {
+		try {
+			getGraphResourceImpl(VALIDATION_RUBBISH);
+			fail("An IllegalArgumentException should have been thrown for `rubbish` validation mode configuration");
+		} catch (IllegalArgumentException | IOException e) {
+			String sErrors = e.getMessage();
+			assertEquals(e.getClass(), IllegalArgumentException.class);
+			assertTrue("", sErrors.contains("Validation mode not found:"));
+		}
+		// Graph does not exist, because of the load errors for bad validation mode configuration
 	}
 	
 	protected RDFGraphResourceImpl getGraphResourceImpl(File file) throws IOException {
@@ -89,22 +97,20 @@ public class ValidationTest {
 		for (Resource r : rs.getResources()) {
 			r.load(null);
 		}
-		
 	}
-	
-	/*
+
 	@Test
-	public void ValidationNone () throws IOException {
+	public void ValidationNone() throws IOException {
 		RDFGraphResourceImpl graph = getGraphResourceImpl(VALIDATION_NONE);
-		ValidationMode mode = graph.getValidationMode();		
-		assertEquals("none",mode.getId()); 
+		ValidationMode mode = graph.getValidationMode();
+		assertEquals("none", mode.getId());
 	}
-	
+
 	@Test
-	public void ValidationJenaValid () throws IOException {
+	public void ValidationJenaValid() throws IOException {
 		RDFGraphResourceImpl graph = getGraphResourceImpl(VALIDATION_JENA_VALID);
-		ValidationMode mode = graph.getValidationMode();		
-		assertEquals("jena-valid",mode.getId()); 
+		ValidationMode mode = graph.getValidationMode();
+		assertEquals("jena-valid", mode.getId());
 	}
-	*/
+
 }

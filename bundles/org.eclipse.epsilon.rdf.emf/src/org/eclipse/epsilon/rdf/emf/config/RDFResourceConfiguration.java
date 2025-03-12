@@ -21,7 +21,7 @@ public class RDFResourceConfiguration {
 
 	private Set<String> dataModels = new HashSet<>();
 	private Set<String> schemaModels = new HashSet<>();
-	private ValidationMode validationMode = ValidationMode.NONE;
+	private String validationMode = ValidationMode.NONE.getId();
 	
 	public Set<String> getDataModels() {
 		return dataModels;
@@ -40,15 +40,15 @@ public class RDFResourceConfiguration {
 	}
 
 	public String getValidationMode() {
-		return validationMode.getId();
+		return validationMode;
 	}
 	
 	public ValidationMode getRawValidationMode() {
-		return validationMode;
+		return ValidationMode.fromString(validationMode);
 	}
 
 	public void setValidationMode(String validationMode) {
-		this.validationMode = ValidationMode.fromString(validationMode);
+		this.validationMode = validationMode;
 	}
 	
 	@Override
