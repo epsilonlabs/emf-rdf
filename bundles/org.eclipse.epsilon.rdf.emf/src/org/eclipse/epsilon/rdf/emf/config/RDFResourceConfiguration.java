@@ -15,11 +15,13 @@ package org.eclipse.epsilon.rdf.emf.config;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.eclipse.epsilon.rdf.validation.RDFValidation.ValidationMode;
+
 public class RDFResourceConfiguration {
 
 	private Set<String> dataModels = new HashSet<>();
 	private Set<String> schemaModels = new HashSet<>();
-	private String validationMode = new String();
+	private ValidationMode validationMode = ValidationMode.NONE;
 	
 	public Set<String> getDataModels() {
 		return dataModels;
@@ -38,11 +40,15 @@ public class RDFResourceConfiguration {
 	}
 
 	public String getValidationMode() {
+		return validationMode.getId();
+	}
+	
+	public ValidationMode getRawValidationMode() {
 		return validationMode;
 	}
 
 	public void setValidationMode(String validationMode) {
-		this.validationMode = validationMode;
+		this.validationMode = ValidationMode.fromString(validationMode);
 	}
 	
 	@Override

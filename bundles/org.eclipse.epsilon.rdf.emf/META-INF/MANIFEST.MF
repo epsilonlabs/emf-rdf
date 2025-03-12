@@ -14,3 +14,4 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="3.0.0",
 Bundle-Vendor: University of York
 Automatic-Module-Name: org.eclipse.epsilon.rdf.emf
 Bundle-RequiredExecutionEnvironment: JavaSE-17
+Import-Package: org.eclipse.epsilon.rdf.validation
