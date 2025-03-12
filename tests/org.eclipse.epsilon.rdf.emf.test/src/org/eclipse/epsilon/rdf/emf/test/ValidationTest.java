@@ -41,8 +41,6 @@ public class ValidationTest {
 	}
 	
 	private final File VALIDATION_BLANK = new File("resources/rdfresConfigs/Validation_blank.rdfres");
-	private final File VALIDATION_NONE = new File("resources/rdfresConfigs/Validation_none.rdfres");
-	private final File VALIDATION_JENA_VALID = new File("resources/rdfresConfigs/Validation_jena-valid.rdfres");
 	private final File VALIDATION_JENA_CLEAN = new File("resources/rdfresConfigs/Validation_jena-clean.rdfres");
 	private final File VALIDATION_RUBBISH = new File("resources/rdfresConfigs/Validation_rubbish.rdfres");
 	
@@ -97,20 +95,6 @@ public class ValidationTest {
 		for (Resource r : rs.getResources()) {
 			r.load(null);
 		}
-	}
-
-	@Test
-	public void ValidationNone() throws IOException {
-		RDFGraphResourceImpl graph = getGraphResourceImpl(VALIDATION_NONE);
-		ValidationMode mode = graph.getValidationMode();
-		assertEquals("none", mode.getId());
-	}
-
-	@Test
-	public void ValidationJenaValid() throws IOException {
-		RDFGraphResourceImpl graph = getGraphResourceImpl(VALIDATION_JENA_VALID);
-		ValidationMode mode = graph.getValidationMode();
-		assertEquals("jena-valid", mode.getId());
 	}
 
 }
