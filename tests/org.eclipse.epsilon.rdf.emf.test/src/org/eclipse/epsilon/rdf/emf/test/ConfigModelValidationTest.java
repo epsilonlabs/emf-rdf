@@ -31,7 +31,7 @@ import org.eclipse.epsilon.rdf.validation.RDFValidation.ValidationMode;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class ValidationTest {
+public class ConfigModelValidationTest {
 	
 	@BeforeClass
 	public static void setupDrivers() {
