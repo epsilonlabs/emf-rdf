@@ -4,8 +4,8 @@
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.eclipse.epsilon</groupId>
-  <artifactId>org.eclipse.epsilon.emc.rdf</artifactId>
-  <name>Eclipse Epsilon EMC for RDF models</name>
+  <artifactId>org.eclipse.epsilon.rdf.validation</artifactId>
+  <name>Validation utilities for RDF</name>
 
   <parent>
     <groupId>org.eclipse.epsilon</groupId>
@@ -16,22 +16,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.eclipse.epsilon</groupId>
-      <artifactId>org.eclipse.epsilon.eol.engine</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>org.eclipse.epsilon.rdf.validation</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>apache-jena-libs</artifactId>
       <type>pom</type>
-    </dependency>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
     </dependency>
   </dependencies>
 
