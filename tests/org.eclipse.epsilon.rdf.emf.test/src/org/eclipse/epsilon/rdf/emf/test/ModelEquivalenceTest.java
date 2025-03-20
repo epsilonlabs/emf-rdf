@@ -16,6 +16,7 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.compare.Comparison;
@@ -68,7 +69,9 @@ public class ModelEquivalenceTest {
 	@Parameters(name = "{0}")
 	public static Object[] data() {
 		final File baseFolder = new File(new File("resources"), "equivalence");
-		return baseFolder.listFiles(f -> f.isDirectory());
+		File[] subdirs = baseFolder.listFiles(f -> f.isDirectory());
+		Arrays.sort(subdirs, (a, b) -> a.getName().compareTo(b.getName()));
+		return subdirs;
 	}
 
 	private final File testCaseFolder;
