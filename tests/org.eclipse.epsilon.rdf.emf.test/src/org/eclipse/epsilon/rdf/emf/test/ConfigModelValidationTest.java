@@ -48,14 +48,14 @@ public class ConfigModelValidationTest {
 	public void ValidationBlank () throws IOException {
 		RDFGraphResourceImpl graph = getGraphResourceImpl(VALIDATION_BLANK);
 		ValidationMode mode = graph.getValidationMode();		
-		assertEquals("none",mode.getId()); 
+		assertEquals("none", mode.getId());
 	}
 	
 	@Test
 	public void ValidationJenaClean () throws IOException {
 		RDFGraphResourceImpl graph = getGraphResourceImpl(VALIDATION_JENA_CLEAN);
 		ValidationMode mode = graph.getValidationMode();		
-		assertEquals("jena-clean",mode.getId()); 
+		assertEquals("jena-clean", mode.getId());
 	}
 	
 	@Test
@@ -66,9 +66,9 @@ public class ConfigModelValidationTest {
 		} catch (IllegalArgumentException | IOException e) {
 			String sErrors = e.getMessage();
 			assertEquals(e.getClass(), IllegalArgumentException.class);
-			assertTrue("", sErrors.contains("Validation mode not found:"));
+			assertTrue("Loading a configuration with an invalid validation mode should report an error",
+				sErrors.contains("Validation mode not found:"));
 		}
-		// Graph does not exist, because of the load errors for bad validation mode configuration
 	}
 	
 	protected RDFGraphResourceImpl getGraphResourceImpl(File file) throws IOException {
