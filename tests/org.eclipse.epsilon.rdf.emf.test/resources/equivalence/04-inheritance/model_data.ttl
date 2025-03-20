@@ -14,10 +14,8 @@
 
 <firstRule>
     a simple:Rule ;
-    #a simple:Element ;
     simple:name "firstRule" .
 
 <secondAction>
 	a simple:Action ;
-	#a simple:Element ;
 	simple:action "secondAction" .
