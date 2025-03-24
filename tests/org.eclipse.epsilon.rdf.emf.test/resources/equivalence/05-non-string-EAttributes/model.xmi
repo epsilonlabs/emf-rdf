@@ -9,6 +9,8 @@
       eBooleanObject="false"
       eByte="127"
       eByteObject="-127"
+      eChar="65"
+      eCharacterObject="66"
       eDouble="1.0"
       eDoubleObject="2.0"
       eFloat="1.0"

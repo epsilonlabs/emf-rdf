@@ -20,6 +20,8 @@
     simple:eBooleanObject "false"^^xsd:boolean ;   
     simple:eByte "127"^^xsd:byte ;
     simple:eByteObject "-127"^^xsd:byte ;
+    simple:eChar "A"^^xsd:String ;
+    simple:eCharacterObject "B"^^xsd:String ;
     simple:eDouble "1"^^xsd:double ;
     simple:eDoubleObject "2"^^xsd:double ;
     simple:eFloat "1.0"^^xsd:float ;
@@ -35,5 +37,4 @@
     
     
     
-    #simple:eChar "65"^^xsd:char ;
-    #simple:eCharacterObject "66"^^xsd:Character .
+    

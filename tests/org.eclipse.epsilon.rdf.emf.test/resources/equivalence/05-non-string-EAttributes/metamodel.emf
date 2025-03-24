@@ -14,8 +14,8 @@ class Entity {
   attr Boolean eBooleanObject;
   attr byte eByte;
   attr Byte eByteObject;
-  //attr char eChar;
-  //attr Character eCharacterObject;
+  attr char eChar;
+  attr Character eCharacterObject;
   attr double eDouble;
   attr Double eDoubleObject;
   attr float eFloat;

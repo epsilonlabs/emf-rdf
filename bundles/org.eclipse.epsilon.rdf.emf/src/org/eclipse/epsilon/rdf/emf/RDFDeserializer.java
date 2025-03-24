@@ -30,6 +30,8 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import org.apache.jena.datatypes.BaseDatatype;
+import org.apache.jena.datatypes.BaseDatatype.TypedValue;
 import org.apache.jena.datatypes.xsd.XSDDateTime;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.AnonId;
@@ -51,7 +53,6 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EPackage.Registry;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
-
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -127,11 +128,21 @@ public class RDFDeserializer {
 
 	@SuppressWarnings("unchecked")
 	protected void deserializeProperty(Resource node, EObject eob, EStructuralFeature sf) {
-		Object value = deserializeProperty(node, sf);
+		Object value = deserializeProperty(node, sf);	
+		
 		if (value instanceof Collection c) {
 			((EList<Object>) eob.eGet(sf)).addAll(c);
 		} else {
+			 // If the type can not be determined from RDF, then use the EStructurealFeature			 
+			 if (sf.getEType().getName().contentEquals("EChar")
+					 || sf.getEType().getName().contentEquals("ECharacterObject")) {				 
+				 TypedValue typeValue = (BaseDatatype.TypedValue) value;
+				 Character c = (Character) typeValue.lexicalValue.toString().charAt(0);			 
+				 eob.eSet(sf, c);
+				 return;
+			 }
 			eob.eSet(sf, value);
+			return;
 		}
 	}
 
@@ -160,10 +171,8 @@ public class RDFDeserializer {
 		}
 	}
 
-	protected Object deserializeValue(RDFNode node, EStructuralFeature sf) {
-		System.out.println("EStructuralFeature: "  + sf);
-		
-		 return node.visitWith(new RDFVisitor() {
+	protected Object deserializeValue(RDFNode node, EStructuralFeature sf) {	
+		 Object value = node.visitWith(new RDFVisitor() {
 			@Override
 			public Object visitBlank(Resource r, AnonId id) {
 				if (r.hasProperty(RDF.type, RDF.List)) {
@@ -205,8 +214,7 @@ public class RDFDeserializer {
 			@Override
 			public Object visitLiteral(Literal l) {
 				// TODO add resource option for language preference
-				System.out.println("\nLiteral - " + l.toString()
-						+ " - Datatype URI - " + l.getDatatypeURI() + " == " + l.getDatatype().getJavaClass());
+				//System.out.println("\nLiteral - " + l.toString() + "\n - Datatype - " + l.getDatatype().getJavaClass());
 				
 				Class<?> type = l.getDatatype().getJavaClass();
 				
@@ -222,14 +230,13 @@ public class RDFDeserializer {
 					return date;
 				}
 				
-				//if(type == Character.class) { return l.getChar() ; }
-				//if(type == char.class ) { return l.getChar() ; }
-				
-				// Just return it and hope...
+				// Just return the value (jena.datatypes.BaseDatatype)
 				return l.getValue();
 			}
 			
 		});
+		 
+		 return value;
 	}
 
 	protected Set<EClass> findMostSpecificEClasses(Resource node) {
