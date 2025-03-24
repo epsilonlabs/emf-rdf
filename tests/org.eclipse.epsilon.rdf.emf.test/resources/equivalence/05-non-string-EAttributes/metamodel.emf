@@ -28,10 +28,10 @@ class Entity {
   attr Short eShortObject;
   attr Date eDate;
 
-  //attr Object eJavaObject;
-  //attr Class eJavaClass;
-  
-  // Don't test
+
+  // Do not test
+  // attr Object eJavaObject;
+  // attr Class eJavaClass;
   // attr EObject eObject;
   // attr EClass eClass; 
 }
