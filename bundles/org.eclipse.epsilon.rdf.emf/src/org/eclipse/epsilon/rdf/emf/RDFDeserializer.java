@@ -12,9 +12,14 @@
  ********************************************************************************/
 package org.eclipse.epsilon.rdf.emf;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
@@ -25,6 +30,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import org.apache.jena.datatypes.xsd.XSDDateTime;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.AnonId;
 import org.apache.jena.rdf.model.Literal;
@@ -155,7 +161,9 @@ public class RDFDeserializer {
 	}
 
 	protected Object deserializeValue(RDFNode node, EStructuralFeature sf) {
-		return node.visitWith(new RDFVisitor() {
+		System.out.println("EStructuralFeature: "  + sf);
+		
+		 return node.visitWith(new RDFVisitor() {
 			@Override
 			public Object visitBlank(Resource r, AnonId id) {
 				if (r.hasProperty(RDF.type, RDF.List)) {
@@ -197,6 +205,27 @@ public class RDFDeserializer {
 			@Override
 			public Object visitLiteral(Literal l) {
 				// TODO add resource option for language preference
+				System.out.println("\nLiteral - " + l.toString()
+						+ " - Datatype URI - " + l.getDatatypeURI() + " == " + l.getDatatype().getJavaClass());
+				
+				Class<?> type = l.getDatatype().getJavaClass();
+				
+				if(type == Byte.class) { return l.getByte() ; }
+				if(type == Long.class) { return l.getLong() ; }
+				if(type == Short.class) { return l.getShort() ; }				
+										
+				if(type == XSDDateTime.class) {	
+					// Parse the xsd:DateTime string to a LocalDateTime using ISO format, then create Java Date which EMF will then create an EDate from
+					LocalDateTime localdatetime = LocalDateTime.parse(l.getString(),DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+					Instant instant = localdatetime.toInstant(ZoneOffset.UTC);
+					Date date = Date.from(instant);
+					return date;
+				}
+				
+				//if(type == Character.class) { return l.getChar() ; }
+				//if(type == char.class ) { return l.getChar() ; }
+				
+				// Just return it and hope...
 				return l.getValue();
 			}
 			
