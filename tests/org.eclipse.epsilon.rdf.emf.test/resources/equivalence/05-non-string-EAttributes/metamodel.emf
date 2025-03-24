@@ -1,0 +1,37 @@
+@namespace(uri="http://eclipse.org/epsilon/rdf/containment", prefix="")
+package containment;
+
+class Model {
+  attr String name;
+  val Entity[*] entities;
+}
+
+class Entity {
+  attr String name;
+  //attr String string;
+  
+  attr boolean eBoolean;
+  attr Boolean eBooleanObject;
+  attr byte eByte;
+  attr Byte eByteObject;
+  //attr char eChar;
+  //attr Character eCharacterObject;
+  attr double eDouble;
+  attr Double eDoubleObject;
+  attr float eFloat;
+  attr Float eFloatObject;
+  attr int eInt;
+  attr Integer eIntegerObject;
+  attr long eLong;
+  attr Long eLongObject;
+  attr short eShort;
+  attr Short eShortObject;
+  attr Date eDate;
+
+  //attr Object eJavaObject;
+  //attr Class eJavaClass;
+  
+  // Don't test
+  // attr EObject eObject;
+  // attr EClass eClass; 
+}

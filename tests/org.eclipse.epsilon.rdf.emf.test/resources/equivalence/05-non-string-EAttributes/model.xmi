@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="ASCII"?>
+<Model xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns="http://eclipse.org/epsilon/rdf/containment"
+    name="theModel">
+  <entities
+      name="firstEntity"
+      eBoolean="true"
+      eBooleanObject="false"
+      eByte="127"
+      eByteObject="-127"
+      eDouble="1.0"
+      eDoubleObject="2.0"
+      eFloat="1.0"
+      eFloatObject="2.0"
+      eInt="1"
+      eIntegerObject="2"
+      eLong="1"
+      eLongObject="2"
+      eShort="1"
+      eShortObject="2"
+      eDate="2001-12-30T00:00:00.000+0000"/>
+</Model>

@@ -1,0 +1,39 @@
+@prefix : <file:///home/hmz514/git/emc-rdf/tests/org.eclipse.epsilon.rdf.emf.test/resources/equivalence/03-containment/model_data.ttl#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix simple: <http://eclipse.org/epsilon/rdf/containment#> .
+
+
+@base <http://example/org/containment> .
+
+<theModel>
+    a simple:Model ;
+    simple:entities <firstEntity> ;
+    simple:name "theModel" .
+
+<firstEntity>
+    a simple:Entity ;
+    simple:name "firstEntity" ;
+    simple:eBoolean "true"^^xsd:boolean ;
+    simple:eBooleanObject "false"^^xsd:boolean ;   
+    simple:eByte "127"^^xsd:byte ;
+    simple:eByteObject "-127"^^xsd:byte ;
+    simple:eDouble "1"^^xsd:double ;
+    simple:eDoubleObject "2"^^xsd:double ;
+    simple:eFloat "1.0"^^xsd:float ;
+    simple:eFloatObject "2.0"^^xsd:float ;
+    simple:eInt "1"^^xsd:int ;
+    simple:eIntegerObject "2"^^xsd:int ;
+    simple:eLong "1"^^xsd:long ;
+    simple:eLongObject "2"^^xsd:long ;
+    simple:eShort "1"^^xsd:short ;
+    simple:eShortObject "2"^^xsd:short ;
+    #simple:eDate "2001-12-30T00:00:00.000+0000"^^xsd:dateTime .
+    simple:eDate "2001-12-30T00:00:00"^^xsd:dateTime .
+    
+    
+    
+    #simple:eChar "65"^^xsd:char ;
+    #simple:eCharacterObject "66"^^xsd:Character .
