@@ -206,19 +206,13 @@ public class RDFDeserializer {
 			@Override
 			public Object visitLiteral(Literal l) {
 				// TODO add resource option for language preference
-				//System.out.println("\nLiteral - " + l.toString() + "\n - Datatype - " + l.getDatatype().getJavaClass());
 
 				Class<?> type = l.getDatatype().getJavaClass();
 				if (type == Byte.class) { return l.getByte() ; }
 				if (type == Long.class) { return l.getLong() ; }
 				if (type == Short.class) { return l.getShort() ; }
-
-				if (type == XSDDateTime.class) {	
-					// Parse the xsd:DateTime string to a LocalDateTime using ISO format, then create Java Date which EMF will then create an EDate from
-					LocalDateTime localdatetime = LocalDateTime.parse(l.getString(),DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-					Instant instant = localdatetime.toInstant(ZoneOffset.UTC);
-					Date date = Date.from(instant);
-					return date;
+				if (type == XSDDateTime.class) {
+					return ((XSDDateTime) l.getValue()).asCalendar().getTime();
 				}
 
 				// RDF does not have a "char" type: check the EMF eType instead
