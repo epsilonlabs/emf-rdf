@@ -39,3 +39,20 @@ schemaModels:
 
 The `.rdfres` file can then be loaded and used by any EMF-compatible tool as usual.
 Note that the elements in `dataModels` and `schemaModels` can be arbitrary URIs understood by the [RIOT](https://jena.apache.org/documentation/io/) system in Jena, and not just relative paths from the folder of the `.rdfres` file.
+
+### Model validation
+
+RDF model validation can be enabled by adding a line in the `.rdfres`, e.g. `validationMode: jena-clean`. The following validation modes are available :
+
+- none
+- jena-valid: validation passes if the model has no internal inconsistencies, even though there may be some warnings.
+- jena-clean: validation passes if the model has no internal inconsistencies and there are no warnings.
+
+```yaml
+validationMode: jena-clean
+dataModels:
+  - model.ttl
+schemaModels:
+  - schema.ttl
+```
+
