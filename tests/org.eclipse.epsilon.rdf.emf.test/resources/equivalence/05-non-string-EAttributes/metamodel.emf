@@ -8,7 +8,6 @@ class Model {
 
 class Entity {
   attr String name;
-  //attr String string;
   
   attr boolean eBoolean;
   attr Boolean eBooleanObject;
@@ -28,6 +27,9 @@ class Entity {
   attr Short eShortObject;
   attr Date eDate;
 
+  // TODO need to set multi-valued versions
+  attr String[*] names;
+  attr boolean[*] booleans;
 
   // Do not test
   // attr Object eJavaObject;
