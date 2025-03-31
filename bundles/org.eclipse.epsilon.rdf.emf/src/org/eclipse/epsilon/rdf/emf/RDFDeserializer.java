@@ -130,8 +130,20 @@ public class RDFDeserializer {
 	protected void deserializeProperty(Resource node, EObject eob, EStructuralFeature sf) {
 		Object value = deserializeProperty(node, sf);	
 		
-		if (value instanceof Collection c) {
-			((EList<Object>) eob.eGet(sf)).addAll(c);
+		if (value instanceof Collection collection) {			
+			if (sf.getEType().getName().contentEquals("EChar")
+					 || sf.getEType().getName().contentEquals("ECharacterObject")) {
+				collection.forEach(collectionValue -> {
+					TypedValue typeValue = (BaseDatatype.TypedValue) collectionValue;
+					Character c = (Character) typeValue.lexicalValue.toString().charAt(0);
+					((EList<Object>) eob.eGet(sf)).add((Character)c) ;} 
+				);
+				return;
+			}
+			
+			((EList<Object>) eob.eGet(sf)).addAll(collection);
+			return;
+			
 		} else {
 			 // If the type can not be determined from RDF, then use the EStructurealFeature			 
 			 if (sf.getEType().getName().contentEquals("EChar")
@@ -141,6 +153,7 @@ public class RDFDeserializer {
 				 eob.eSet(sf, c);
 				 return;
 			 }
+			 
 			eob.eSet(sf, value);
 			return;
 		}
