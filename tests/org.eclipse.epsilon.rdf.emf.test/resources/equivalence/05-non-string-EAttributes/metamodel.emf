@@ -8,8 +8,7 @@ class Model {
 
 class Entity {
   attr String name;
-   attr String[*] names;
-  //attr String string;
+  attr String[*] names;
   
   attr boolean eBoolean;
   attr boolean[*] eBooleans;

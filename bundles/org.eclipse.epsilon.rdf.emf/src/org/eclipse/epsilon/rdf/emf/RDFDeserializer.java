@@ -30,8 +30,6 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import org.apache.jena.datatypes.BaseDatatype;
-import org.apache.jena.datatypes.BaseDatatype.TypedValue;
 import org.apache.jena.datatypes.xsd.XSDDateTime;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.AnonId;
@@ -53,6 +51,8 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EPackage.Registry;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.emf.ecore.EcorePackage;
+
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -130,30 +130,9 @@ public class RDFDeserializer {
 	protected void deserializeProperty(Resource node, EObject eob, EStructuralFeature sf) {
 		Object value = deserializeProperty(node, sf);	
 		
-		if (value instanceof Collection collection) {			
-			if (sf.getEType().getName().contentEquals("EChar")
-					 || sf.getEType().getName().contentEquals("ECharacterObject")) {
-				collection.forEach(collectionValue -> {
-					TypedValue typeValue = (BaseDatatype.TypedValue) collectionValue;
-					Character c = (Character) typeValue.lexicalValue.toString().charAt(0);
-					((EList<Object>) eob.eGet(sf)).add((Character)c) ;} 
-				);
-				return;
-			}
-			
-			((EList<Object>) eob.eGet(sf)).addAll(collection);
-			return;
-			
+		if (value instanceof Collection c) {
+			((EList<Object>) eob.eGet(sf)).addAll(c);
 		} else {
-			 // If the type can not be determined from RDF, then use the EStructurealFeature			 
-			 if (sf.getEType().getName().contentEquals("EChar")
-					 || sf.getEType().getName().contentEquals("ECharacterObject")) {				 
-				 TypedValue typeValue = (BaseDatatype.TypedValue) value;
-				 Character c = (Character) typeValue.lexicalValue.toString().charAt(0);			 
-				 eob.eSet(sf, c);
-				 return;
-			 }
-			 
 			eob.eSet(sf, value);
 			return;
 		}
@@ -227,22 +206,21 @@ public class RDFDeserializer {
 			@Override
 			public Object visitLiteral(Literal l) {
 				// TODO add resource option for language preference
-				//System.out.println("\nLiteral - " + l.toString() + "\n - Datatype - " + l.getDatatype().getJavaClass());
-				
+
 				Class<?> type = l.getDatatype().getJavaClass();
-				
-				if(type == Byte.class) { return l.getByte() ; }
-				if(type == Long.class) { return l.getLong() ; }
-				if(type == Short.class) { return l.getShort() ; }				
-										
-				if(type == XSDDateTime.class) {	
-					// Parse the xsd:DateTime string to a LocalDateTime using ISO format, then create Java Date which EMF will then create an EDate from
-					LocalDateTime localdatetime = LocalDateTime.parse(l.getString(),DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-					Instant instant = localdatetime.toInstant(ZoneOffset.UTC);
-					Date date = Date.from(instant);
-					return date;
+				if (type == Byte.class) { return l.getByte() ; }
+				if (type == Long.class) { return l.getLong() ; }
+				if (type == Short.class) { return l.getShort() ; }
+				if (type == XSDDateTime.class) {
+					return ((XSDDateTime) l.getValue()).asCalendar().getTime();
 				}
-				
+
+				// RDF does not have a "char" type: check the EMF eType instead
+				if (sf.getEType().equals(EcorePackage.eINSTANCE.getEChar())
+						|| sf.getEType().equals(EcorePackage.eINSTANCE.getECharacterObject())) {
+					 return l.getString().charAt(0);
+				}
+
 				// Just return the value (jena.datatypes.BaseDatatype)
 				return l.getValue();
 			}
