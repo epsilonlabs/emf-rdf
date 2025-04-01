@@ -25,6 +25,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import org.apache.jena.datatypes.xsd.XSDDateTime;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.AnonId;
 import org.apache.jena.rdf.model.Literal;
@@ -45,6 +46,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EPackage.Registry;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.emf.ecore.EcorePackage;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -121,11 +123,13 @@ public class RDFDeserializer {
 
 	@SuppressWarnings("unchecked")
 	protected void deserializeProperty(Resource node, EObject eob, EStructuralFeature sf) {
-		Object value = deserializeProperty(node, sf);
+		Object value = deserializeProperty(node, sf);	
+		
 		if (value instanceof Collection c) {
 			((EList<Object>) eob.eGet(sf)).addAll(c);
 		} else {
 			eob.eSet(sf, value);
+			return;
 		}
 	}
 
@@ -154,8 +158,8 @@ public class RDFDeserializer {
 		}
 	}
 
-	protected Object deserializeValue(RDFNode node, EStructuralFeature sf) {
-		return node.visitWith(new RDFVisitor() {
+	protected Object deserializeValue(RDFNode node, EStructuralFeature sf) {	
+		 Object value = node.visitWith(new RDFVisitor() {
 			@Override
 			public Object visitBlank(Resource r, AnonId id) {
 				if (r.hasProperty(RDF.type, RDF.List)) {
@@ -197,10 +201,28 @@ public class RDFDeserializer {
 			@Override
 			public Object visitLiteral(Literal l) {
 				// TODO add resource option for language preference
+
+				Class<?> type = l.getDatatype().getJavaClass();
+				if (type == Byte.class) { return l.getByte() ; }
+				if (type == Long.class) { return l.getLong() ; }
+				if (type == Short.class) { return l.getShort() ; }
+				if (type == XSDDateTime.class) {
+					return ((XSDDateTime) l.getValue()).asCalendar().getTime();
+				}
+
+				// RDF does not have a "char" type: check the EMF eType instead
+				if (sf.getEType().equals(EcorePackage.eINSTANCE.getEChar())
+						|| sf.getEType().equals(EcorePackage.eINSTANCE.getECharacterObject())) {
+					 return l.getString().charAt(0);
+				}
+
+				// Just return the value (jena.datatypes.BaseDatatype)
 				return l.getValue();
 			}
 			
 		});
+		 
+		 return value;
 	}
 
 	protected Set<EClass> findMostSpecificEClasses(Resource node) {
