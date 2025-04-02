@@ -16,7 +16,6 @@ import java.util.List;
 
 import org.apache.jena.rdf.model.Resource;
 import org.eclipse.emf.common.notify.Notification;
-import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
@@ -38,9 +37,6 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		// Decode the notification
 		processTrace = new StringBuilder();
 		processTrace.append(String.format("\n[ Notification ]"));
-		
-		int position = notification.getPosition(); // If this is set then there is possibly Order for the values.
-		processTrace.append(String.format("\n getPosition %s", position));  // -1 "none" else > 0 position but does not imply order is required
 		
 		switch (notification.getEventType()) {
 		case Notification.ADD:
@@ -79,49 +75,61 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		identifyTarget(this.target);
 		
 		Object feature = notification.getFeature();
-		Object newValue = notification.getNewValue();
+		Object value = notification.getNewValue();
 		
 		if(null != feature) {
 			// Work out the change based on feature
-			identifyIncrementByFeature(feature, newValue, notification);
+			identifyByFeature(feature, value, notification);
 		} else {
 			// Work out the change base on newValue
 			processTrace.append(String.format("\n - Not a Feature"));
-			identifyIncrementByValue(newValue, notification);
+			identifyByValue(value, notification);
 		}		
 	}
 	
-	private void decrementalChange (Notification notification) {
+	private void decrementalChange(Notification notification) {
 		identifyTarget(this.target);
-		
-		if( null !=  notification.getFeature() ) {
+
+		Object feature = notification.getFeature();
+		Object value = notification.getOldValue();
+
+		if (null != feature) {
 			// Work out what was removed by Feature
-			EObject feature = (EObject) notification.getFeature();
-			EObject oldValue = (EObject) notification.getOldValue();
-			
-			processTrace.append(String.format("\n  <  FEATURE >  %s", feature));  // This had something removed from it
-			processTrace.append(String.format("\n  < OLDVALUE >  %s", oldValue));  // This is what was removed
+			identifyByFeature(feature, value, notification);
+
 		} else {
 			// Work out what was removed by old Value?
 			processTrace.append(String.format("\n No Feature?"));
+			return;
 		}
 	}
-	
-	private void identifyIncrementByFeature(Object feature, Object newValue, Notification notification) {
+
+	private void identifyByFeature(Object feature, Object value, Notification notification) {
 
 		Class<? extends Object> featureClass = feature.getClass();
 		processTrace.append(String.format("\n - Feature class : %s", featureClass.getName()));
 		processTrace.append(String.format("\n ON THIS "));
 		
-		if(featureClass.equals(EAttributeImpl.class)) {			
+		if(featureClass.equals(EAttributeImpl.class)) {
 			EObject onEObject = (EObject)notification.getNotifier();	// RDF node
 			EAttribute eAttributeChanged = (EAttribute) feature;		// RDF property
+			//value														// RDF object (node/literal)
+			
+			boolean isOrdered = eAttributeChanged.isOrdered();// If this is set then there is possibly Order for the values.				
+			int orderPosition = -1; // This is not notification.getPosition()
 			
 			identifyEObject(onEObject, false, 0);
-			processTrace.append(String.format("\n - eAttribute was : %s  %s  %s ", 
-					eAttributeChanged.getEAttributeType().getName(), eAttributeChanged.getName(), notification.getOldValue() ));
-			processTrace.append(String.format("\n - eAttribute changed : %s  %s  %s ", 
-					eAttributeChanged.getEAttributeType().getName(), eAttributeChanged.getName(), newValue ));
+			processTrace.append(String.format("\n - eAttribute is Ordered? %s %s",
+					isOrdered,
+					orderPosition)); // -1 "none" else > 0 position but does not imply order is required 
+			processTrace.append(String.format("\n - eAttribute value : %s  %s  %s ", 
+					eAttributeChanged.getEAttributeType().getName(), 
+					eAttributeChanged.getName(),
+					value ));
+
+			//processTrace.append(String.format("\n - eAttribute was : %s  %s  %s ", 
+			//		eAttributeChanged.getEAttributeType().getName(), eAttributeChanged.getName(), notification.getOldValue() ));
+			
 
 			// This is likely a property of the RDF node for onEobject
 			
@@ -131,22 +139,31 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		if(featureClass.equals(EReferenceImpl.class)) {
 			EObject onEObject = (EObject)notification.getNotifier();	// RDF node	
 			EReferenceImpl eReference = (EReferenceImpl) feature;		// RDF property
-			EObject value = (EObject) newValue;							// RDF node (object) 
-					
+			EObject referenced = (EObject) value;						// RDF object (node) 
+
+			boolean isOrdered = eReference.isOrdered();
+			int orderPosition = -1 ; // This is not notification.getPosition()			
+
 			identifyEObject(onEObject, false, 0);
+			processTrace.append(String.format("\n - eReference is Ordered? %s %s", 
+					isOrdered, 
+					orderPosition)); // -1 "none" else > 0 position but does not imply order is required
 			processTrace.append(String.format("\n - eReference changed : %s  %s \n\t->", 
-					eReference.getEReferenceType().getName(), eReference.getName() ));
-			identifyEObject(value, false, 1);
+					eReference.getEReferenceType().getName(),
+					eReference.getName()));
+			identifyEObject(referenced, false, 1);
 			
 			// This is likely a property of the RDF node for onEobject
 			
 			return;
 		}
 		
-		if(featureClass.equals(EObject.class) || featureClass.equals(DynamicEObjectImpl.class)) {
+		if( (featureClass.equals(EObject.class))
+				|| (featureClass.equals(DynamicEObjectImpl.class)) ) {
 			EObject eObject = (EObject) feature;
 			processTrace.append(String.format("\n - eObject changed : %s  %s ", 
-					eObject.eClass().getName(), EcoreUtil.getIdentification(eObject) ));			
+					eObject.eClass().getName(),
+					EcoreUtil.getIdentification(eObject) ));			
 			return;
 		}
 		
@@ -154,9 +171,9 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		return;
 
 	}
-		
- 	private void identifyIncrementByValue(Object newValue, Notification notification) {
-		if (null == newValue) {
+
+ 	private void identifyByValue(Object value, Notification notification) {
+		if (null == value) {
 			processTrace.append(String.format("\n No new value to process? : %s ", notification));
 			return;
 		} else {
@@ -164,29 +181,36 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 			Object notifier = notification.getNotifier();
 			
 			processTrace.append(String.format("\n - Notification : %s ", notification.getClass()));
-			processTrace.append(String.format("\n Attempt to process the NewValue :  %s  %s", newValue.getClass(), newValue));			
+			processTrace.append(String.format("\n Attempt to process the Value :  %s  %s",
+					value.getClass(),
+					value));
 			
-			
+			// What kind of notifier is it?
 			if (notifier.getClass().equals(RDFGraphResourceImpl.class)) {
 				RDFGraphResourceImpl notifierResource = (RDFGraphResourceImpl) notifier;				
-				processTrace.append(String.format("\n  - Notifier is RDFGraphResourceImpl : %s ", notifierResource.getURI()));
+				processTrace.append(String.format("\n  - Notifier is RDFGraphResourceImpl : %s ", 
+						notifierResource.getURI()));
+				return;
 			} else {
-				processTrace.append(String.format("\n  - Notifier : \n    * %s \n    * %s", notification.getNotifier().getClass(), notification.getNotifier() ));
+				processTrace.append(String.format("\n  - Notifier : \n    * %s \n    * %s", 
+						notification.getNotifier().getClass(),
+						notification.getNotifier() ));
+
 			}
 							
-			if ( newValue.getClass().equals(EObject.class) || newValue.getClass().equals(DynamicEObjectImpl.class)) {
+			if ( value.getClass().equals(EObject.class) 
+					|| value.getClass().equals(DynamicEObjectImpl.class)) {
 				processTrace.append(String.format("\n Handle new value as a type of EObject"));
-				EObject newValueEObject = (EObject)newValue;
-				identifyEObject(newValueEObject, false, 0);
+				EObject valueEObject = (EObject)value;
+				identifyEObject(valueEObject, false, 0);
 				
 				// EObject is likely an RDF node
 				
 				return;
 			}
-			
 		}
 	}
-		
+	
 	private Resource identifyEObjectRDFnode (EObject eObject, int pad) {
 		final int subPad = pad + 1;
 		
@@ -199,12 +223,16 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		if (eObject.eResource().getClass().equals(RDFGraphResourceImpl.class)) {
 			RDFGraphResourceImpl rdfGraphResource = (RDFGraphResourceImpl) eObject.eResource();
 			Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
-			processTrace.append(String.format("%s + RDF Node : %s ",prefix , rdfNode));
+			processTrace.append(String.format("%s + RDF Node : %s ",
+					prefix,
+					rdfNode));
 			rdfGraphResource.findNamedModelsContaining(rdfNode);
 			getNamedModelsContaining(eObject);
 			return rdfNode;
 		} else {
-			processTrace.append(String.format("%s + No RDFGraphResourceImpl for : %s ",prefix , eObject));
+			processTrace.append(String.format("%s + No RDFGraphResourceImpl for : %s ",
+					prefix,
+					eObject));
 		}
 		return null;
 	}
@@ -219,7 +247,6 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		}
 		return null;
 	}
-	
 	
 	private void identifyReferences (EObject eObject, EReference reference, int pad) {
 		String p = "\n";
@@ -242,7 +269,6 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		return;
 	}
 	
-	
 	private void identifyTarget(Object target) {
 		Object targetClass = this.target.getClass();
 		
@@ -253,7 +279,6 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		
 		processTrace.append(String.format("\n - Target : %s  %s ", target.getClass() , target ));	
 	}
-	
 	
 	private void identifyEObject(EObject eObject, boolean followReference, int pad) {
 		String p = "\n";
@@ -310,3 +335,92 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 	 * type); return false; }
 	 */
 }
+
+
+/*
+private void identifyIncrementByFeature(Object feature, Object newValue, Notification notification) {
+
+	Class<? extends Object> featureClass = feature.getClass();
+	processTrace.append(String.format("\n - Feature class : %s", featureClass.getName()));
+	processTrace.append(String.format("\n ON THIS "));
+	
+	if(featureClass.equals(EAttributeImpl.class)) {	
+		EObject onEObject = (EObject)notification.getNotifier();	// RDF node
+		EAttribute eAttributeChanged = (EAttribute) feature;		// RDF property
+		
+		boolean isOrdered = eAttributeChanged.isOrdered();			
+		
+		identifyEObject(onEObject, false, 0);
+		processTrace.append(String.format("\n - eAttribute is Ordered? %s", isOrdered)); 
+		processTrace.append(String.format("\n - eAttribute was : %s  %s  %s ", 
+				eAttributeChanged.getEAttributeType().getName(), eAttributeChanged.getName(), notification.getOldValue() ));
+		processTrace.append(String.format("\n - eAttribute changed : %s  %s  %s ", 
+				eAttributeChanged.getEAttributeType().getName(), eAttributeChanged.getName(), newValue ));
+
+		// This is likely a property of the RDF node for onEobject
+		
+		return;
+	}
+
+	if(featureClass.equals(EReferenceImpl.class)) {
+		EObject onEObject = (EObject)notification.getNotifier();	// RDF node	
+		EReferenceImpl eReference = (EReferenceImpl) feature;		// RDF property
+		EObject value = (EObject) newValue;							// RDF node (object) 
+				
+		identifyEObject(onEObject, false, 0);
+		processTrace.append(String.format("\n - eReference changed : %s  %s \n\t->", 
+				eReference.getEReferenceType().getName(), eReference.getName() ));
+		identifyEObject(value, false, 1);
+		
+		// This is likely a property of the RDF node for onEobject
+		
+		return;
+	}
+	
+	if(featureClass.equals(EObject.class) || featureClass.equals(DynamicEObjectImpl.class)) {
+		EObject eObject = (EObject) feature;
+		processTrace.append(String.format("\n - eObject changed : %s  %s ", 
+				eObject.eClass().getName(), EcoreUtil.getIdentification(eObject) ));			
+		return;
+	}
+	
+	processTrace.append(String.format("\n UNKNOWN identifyIncrementByFeature() "));
+	return;
+
+}
+*/
+	
+	/*
+	private void identifyIncrementByValue(Object newValue, Notification notification) {
+	if (null == newValue) {
+		processTrace.append(String.format("\n No new value to process? : %s ", notification));
+		return;
+	} else {
+		Object targetClass = this.target.getClass();
+		Object notifier = notification.getNotifier();
+		
+		processTrace.append(String.format("\n - Notification : %s ", notification.getClass()));
+		processTrace.append(String.format("\n Attempt to process the NewValue :  %s  %s", newValue.getClass(), newValue));			
+		
+		
+		if (notifier.getClass().equals(RDFGraphResourceImpl.class)) {
+			RDFGraphResourceImpl notifierResource = (RDFGraphResourceImpl) notifier;				
+			processTrace.append(String.format("\n  - Notifier is RDFGraphResourceImpl : %s ", notifierResource.getURI()));
+		} else {
+			processTrace.append(String.format("\n  - Notifier : \n    * %s \n    * %s", notification.getNotifier().getClass(), notification.getNotifier() ));
+		}
+						
+		if ( newValue.getClass().equals(EObject.class) || newValue.getClass().equals(DynamicEObjectImpl.class)) {
+			processTrace.append(String.format("\n Handle new value as a type of EObject"));
+			EObject newValueEObject = (EObject)newValue;
+			identifyEObject(newValueEObject, false, 0);
+			
+			// EObject is likely an RDF node
+			
+			return;
+		}
+		
+	}
+}
+*/
+	
