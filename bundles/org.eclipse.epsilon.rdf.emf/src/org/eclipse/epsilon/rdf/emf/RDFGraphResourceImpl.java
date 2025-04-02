@@ -14,6 +14,7 @@ package org.eclipse.epsilon.rdf.emf;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
@@ -32,6 +34,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.riot.Lang;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
@@ -54,22 +57,42 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	
 	//
 
-	public List<Resource> findNamedModelsContaining(Resource res) {
-		List<Resource> list = new ArrayList<Resource>();
+	public List<Resource> getResourcesForNamedModelsContaining(EObject eObject) {
+		Resource res = this.getRDFResource(eObject);
+		return getResourcesForNamedModelsContaining(res);
+	}
+	
+	public List<Resource> getResourcesForNamedModelsContaining(Resource res) {
+		List<Resource> modelList = new ArrayList<Resource>();		
+		if (null != dataModelSet) {
+			Iterator<Resource> namedModels = dataModelSet.listModelNames();
+			
+			namedModels.forEachRemaining(m -> {
+				Model model = dataModelSet.getNamedModel(m);
+				if (model.containsResource(res)) {
+					modelList.add(m);
+				}
+			});
+		}
+		return modelList;
+	}
+	
+	public List<Model> findNamedModelsContaining(Resource res) {
+		List<Model> modelList = new ArrayList<Model>();
 		if (null != dataModelSet) {
 			Iterator<Resource> namedModels = dataModelSet.listModelNames();
 
 			namedModels.forEachRemaining(m -> {
 				Model model = dataModelSet.getNamedModel(m);
 				if (model.containsResource(res)) {
-					list.add(m);
+					modelList.add(model);
 				}
 			});
 		}
-		return list;
+		return modelList;
 	}
 	
-	public List<Resource> findNamedModelsContaining (EObject eob) {
+	public List<Model> findNamedModelsContaining (EObject eob) {
 		Resource res = this.getRDFResource(eob);
 		return this.findNamedModelsContaining(res);
 	}
@@ -178,5 +201,12 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	public void setConfig(RDFResourceConfiguration config) {
 		this.config = config;
 	}
+	
+	public void ttlConsoleOntModel () {
+		System.out.println("\n TURTLE rdfOntModel \n");
+		OutputStream console = System.out;
+		rdfOntModel.writeAll(console,"ttl" );
+	}
+	
 
 }
