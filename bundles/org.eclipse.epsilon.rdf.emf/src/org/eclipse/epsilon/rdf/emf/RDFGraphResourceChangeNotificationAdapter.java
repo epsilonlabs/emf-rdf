@@ -195,10 +195,9 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 				processTrace.append(String.format("\n  - Notifier : \n    * %s \n    * %s", 
 						notification.getNotifier().getClass(),
 						notification.getNotifier() ));
-
 			}
 							
-			if ( value.getClass().equals(EObject.class) 
+			if ( value.getClass().equals(EObject.class)
 					|| value.getClass().equals(DynamicEObjectImpl.class)) {
 				processTrace.append(String.format("\n Handle new value as a type of EObject"));
 				EObject valueEObject = (EObject)value;
