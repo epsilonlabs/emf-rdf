@@ -12,6 +12,7 @@
  ********************************************************************************/
 package org.eclipse.epsilon.rdf.emf;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.jena.rdf.model.Resource;
@@ -72,7 +73,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 	}
 	
 	private void incrementalChange (Notification notification) {
-		identifyTarget(this.target);
+		reportTarget(this.target);
 		
 		Object feature = notification.getFeature();
 		Object value = notification.getNewValue();
@@ -88,7 +89,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 	}
 	
 	private void decrementalChange(Notification notification) {
-		identifyTarget(this.target);
+		reportTarget(this.target);
 
 		Object feature = notification.getFeature();
 		Object value = notification.getOldValue();
@@ -108,17 +109,23 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 
 		Class<? extends Object> featureClass = feature.getClass();
 		processTrace.append(String.format("\n - Feature class : %s", featureClass.getName()));
-		processTrace.append(String.format("\n ON THIS "));
+		
 		
 		if(featureClass.equals(EAttributeImpl.class)) {
+			// This is likely a property of the RDF node for the "onEobject"
 			EObject onEObject = (EObject)notification.getNotifier();	// RDF node
 			EAttribute eAttributeChanged = (EAttribute) feature;		// RDF property
-			//value														// RDF object (node/literal)
+			// eAttribute's value										// RDF object (node/literal)
 			
-			boolean isOrdered = eAttributeChanged.isOrdered();// If this is set then there is possibly Order for the values.				
+			boolean isOrdered = eAttributeChanged.isOrdered();// If this is set then there is Order to the values.				
 			int orderPosition = -1; // This is not notification.getPosition()
 			
-			identifyEObject(onEObject, false, 0);
+			Resource rdfNode = identifyEObjectsRDFnode(onEObject);
+			List<Resource> namedModelsToUpdate = identifyNamedModelsContaining(onEObject);
+			
+			// Console output
+			processTrace.append(String.format("\n ON THIS "));
+			reportEObjectRDFnode(onEObject, 0);
 			processTrace.append(String.format("\n - eAttribute is Ordered? %s %s",
 					isOrdered,
 					orderPosition)); // -1 "none" else > 0 position but does not imply order is required 
@@ -127,12 +134,6 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 					eAttributeChanged.getName(),
 					value ));
 
-			//processTrace.append(String.format("\n - eAttribute was : %s  %s  %s ", 
-			//		eAttributeChanged.getEAttributeType().getName(), eAttributeChanged.getName(), notification.getOldValue() ));
-			
-
-			// This is likely a property of the RDF node for onEobject
-			
 			return;
 		}
 
@@ -144,14 +145,19 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 			boolean isOrdered = eReference.isOrdered();
 			int orderPosition = -1 ; // This is not notification.getPosition()			
 
-			identifyEObject(onEObject, false, 0);
+			Resource rdfNode = identifyEObjectsRDFnode(onEObject);
+			List<Resource> namedModelToUpdate = identifyNamedModelsContaining(onEObject);
+			
+			// Console output
+			processTrace.append(String.format("\n ON THIS "));
+			reportEObject(onEObject, false, 0);					
 			processTrace.append(String.format("\n - eReference is Ordered? %s %s", 
 					isOrdered, 
 					orderPosition)); // -1 "none" else > 0 position but does not imply order is required
 			processTrace.append(String.format("\n - eReference changed : %s  %s \n\t->", 
 					eReference.getEReferenceType().getName(),
 					eReference.getName()));
-			identifyEObject(referenced, false, 1);
+			reportEObject(referenced, false, 1);
 			
 			// This is likely a property of the RDF node for onEobject
 			
@@ -171,7 +177,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		return;
 
 	}
-
+	
  	private void identifyByValue(Object value, Notification notification) {
 		if (null == value) {
 			processTrace.append(String.format("\n No new value to process? : %s ", notification));
@@ -201,7 +207,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 					|| value.getClass().equals(DynamicEObjectImpl.class)) {
 				processTrace.append(String.format("\n Handle new value as a type of EObject"));
 				EObject valueEObject = (EObject)value;
-				identifyEObject(valueEObject, false, 0);
+				reportEObject(valueEObject, false, 0);
 				
 				// EObject is likely an RDF node
 				
@@ -210,44 +216,32 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		}
 	}
 	
-	private Resource identifyEObjectRDFnode (EObject eObject, int pad) {
-		final int subPad = pad + 1;
-		
-		String p = "\n";
-		for (int i = 0; i < pad; i++) {
-			p = p + "\t";
-		}
-		final String prefix = p;
-		
+ 	
+	private Resource identifyEObjectsRDFnode (EObject eObject) {	
 		if (eObject.eResource().getClass().equals(RDFGraphResourceImpl.class)) {
 			RDFGraphResourceImpl rdfGraphResource = (RDFGraphResourceImpl) eObject.eResource();
 			Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
-			processTrace.append(String.format("%s + RDF Node : %s ",
-					prefix,
-					rdfNode));
 			rdfGraphResource.findNamedModelsContaining(rdfNode);
-			getNamedModelsContaining(eObject);
+			
+			processTrace.append(reportNamedModelsContaining(eObject));
 			return rdfNode;
-		} else {
-			processTrace.append(String.format("%s + No RDFGraphResourceImpl for : %s ",
-					prefix,
-					eObject));
 		}
+		processTrace.append(String.format(" ! No RDFGraphResourceImpl for : %s ", eObject));
 		return null;
+		
 	}
 	
-	private List<Resource> getNamedModelsContaining(EObject eObject) {
-		
+	private List<Resource> identifyNamedModelsContaining(EObject eObject) {	
 		if (eObject.eResource().getClass().equals(RDFGraphResourceImpl.class)) { 
 			RDFGraphResourceImpl rdfGraphResource = (RDFGraphResourceImpl) eObject.eResource();
-			List<Resource> list = rdfGraphResource.findNamedModelsContaining(eObject);
-			processTrace.append(String.format(" + On Named Model(s) : "));
-			list.forEach(n -> processTrace.append(String.format(" [ %s ] ", n.getLocalName() )));
+			return rdfGraphResource.findNamedModelsContaining(eObject);
 		}
-		return null;
+		return new ArrayList<Resource>();
 	}
+
 	
-	private void identifyReferences (EObject eObject, EReference reference, int pad) {
+	
+	private void reportReferences (EObject eObject, EReference reference, int pad) {
 		String p = "\n";
 		for (int i = 0; i < pad; i++) {
 			p = p + "\t";
@@ -258,7 +252,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		if(!listOfreferences.isEmpty()) {
 			listOfreferences.forEach(r -> {
 				processTrace.append(String.format("%s-> {", prefix));
-				identifyEObject(r, false , pad);
+				reportEObject(r, false , pad);
 				processTrace.append(String.format("%s   }", prefix));
 				
 				});
@@ -268,7 +262,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		return;
 	}
 	
-	private void identifyTarget(Object target) {
+	private void reportTarget(Object target) {
 		Object targetClass = this.target.getClass();
 		
 		if( targetClass.equals(EObject.class) || targetClass.equals(DynamicEObjectImpl.class) ) {
@@ -279,14 +273,14 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		processTrace.append(String.format("\n - Target : %s  %s ", target.getClass() , target ));	
 	}
 	
-	private void identifyEObject(EObject eObject, boolean followReference, int pad) {
+	private void reportEObject(EObject eObject, boolean followReference, int pad) {
 		String p = "\n";
 		for (int i = 0; i < pad; i++) {
 			p = p + "\t";
 		}
 		final String prefix = p;
 		
-		identifyEObjectRDFnode(eObject, pad);
+		reportEObjectRDFnode(eObject, pad);
 		processTrace.append(String.format("%s - EObject : %s  %s ", prefix, 
 				eObject.eClass().getName(), EcoreUtil.getIdentification(eObject)));
 		
@@ -304,12 +298,12 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 				EcoreEList<EObject> listOfreferences = (EcoreEList<EObject>) eObject.eGet(e);
 				if(!listOfreferences.isEmpty()) {
 					if (followReference) {
-						identifyReferences(eObject, e, pad + 1);
+						reportReferences(eObject, e, pad + 1);
 					} else {
 						listOfreferences.forEach( r ->{
 							processTrace.append(String.format("%s\t-> {", prefix));
 							processTrace.append(String.format("%s\t - %s ", prefix, EcoreUtil.getIdentification(r)));
-							identifyEObjectRDFnode(r, pad + 1 );
+							reportEObjectRDFnode(r, pad + 1 );
 							processTrace.append(String.format("%s\t   }", prefix));
 						});
 					}
@@ -322,6 +316,35 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		});
 	}
 
+	private void reportEObjectRDFnode (EObject eObject, int pad) {
+		final int subPad = pad + 1;
+		
+		String p = "\n";
+		for (int i = 0; i < pad; i++) {
+			p = p + "\t";
+		}
+		final String prefix = p;
+		
+		if (eObject.eResource().getClass().equals(RDFGraphResourceImpl.class)) {
+			Resource rdfNode = identifyEObjectsRDFnode(eObject);
+			processTrace.append(String.format("%s + RDF Node : %s ", prefix, rdfNode));
+			processTrace.append(String.format("%s %s ", prefix, reportNamedModelsContaining(eObject)));						
+		} else {
+			processTrace.append(String.format("%s + No RDFGraphResourceImpl for : %s ",
+					prefix,
+					eObject));
+		}
+		
+	}
+	
+	private String reportNamedModelsContaining (EObject eObject) {
+		StringBuilder namedModels = new StringBuilder();
+		List<Resource> list = identifyNamedModelsContaining(eObject);
+		namedModels.append(String.format(" + On Named Model(s) : "));
+		list.forEach(n -> namedModels.append(String.format(" [ %s ] ", n.getLocalName() )));
+		return namedModels.toString();
+	}
+	
 	/*
 	 * @Override public Notifier getTarget() { // TODO Auto-generated method stub
 	 * System.out.println("getTarget()"); return null; }
