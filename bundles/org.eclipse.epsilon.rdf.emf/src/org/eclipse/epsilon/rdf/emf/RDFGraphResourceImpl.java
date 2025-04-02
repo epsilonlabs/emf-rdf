@@ -18,6 +18,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +30,7 @@ import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.emf.common.util.URI;
@@ -49,6 +51,31 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 
 	private Dataset dataModelSet;
 	private Dataset schemaModelSet;
+	
+	//
+
+	public List<Resource> findNamedModelsContaining(Resource res) {
+		List<Resource> list = new ArrayList<Resource>();
+		if (null != dataModelSet) {
+			Iterator<Resource> namedModels = dataModelSet.listModelNames();
+
+			namedModels.forEachRemaining(m -> {
+				Model model = dataModelSet.getNamedModel(m);
+				if (model.containsResource(res)) {
+					list.add(m);
+				}
+			});
+		}
+		return list;
+	}
+	
+	public List<Resource> findNamedModelsContaining (EObject eob) {
+		Resource res = this.getRDFResource(eob);
+		return this.findNamedModelsContaining(res);
+	}
+	
+	//
+	
 
 	private Model rdfSchemaModel;
 	private Model rdfDataModel;
