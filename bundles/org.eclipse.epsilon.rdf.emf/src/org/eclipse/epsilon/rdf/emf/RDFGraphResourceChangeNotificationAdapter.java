@@ -15,18 +15,11 @@ package org.eclipse.epsilon.rdf.emf;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.jena.datatypes.RDFDatatype;
-import org.apache.jena.ontapi.impl.objects.OntStatementImpl;
-import org.apache.jena.ontapi.model.OntStatement;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
-import org.apache.jena.rdf.model.impl.StatementImpl;
-import org.apache.jena.rdf.model.impl.Util;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
@@ -134,9 +127,14 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 			Resource rdfNode = identifyEObjectsRDFnode(onEObject);
 			List<Model> namedModelsToUpdate = identifyNamedModelsContaining(onEObject);
 			
-			updateAttributeNamedModels(namedModelsToUpdate, rdfNode, eAttributeChanged, value);
-			getGraphResourceFor(onEObject).ttlConsoleOntModel();
-			
+			if(null == notification.getOldValue()) {
+				// New statement
+			} else {
+				// Existing statement
+				updateAttributeNamedModels(namedModelsToUpdate, rdfNode, eAttributeChanged, value, notification.getOldValue());
+			}
+		
+			// getGraphResourceFor(onEObject).ttlConsoleOntModel();			
 			
 			// Console output
 			processTrace.append(String.format("\n ON THIS "));
@@ -245,13 +243,6 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		
 	}
 	
-	private  RDFGraphResourceImpl getGraphResourceFor( EObject eObject) {
-		if (eObject.eResource().getClass().equals(RDFGraphResourceImpl.class)) {
-			return (RDFGraphResourceImpl) eObject.eResource();
-			}
-		return null;
-	}
-	
 	private List<Model> identifyNamedModelsContaining(EObject eObject) {	
 		if (eObject.eResource().getClass().equals(RDFGraphResourceImpl.class)) { 
 			RDFGraphResourceImpl rdfGraphResource = (RDFGraphResourceImpl) eObject.eResource();
@@ -259,18 +250,39 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		}
 		return new ArrayList<Model>();
 	}
+	
+	private void updateAttributeNamedModels(List <Model> namedModels, Resource rdfNode, EAttribute eAttribute, Object newValue, Object oldValue) { 
 
-	private void updateAttributeNamedModels(List <Model> namedModels, Resource rdfNode, EAttribute eAttribute, Object value) { 
-		
 		for (Model model : namedModels) {
+
+			String nameSpace = eAttribute.getEContainingClass().getEPackage().getNsURI();
+			String propertyName = nameSpace + "#" + eAttribute.getName();
+			Property property = new PropertyImpl(propertyName);			
+			RDFNode newObject = model.createTypedLiteral(newValue);
+			RDFNode oldObject = model.createTypedLiteral(oldValue);
+						
+			System.err.println("\n[BEFORE] listProperties() on : " + rdfNode.getLocalName());
+			rdfNode.listProperties().forEach(s-> System.err.println(s));
 			
-			Property p = new PropertyImpl(eAttribute.getName());			
-			RDFNode o = model.createTypedLiteral(value);			
-			model.add(rdfNode, p, o);
-			model.listStatements().forEach(s-> System.err.println(s));			
+			model.remove(rdfNode, property, oldObject);
+			model.add(rdfNode, property, newObject);
+
+			System.err.println("\n[AFTER] listProperties() on : " + rdfNode.getLocalName());
+			rdfNode.listProperties().forEach(s-> System.err.println(s));
+
+			//System.err.println("\nlistObjects()");
+			//model.listObjects().forEach(s-> System.err.println(s));
+			//System.err.println("\nlistSubjects()");
+			//model.listSubjects().forEach(s-> System.err.println(s));			
 		}
 	}
 	
+	private  RDFGraphResourceImpl getGraphResourceFor( EObject eObject) {
+		if (eObject.eResource().getClass().equals(RDFGraphResourceImpl.class)) {
+			return (RDFGraphResourceImpl) eObject.eResource();
+			}
+		return null;
+	}
 	
 	private void reportReferences (EObject eObject, EReference reference, int pad) {
 		String p = "\n";
@@ -292,8 +304,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		}
 		return;
 	}
-	
-	
+
 	private void reportTarget(Object target) {
 		Object targetClass = this.target.getClass();
 		
@@ -304,8 +315,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		
 		processTrace.append(String.format("\n - Target : %s  %s ", target.getClass() , target ));	
 	}
-	
-	
+
 	private void reportEObject(EObject eObject, boolean followReference, int pad) {
 		String p = "\n";
 		for (int i = 0; i < pad; i++) {
@@ -348,7 +358,6 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 			} 
 		});
 	}
-	
 
 	private void reportEObjectRDFnode (EObject eObject, int pad) {
 		final int subPad = pad + 1;
@@ -370,8 +379,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		}
 		
 	}
-	
-	
+
 	private String reportNamedModelsContaining (EObject eObject) {
 		StringBuilder namedModels = new StringBuilder();
 		//List<Model> list = identifyNamedModelsContaining(eObject);
