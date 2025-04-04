@@ -66,7 +66,6 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		List<Resource> modelList = new ArrayList<Resource>();		
 		if (null != dataModelSet) {
 			Iterator<Resource> namedModels = dataModelSet.listModelNames();
-			
 			namedModels.forEachRemaining(m -> {
 				Model model = dataModelSet.getNamedModel(m);
 				if (model.containsResource(res)) {
@@ -76,25 +75,17 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		}
 		return modelList;
 	}
-	
-	public List<Model> findNamedModelsContaining(Resource res) {
-		List<Model> modelList = new ArrayList<Model>();
-		if (null != dataModelSet) {
-			Iterator<Resource> namedModels = dataModelSet.listModelNames();
 
-			namedModels.forEachRemaining(m -> {
-				Model model = dataModelSet.getNamedModel(m);
-				if (model.containsResource(res)) {
-					modelList.add(model);
-				}
-			});
-		}
-		return modelList;
+	public Model getNamedModel (Resource model) {
+		return dataModelSet.getNamedModel(model);
 	}
 	
-	public List<Model> findNamedModelsContaining (EObject eob) {
-		Resource res = this.getRDFResource(eob);
-		return this.findNamedModelsContaining(res);
+	public List<Model> getNamedModels (List<Resource> namedModelURIs) {
+		List<Model> namedModels = new ArrayList<Model>();
+		for (Resource model : namedModelURIs) {
+			namedModels.add(dataModelSet.getNamedModel(model));
+		}
+		return namedModels;
 	}
 	
 	//
@@ -200,6 +191,12 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 
 	public void setConfig(RDFResourceConfiguration config) {
 		this.config = config;
+	}
+	
+	public void ttlConsoleModel (Model model) {
+		System.out.println("\n TURTLE rdfOntModel \n");
+		OutputStream console = System.out;
+		model.write(console,"ttl" );
 	}
 	
 	public void ttlConsoleOntModel () {

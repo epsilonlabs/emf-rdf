@@ -12,7 +12,6 @@
  ********************************************************************************/
 package org.eclipse.epsilon.rdf.emf;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.jena.rdf.model.Model;
@@ -124,14 +123,11 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 			boolean isOrdered = eAttributeChanged.isOrdered();// If this is set then there is Order to the values.				
 			int orderPosition = -1; // This is not notification.getPosition()
 			
-			Resource rdfNode = identifyEObjectsRDFnode(onEObject);
-			List<Model> namedModelsToUpdate = identifyNamedModelsContaining(onEObject);
-			
 			if(null == notification.getOldValue()) {
 				// New statement
 			} else {
 				// Existing statement
-				updateAttributeNamedModels(namedModelsToUpdate, rdfNode, eAttributeChanged, value, notification.getOldValue());
+				updateAttributeInRDFGraphs(onEObject, eAttributeChanged, value, notification.getOldValue());
 			}
 		
 			// getGraphResourceFor(onEObject).ttlConsoleOntModel();			
@@ -157,9 +153,6 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 
 			boolean isOrdered = eReference.isOrdered();
 			int orderPosition = -1 ; // This is not notification.getPosition()			
-
-			Resource rdfNode = identifyEObjectsRDFnode(onEObject);
-			List<Model> namedModelToUpdate = identifyNamedModelsContaining(onEObject);
 			
 			// Console output
 			processTrace.append(String.format("\n ON THIS "));
@@ -233,7 +226,6 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		if (eObject.eResource().getClass().equals(RDFGraphResourceImpl.class)) {
 			RDFGraphResourceImpl rdfGraphResource = (RDFGraphResourceImpl) eObject.eResource();
 			Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
-			rdfGraphResource.findNamedModelsContaining(rdfNode);
 			
 			processTrace.append(reportNamedModelsContaining(eObject));
 			return rdfNode;
@@ -243,38 +235,44 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		
 	}
 	
-	private List<Model> identifyNamedModelsContaining(EObject eObject) {	
-		if (eObject.eResource().getClass().equals(RDFGraphResourceImpl.class)) { 
-			RDFGraphResourceImpl rdfGraphResource = (RDFGraphResourceImpl) eObject.eResource();
-			return rdfGraphResource.findNamedModelsContaining(eObject);
+	private void updateAttributeInRDFGraphs(EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) { 
+		RDFGraphResourceImpl graphResource = getGraphResourceFor(onEObject);
+		Resource rdfNode = graphResource.getRDFResource(onEObject);
+		List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(rdfNode);
+		
+		if(namedModelURIs.size() > 1) {
+			System.err.print(String.format("RDF node %s has been found on %s named models : %s",
+					rdfNode.getLocalName(), namedModelURIs.size(), namedModelURIs));
+			// Return here if you want to bail out from changing all the graphs
 		}
-		return new ArrayList<Model>();
-	}
-	
-	private void updateAttributeNamedModels(List <Model> namedModels, Resource rdfNode, EAttribute eAttribute, Object newValue, Object oldValue) { 
+		
 
-		for (Model model : namedModels) {
+		String nameSpace = eAttribute.getEContainingClass().getEPackage().getNsURI();
+		String propertyName = nameSpace + "#" + eAttribute.getName();
+		Property property = new PropertyImpl(propertyName);			
+		
+		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);		
+		for (Model model : namedModelsToUpdate) {
 
-			String nameSpace = eAttribute.getEContainingClass().getEPackage().getNsURI();
-			String propertyName = nameSpace + "#" + eAttribute.getName();
-			Property property = new PropertyImpl(propertyName);			
 			RDFNode newObject = model.createTypedLiteral(newValue);
 			RDFNode oldObject = model.createTypedLiteral(oldValue);
 						
-			System.err.println("\n[BEFORE] listProperties() on : " + rdfNode.getLocalName());
-			rdfNode.listProperties().forEach(s-> System.err.println(s));
+			Resource modelRDFnode = model.getResource(rdfNode.getURI());
+			
+			reportRDFnodeProperties("BEFORE", model, modelRDFnode);
 			
 			model.remove(rdfNode, property, oldObject);
 			model.add(rdfNode, property, newObject);
-
-			System.err.println("\n[AFTER] listProperties() on : " + rdfNode.getLocalName());
-			rdfNode.listProperties().forEach(s-> System.err.println(s));
-
-			//System.err.println("\nlistObjects()");
-			//model.listObjects().forEach(s-> System.err.println(s));
-			//System.err.println("\nlistSubjects()");
-			//model.listSubjects().forEach(s-> System.err.println(s));			
+			
+			reportRDFnodeProperties("AFTER", model, modelRDFnode);
 		}
+	}
+	
+	private void reportRDFnodeProperties (String label, Model model, Resource rdfNode ) {
+		System.err.println("\n"+label+"\nModel hashCode : " + model.hashCode());
+		System.err.println("Size: " + model.size() + " isEmpty? " + model.isEmpty());
+		System.err.println("listProperties() on : " + rdfNode.getLocalName());
+		rdfNode.listProperties().forEach(s-> System.err.println(s));
 	}
 	
 	private  RDFGraphResourceImpl getGraphResourceFor( EObject eObject) {
