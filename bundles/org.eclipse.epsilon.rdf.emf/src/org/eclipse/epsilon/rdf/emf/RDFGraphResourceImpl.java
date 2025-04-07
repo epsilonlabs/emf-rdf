@@ -12,6 +12,7 @@
  ********************************************************************************/
 package org.eclipse.epsilon.rdf.emf;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -35,6 +36,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
@@ -56,6 +58,71 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	private Dataset schemaModelSet;
 	
 	//
+	
+	private void storeDatasetNamedModels (Dataset dataset, String namedModelURI, String saveLocationURI) throws IOException {
+		// NamedModelURI is a model in the provided dataset and saveLocationURI is the file system path to save it too.
+		if (dataset.containsNamedModel(namedModelURI))
+		{
+			Model modelToSave = dataset.getNamedModel(namedModelURI);
+
+			Lang lang = RDFDataMgr.determineLang(namedModelURI, namedModelURI, Lang.TTL);  // Hint becomes default
+			
+			try (OutputStream out = new FileOutputStream(saveLocationURI)) {
+				RDFDataMgr.write(out, modelToSave, lang);
+				out.close();
+			}
+		}
+		else {
+			System.err.print(String.format("\n Can not find named Model URI : %s \n", namedModelURI ));
+		}
+	}
+	
+	@Override
+	public void save(Map<?, ?> options) throws IOException {
+		// TODO Auto-generated method stub
+		System.err.print("save");
+		//super.save(options);
+		
+		// TODO need some way to work out which of the Named models we want to write out, for now dump them all.
+		Iterator<Resource> namedModels = dataModelSet.listModelNames();
+		namedModels.forEachRemaining(m-> {
+			System.err.print(String.format("\n -model URI %s \n -model Name %s\n", m.getURI(), m.getLocalName() ));
+			
+			URL fileSystemPathUrl = null;
+			
+			try {
+				URL url = new URL(m.getURI());
+				fileSystemPathUrl = FileLocator.toFileURL(url);
+				storeDatasetNamedModels(dataModelSet, m.getURI(), fileSystemPathUrl.getPath());					
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			});
+	}
+		
+	@Override
+	protected void doSave(OutputStream outputStream, Map<?, ?> options) throws IOException {
+		// TODO Auto-generated method stub
+		System.err.print("doSave");
+		//super.doSave(outputStream, options);
+		
+
+	}
+
+	@Override
+	protected void saveOnlyIfChangedWithFileBuffer(Map<?, ?> options) throws IOException {
+		// TODO Auto-generated method stub
+		System.err.print("saveOnlyIfChangedWithFileBuffer");
+		//super.saveOnlyIfChangedWithFileBuffer(options);
+	}
+	
+	@Override
+	protected void saveOnlyIfChangedWithMemoryBuffer(Map<?, ?> options) throws IOException {
+		// TODO Auto-generated method stub
+		System.err.print("saveOnlyIfChangedWithMemoryBuffer");
+		//super.saveOnlyIfChangedWithMemoryBuffer(options);
+	}
 
 	public List<Resource> getResourcesForNamedModelsContaining(EObject eObject) {
 		Resource res = this.getRDFResource(eObject);
