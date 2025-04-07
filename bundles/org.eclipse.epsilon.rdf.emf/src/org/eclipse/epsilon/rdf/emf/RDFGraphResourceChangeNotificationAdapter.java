@@ -118,7 +118,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 			// This is likely a property of the RDF node for the "onEobject"
 			EObject onEObject = (EObject)notification.getNotifier();	// RDF node
 			EAttribute eAttributeChanged = (EAttribute) feature;		// RDF property
-			// eAttribute's value										// RDF object (node/literal)
+			// eAttribute's is value									// RDF object (node/literal)
 			
 			boolean isOrdered = eAttributeChanged.isOrdered();// If this is set then there is Order to the values.				
 			int orderPosition = -1; // This is not notification.getPosition()
@@ -248,26 +248,26 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		
 
 		String nameSpace = eAttribute.getEContainingClass().getEPackage().getNsURI();
-		String propertyName = nameSpace + "#" + eAttribute.getName();
-		Property property = new PropertyImpl(propertyName);			
+		String propertyURI = nameSpace + "#" + eAttribute.getName();
+		Property property = new PropertyImpl(propertyURI);			
 		
-		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);		
+		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
 		for (Model model : namedModelsToUpdate) {
 
 			RDFNode newObject = model.createTypedLiteral(newValue);
 			RDFNode oldObject = model.createTypedLiteral(oldValue);
 						
-			Resource modelRDFnode = model.getResource(rdfNode.getURI());
-			
-			reportRDFnodeProperties("BEFORE", model, modelRDFnode);
+			//Resource modelRDFnode = model.getResource(rdfNode.getURI());
+			//reportRDFnodeProperties("BEFORE", model, modelRDFnode);
 			
 			model.remove(rdfNode, property, oldObject);
 			model.add(rdfNode, property, newObject);
 			
-			reportRDFnodeProperties("AFTER", model, modelRDFnode);
+			//reportRDFnodeProperties("AFTER", model, modelRDFnode);
 		}
 	}
 	
+	// TODO Remove this experiment code
 	private void reportRDFnodeProperties (String label, Model model, Resource rdfNode ) {
 		System.err.println("\n"+label+"\nModel hashCode : " + model.hashCode());
 		System.err.println("Size: " + model.size() + " isEmpty? " + model.isEmpty());
