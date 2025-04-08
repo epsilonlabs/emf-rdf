@@ -29,10 +29,8 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
-import org.eclipse.emf.ecore.xmi.impl.XMIResourceImpl;
 import org.eclipse.emf.emfatic.core.EmfaticResourceFactory;
 import org.eclipse.epsilon.rdf.emf.RDFGraphResourceFactory;
-import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
