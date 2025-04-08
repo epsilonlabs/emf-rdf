@@ -16,15 +16,20 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.EMFCompare;
 import org.eclipse.emf.compare.scope.DefaultComparisonScope;
 import org.eclipse.emf.compare.scope.IComparisonScope;
+import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.emf.ecore.impl.EAttributeImpl;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
@@ -60,6 +65,46 @@ public class EAttributeToRDFTest {
 		ResourceSet xmi = getXMIResourceSet(EMFNativeModel, metaModel);
 		
 		equivalentModels("Test 1", rdf , xmi);
+	}
+	
+	@Test
+	public void test2 () throws IOException {
+		ResourceSet metaModel = getMetaModelResourceSet(MetaModel);
+		ResourceSet rdf = getGraphResourceSet(RDFGraphModel, metaModel);
+		ResourceSet xmi = getXMIResourceSet(EMFNativeModel, metaModel);
+		
+		rdf.getResources().forEach(r -> System.out.println("\n RDF: " + r.getURI()) );
+		Resource rdfResource = rdf.getResources().get(0);
+		
+		//rdfResource.getContents().forEach(c -> System.out.println("   - rdfResource: " + c.toString()));
+		EObject rdfModel = rdfResource.getContents().get(0);
+		//rdfModel.eContents().forEach(a -> System.out.println("     - rdfModel: " + a.toString()));
+		EObject rdfEntity = rdfModel.eContents().get(0);
+		//rdfEntity.eClass().getEAttributes().forEach(a -> System.out.println("       - rdfEntity: " + a.toString()));
+		
+		System.out.println("\n\n eByte Feature ID : " + getEAttribute(rdfEntity, "eByte").getFeatureID());
+		System.out.println(" eByte Value : " + rdfEntity.eGet(getEAttribute(rdfEntity, "eByte")));
+		
+		System.out.println(" Change eByte "); 
+		Byte b = 126;
+		rdfEntity.eSet(getEAttribute(rdfEntity, "eByte"), b);
+		
+		System.out.println("\n\n eByte Feature ID : " + getEAttribute(rdfEntity, "eByte").getFeatureID());
+		System.out.println(" eByte Value : " + rdfEntity.eGet(getEAttribute(rdfEntity, "eByte")));
+		
+		equivalentModels("Test 1", rdf , xmi);
+	}
+	
+	
+	
+	public EAttribute getEAttribute(EObject eObject, String AttributeName ) {		
+		EList<EAttribute> attributes = eObject.eClass().getEAttributes();
+		for (EAttribute eAttribute : attributes) {
+			if(eAttribute.getName().contains(AttributeName)) {
+				return eAttribute;
+			}
+		}		 
+		return null;
 	}
 	
 	protected void registerEPackages(ResourceSet rsMetamodels, ResourceSet rsTarget) {
