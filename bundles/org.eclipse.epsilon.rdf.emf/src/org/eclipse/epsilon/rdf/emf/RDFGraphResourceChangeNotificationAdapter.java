@@ -236,11 +236,13 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		
 	}
 	
+	// TODO RDF updates should be a separate class that does the RDF work
 	private void updateAttributeInRDFGraphs(EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) { 
 		RDFGraphResourceImpl graphResource = getGraphResourceFor(onEObject);
 		Resource rdfNode = graphResource.getRDFResource(onEObject);
-		List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(rdfNode);
 		
+		// TODO Make a list of Named Models that should be checked for the statements (not just an rdfNode?), and changed.
+		List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(rdfNode);
 		if(namedModelURIs.size() > 1) {
 			System.err.print(String.format("RDF node %s has been found on %s named models : %s",
 					rdfNode.getLocalName(), namedModelURIs.size(), namedModelURIs));
@@ -252,6 +254,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		String propertyURI = nameSpace + "#" + eAttribute.getName();
 		Property property = new PropertyImpl(propertyURI);			
 		
+		// TODO Go through the list of Named models to update and make the changes
 		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
 		for (Model model : namedModelsToUpdate) {
 
@@ -261,8 +264,11 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 			//Resource modelRDFnode = model.getResource(rdfNode.getURI());
 			//reportRDFnodeProperties("BEFORE", model, modelRDFnode);
 			
-			model.remove(rdfNode, property, oldObject);
-			model.add(rdfNode, property, newObject);
+			// This is an update, so we only replace the statement if it exists
+			if (model.contains(rdfNode, property, oldObject)) {
+				model.remove(rdfNode, property, oldObject);
+				model.add(rdfNode, property, newObject);
+			}
 			
 			//reportRDFnodeProperties("AFTER", model, modelRDFnode);
 		}
