@@ -106,8 +106,6 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		// TODO Auto-generated method stub
 		System.err.print("doSave");
 		//super.doSave(outputStream, options);
-		
-
 	}
 
 	@Override
@@ -260,6 +258,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		this.config = config;
 	}
 	
+	// TODO remove experiment code
 	public void ttlConsoleModel (Model model) {
 		System.out.println("\n TURTLE rdfOntModel \n");
 		OutputStream console = System.out;
