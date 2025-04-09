@@ -151,6 +151,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 			EReferenceImpl eReference = (EReferenceImpl) feature;		// RDF property
 			EObject referenced = (EObject) value;						// RDF object (node) 
 
+			// TODO Deal with ordering
 			boolean isOrdered = eReference.isOrdered();
 			int orderPosition = -1 ; // This is not notification.getPosition()			
 			
@@ -267,19 +268,19 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		}
 	}
 	
+	private  RDFGraphResourceImpl getGraphResourceFor( EObject eObject) {
+		if (eObject.eResource().getClass().equals(RDFGraphResourceImpl.class)) {
+			return (RDFGraphResourceImpl) eObject.eResource();
+			}
+		return null;
+	}
+	
 	// TODO Remove this experiment code
 	private void reportRDFnodeProperties (String label, Model model, Resource rdfNode ) {
 		System.err.println("\n"+label+"\nModel hashCode : " + model.hashCode());
 		System.err.println("Size: " + model.size() + " isEmpty? " + model.isEmpty());
 		System.err.println("listProperties() on : " + rdfNode.getLocalName());
 		rdfNode.listProperties().forEach(s-> System.err.println(s));
-	}
-	
-	private  RDFGraphResourceImpl getGraphResourceFor( EObject eObject) {
-		if (eObject.eResource().getClass().equals(RDFGraphResourceImpl.class)) {
-			return (RDFGraphResourceImpl) eObject.eResource();
-			}
-		return null;
 	}
 	
 	private void reportReferences (EObject eObject, EReference reference, int pad) {
