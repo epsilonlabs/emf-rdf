@@ -52,7 +52,6 @@ public class EAttributeToRDFTest {
 	
 	// TODO Changes for each type of EAttribute
 	// TODO Changes to the order of Multi-value EAttributes (Not in this pull request)
-	// TODO Add an XMI file that should represent the EMF Resource after the RDF has been changed
 	
 	static final boolean CONSOLE_OUTPUT_ACTIVE = false;
 	
