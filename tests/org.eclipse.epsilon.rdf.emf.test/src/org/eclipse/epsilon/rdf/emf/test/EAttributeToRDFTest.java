@@ -54,6 +54,9 @@ public class EAttributeToRDFTest {
 	// TODO Changes to the order of Multi-value EAttributes (Not in this pull request)
 	// TODO Add an XMI file that should represent the EMF Resource after the RDF has been changed
 	
+	static final boolean CONSOLE_OUTPUT_ACTIVE = false;
+	
+	
 	@BeforeClass
 	public static void setupDrivers() {
 		Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl());
@@ -73,122 +76,93 @@ public class EAttributeToRDFTest {
 	ResourceSet rdf = null; 
 	ResourceSet xmiBefore = null;
 	ResourceSet xmiAfter = null;
+
+	// Entity from the Model(s) used to test Attributes
+	EObject rdfEntity = null;
+	EObject xmiEntity = null;
+	
+	private String testType = "";
 	
 	@Before
 	public void claimResources() throws IOException {
-		System.out.println("--- CLAIM ---");
 		copyFile(OriginalTTL, WorkingTTL);
+
 		metaModel = getMetaModelResourceSet(MetaModel);
 		rdf = getGraphResourceSet(RDFGraphModel, metaModel);
 		xmiBefore = getXMIResourceSet(EMFNativeModelBefore, metaModel);
-		//xmiAfter = getXMIResourceSet(EMFNativeModelAfter, metaModel);
+		
+		rdfEntity = getRdfEntityForAttributeTest(rdf);
+		xmiEntity = getRdfEntityForAttributeTest(xmiBefore);
 	}
 
 	@After
-	public void releaseResources() throws IOException {		
-		System.out.println("--- RELEASE ---");
-		
-		Files.delete(WorkingTTL.toPath());
-		
-		/*
-		 // Creates a "java.lang.UnsupportedOperationException" error?
-
-		try {
-			rdf.getAllContents().remove();
-			metaModel.getAllContents().remove();
-			xmiBefore.getAllContents().remove();
-			// xmiAfter.getAllContents().remove();
-		} catch (Exception e) {
-			System.err.println(e);
+	public void releaseResources() throws IOException {			
+		if(WorkingTTL.exists()) {
+			Files.delete(WorkingTTL.toPath());
 		}
-		*/
+		if(EMFNativeModelAfter.exists()) {
+			Files.delete(EMFNativeModelAfter.toPath());
+		}
 		
 		metaModel = null;
 		rdf = null; 
 		xmiBefore = null;
-		//xmiAfter = null;
 	}
 	
 	@Test
-	public void baselineBeforeTest () throws IOException {	
+	public void baselineBeforeTest () throws IOException {
+		// Check we can load the beforeXMI and that it matched the RDF version
+		testType = "baselineBeforeTest";	
 		equivalentModels("baselineBeforeTest : ", rdf , xmiBefore);
 	}
 
 	@Test
 	public void eByteTest () throws IOException {
-		final String testType = "eByte";
-				
-		EObject rdfEntity = getRdfEntityForAttributeTest(rdf);
-		EObject xmiEntity = getRdfEntityForAttributeTest(xmiBefore);
-		
-		System.out.println("\n\n Initial " + testType);
-		System.out.println( testType + " Feature ID : " + getEAttribute(rdfEntity, testType).getFeatureID());
-		System.out.println( testType + " Value : " + rdfEntity.eGet(getEAttribute(rdfEntity, testType)));
-
-		equivalentModels(testType + " Before", rdf , xmiBefore);
-		System.out.println("\n Change eByte "); 
-		
-		Byte value = 126;
-		rdfEntity.eSet(getEAttribute(rdfEntity, "eByte"), value);
-		xmiEntity.eSet(getEAttribute(xmiEntity, testType), value);
-		
-		System.out.println(testType + " Feature ID : " + getEAttribute(rdfEntity, testType).getFeatureID());
-		System.out.println(testType + " Value : " + rdfEntity.eGet(getEAttribute(rdfEntity, testType)));
-
-		System.out.println("\n Reload rdfResource ");
-		rdf.getResources().get(0).save(null);
-		// xmiBefore.getResources().get(0).save(null, null); // Save out the changed XMI -- get a _Correct_ XMI file
-		// Load xmiAfter model
-		saveBeforeXmi(EMFNativeModelAfter);
-		
-		xmiAfter = getXMIResourceSet(EMFNativeModelAfter, metaModel);
-		rdf = getGraphResourceSet(RDFGraphModel, metaModel);
-		rdfEntity = getRdfEntityForAttributeTest(rdf);
-		
-		System.out.println(testType + " Feature ID : " + getEAttribute(rdfEntity, testType).getFeatureID());
-		System.out.println(testType + " Value : " + rdfEntity.eGet(getEAttribute(rdfEntity, testType)));
-		
-		equivalentModels(testType + " After", rdf , xmiAfter);
+		testType = "eByte";	
+		Byte b = 126;
+		changeAndTest(b);
 	}
 	
 	@Test
 	public void eBooleanTest () throws IOException {
-		final String testType = "eBoolean";
+		testType = "eBoolean";
+		changeAndTest((Boolean) false);
+	}
+	
+	// TODO Add in all the other types using the simple test pattern (as above)
+	
+	public void reportConsoleAttributeState(String reportLabel) {
+		if (CONSOLE_OUTPUT_ACTIVE) { 
+			System.out.println(reportLabel);
+			System.out.println(testType + " Feature ID : " + getEAttribute(rdfEntity, testType).getFeatureID());
+			System.out.println(testType + " Value : " + rdfEntity.eGet(getEAttribute(rdfEntity, testType)));
+		}
+	}
+	
+	
+	public void changeAndTest (Object value) throws IOException {
+		reportConsoleAttributeState("[TEST] Before " + testType);
 		
-		EObject rdfEntity = getRdfEntityForAttributeTest(rdf);
-		EObject xmiEntity = getRdfEntityForAttributeTest(xmiBefore);
+		if (CONSOLE_OUTPUT_ACTIVE) {
+			System.out.println("[TEST] Change " + value.getClass().getTypeName() + " " + value);
+		}
 		
-		System.out.println("\n\n Initial " + testType);
-		System.out.println( testType + " Feature ID : " + getEAttribute(rdfEntity, testType).getFeatureID());
-		System.out.println( testType + " Value : " + rdfEntity.eGet(getEAttribute(rdfEntity, testType)));
-
-		equivalentModels(testType + " Before", rdf , xmiBefore);
-		
-		System.out.println("\n Change " + testType); 
-		
-		Boolean value = false;
 		rdfEntity.eSet(getEAttribute(rdfEntity, testType), value);
 		xmiEntity.eSet(getEAttribute(xmiEntity, testType), value);
 		
-		System.out.println(testType + " Feature ID : " + getEAttribute(rdfEntity, testType).getFeatureID());
-		System.out.println(testType + " Value : " + rdfEntity.eGet(getEAttribute(rdfEntity, testType)));
-
-		System.out.println("\n Reload rdfResource ");
 		rdf.getResources().get(0).save(null);
 		saveBeforeXmi(EMFNativeModelAfter);
 		
 		xmiAfter = getXMIResourceSet(EMFNativeModelAfter, metaModel);
 		rdf = getGraphResourceSet(RDFGraphModel, metaModel);
-		rdfEntity = getRdfEntityForAttributeTest(rdf);
-		
-		System.out.println(testType + " Feature ID : " + getEAttribute(rdfEntity, testType).getFeatureID());
-		System.out.println(testType + " Value : " + rdfEntity.eGet(getEAttribute(rdfEntity, testType)));
 		
 		equivalentModels(testType + " After", rdf , xmiAfter);
+		
+		reportConsoleAttributeState("[TEST] After " + testType);
 	}
 	
+	
 	public void saveBeforeXmi (File destinationFile) throws FileNotFoundException, IOException {
-		System.out.println(" ** saveBeforeXmi "); 
 		if (destinationFile.exists()) {
 			destinationFile.delete();
 		}	
@@ -220,12 +194,8 @@ public class EAttributeToRDFTest {
 	protected EObject getRdfEntityForAttributeTest (ResourceSet rdf) {
 		rdf.getResources().forEach(r -> System.out.println("\n RDF: " + r.getURI()) );
 		Resource rdfResource = rdf.getResources().get(0);
-		
-		//rdfResource.getContents().forEach(c -> System.out.println("   - rdfResource: " + c.toString()));
 		EObject rdfModel = rdfResource.getContents().get(0);
-		//rdfModel.eContents().forEach(a -> System.out.println("     - rdfModel: " + a.toString()));
 		EObject rdfEntity = rdfModel.eContents().get(0);
-		//rdfEntity.eClass().getEAttributes().forEach(a -> System.out.println("       - rdfEntity: " + a.toString()));
 		return rdfEntity;
 	}
 	
