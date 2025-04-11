@@ -21,7 +21,7 @@
     simple:eBoolean "true"^^xsd:boolean ;
     simple:eBooleans ( "true"^^xsd:boolean "false"^^xsd:boolean );
     
-    simple:eBooleanObject "false"^^xsd:boolean ;
+    simple:eBooleanObject "true"^^xsd:boolean ;
     simple:eBooleanObjects ( "true"^^xsd:boolean "false"^^xsd:boolean ) ;
        
     simple:eByte "127"^^xsd:byte ;

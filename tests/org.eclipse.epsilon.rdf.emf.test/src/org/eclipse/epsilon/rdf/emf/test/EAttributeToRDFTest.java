@@ -16,9 +16,13 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
@@ -33,9 +37,14 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.xmi.XMIResource;
+import org.eclipse.emf.ecore.xmi.XMLResource;
+import org.eclipse.emf.ecore.xmi.impl.URIHandlerImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.emf.emfatic.core.EmfaticResourceFactory;
 import org.eclipse.epsilon.rdf.emf.RDFGraphResourceFactory;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -57,63 +66,155 @@ public class EAttributeToRDFTest {
 	
 	private final File RDFGraphModel = new File("resources/EAttribute_test/model.rdfres");
 	private final File EMFNativeModelBefore = new File("resources/EAttribute_test/model_before.xmi");
-	private final File EMFNativeModelAfter = new File("resources/EAttribute_test/model_after.xmi");
+	private final File EMFNativeModelAfter = new File("resources/EAttribute_test/model_after.xmi");  // This file is generated _AFTER_ changing the RDFGraphResource
 	private final File MetaModel = new File("resources/EAttribute_test/metamodel.emf");
 	
-	@Test
-	public void test1 () throws IOException {
+	ResourceSet metaModel = null;
+	ResourceSet rdf = null; 
+	ResourceSet xmiBefore = null;
+	ResourceSet xmiAfter = null;
+	
+	@Before
+	public void claimResources() throws IOException {
+		System.out.println("--- CLAIM ---");
 		copyFile(OriginalTTL, WorkingTTL);
+		metaModel = getMetaModelResourceSet(MetaModel);
+		rdf = getGraphResourceSet(RDFGraphModel, metaModel);
+		xmiBefore = getXMIResourceSet(EMFNativeModelBefore, metaModel);
+		//xmiAfter = getXMIResourceSet(EMFNativeModelAfter, metaModel);
+	}
+
+	@After
+	public void releaseResources() throws IOException {		
+		System.out.println("--- RELEASE ---");
 		
-		ResourceSet metaModel = getMetaModelResourceSet(MetaModel);
-		ResourceSet rdf = getGraphResourceSet(RDFGraphModel, metaModel);
-		ResourceSet xmi = getXMIResourceSet(EMFNativeModelBefore, metaModel);
+		Files.delete(WorkingTTL.toPath());
 		
-		equivalentModels("Test 1", rdf , xmi);
+		/*
+		 // Creates a "java.lang.UnsupportedOperationException" error?
+
+		try {
+			rdf.getAllContents().remove();
+			metaModel.getAllContents().remove();
+			xmiBefore.getAllContents().remove();
+			// xmiAfter.getAllContents().remove();
+		} catch (Exception e) {
+			System.err.println(e);
+		}
+		*/
+		
+		metaModel = null;
+		rdf = null; 
+		xmiBefore = null;
+		//xmiAfter = null;
+	}
+	
+	@Test
+	public void baselineBeforeTest () throws IOException {	
+		equivalentModels("baselineBeforeTest : ", rdf , xmiBefore);
 	}
 
 	@Test
-	public void test2 () throws IOException {
-		copyFile(OriginalTTL, WorkingTTL);
-		
-		ResourceSet metaModel = getMetaModelResourceSet(MetaModel);
-		ResourceSet rdf = getGraphResourceSet(RDFGraphModel, metaModel);
-		ResourceSet xmiBefore = getXMIResourceSet(EMFNativeModelBefore, metaModel);
-		ResourceSet xmiAfter = getXMIResourceSet(EMFNativeModelAfter, metaModel);
-		
+	public void eByteTest () throws IOException {
+		final String testType = "eByte";
+				
 		EObject rdfEntity = getRdfEntityForAttributeTest(rdf);
+		EObject xmiEntity = getRdfEntityForAttributeTest(xmiBefore);
 		
-		System.out.println("\n\n Initial eByte "); 
-		
-		System.out.println(" eByte Feature ID : " + getEAttribute(rdfEntity, "eByte").getFeatureID());
-		System.out.println(" eByte Value : " + rdfEntity.eGet(getEAttribute(rdfEntity, "eByte")));
+		System.out.println("\n\n Initial " + testType);
+		System.out.println( testType + " Feature ID : " + getEAttribute(rdfEntity, testType).getFeatureID());
+		System.out.println( testType + " Value : " + rdfEntity.eGet(getEAttribute(rdfEntity, testType)));
 
-		equivalentModels("Test Before", rdf , xmiBefore);
-		
+		equivalentModels(testType + " Before", rdf , xmiBefore);
 		System.out.println("\n Change eByte "); 
 		
-		Byte b = 126;
-		rdfEntity.eSet(getEAttribute(rdfEntity, "eByte"), b);
+		Byte value = 126;
+		rdfEntity.eSet(getEAttribute(rdfEntity, "eByte"), value);
+		xmiEntity.eSet(getEAttribute(xmiEntity, testType), value);
 		
-		System.out.println("eByte Feature ID : " + getEAttribute(rdfEntity, "eByte").getFeatureID());
-		System.out.println(" eByte Value : " + rdfEntity.eGet(getEAttribute(rdfEntity, "eByte")));
+		System.out.println(testType + " Feature ID : " + getEAttribute(rdfEntity, testType).getFeatureID());
+		System.out.println(testType + " Value : " + rdfEntity.eGet(getEAttribute(rdfEntity, testType)));
 
-		
-		
 		System.out.println("\n Reload rdfResource ");
 		rdf.getResources().get(0).save(null);
+		// xmiBefore.getResources().get(0).save(null, null); // Save out the changed XMI -- get a _Correct_ XMI file
+		// Load xmiAfter model
+		saveBeforeXmi(EMFNativeModelAfter);
 		
+		xmiAfter = getXMIResourceSet(EMFNativeModelAfter, metaModel);
 		rdf = getGraphResourceSet(RDFGraphModel, metaModel);
-		
 		rdfEntity = getRdfEntityForAttributeTest(rdf);
 		
-		System.out.println(" eByte Feature ID : " + getEAttribute(rdfEntity, "eByte").getFeatureID());
-		System.out.println(" eByte Value : " + rdfEntity.eGet(getEAttribute(rdfEntity, "eByte")));
+		System.out.println(testType + " Feature ID : " + getEAttribute(rdfEntity, testType).getFeatureID());
+		System.out.println(testType + " Value : " + rdfEntity.eGet(getEAttribute(rdfEntity, testType)));
 		
-		equivalentModels("Test After", rdf , xmiAfter);
+		equivalentModels(testType + " After", rdf , xmiAfter);
 	}
+	
+	@Test
+	public void eBooleanTest () throws IOException {
+		final String testType = "eBoolean";
+		
+		EObject rdfEntity = getRdfEntityForAttributeTest(rdf);
+		EObject xmiEntity = getRdfEntityForAttributeTest(xmiBefore);
+		
+		System.out.println("\n\n Initial " + testType);
+		System.out.println( testType + " Feature ID : " + getEAttribute(rdfEntity, testType).getFeatureID());
+		System.out.println( testType + " Value : " + rdfEntity.eGet(getEAttribute(rdfEntity, testType)));
+
+		equivalentModels(testType + " Before", rdf , xmiBefore);
+		
+		System.out.println("\n Change " + testType); 
+		
+		Boolean value = false;
+		rdfEntity.eSet(getEAttribute(rdfEntity, testType), value);
+		xmiEntity.eSet(getEAttribute(xmiEntity, testType), value);
+		
+		System.out.println(testType + " Feature ID : " + getEAttribute(rdfEntity, testType).getFeatureID());
+		System.out.println(testType + " Value : " + rdfEntity.eGet(getEAttribute(rdfEntity, testType)));
+
+		System.out.println("\n Reload rdfResource ");
+		rdf.getResources().get(0).save(null);
+		saveBeforeXmi(EMFNativeModelAfter);
+		
+		xmiAfter = getXMIResourceSet(EMFNativeModelAfter, metaModel);
+		rdf = getGraphResourceSet(RDFGraphModel, metaModel);
+		rdfEntity = getRdfEntityForAttributeTest(rdf);
+		
+		System.out.println(testType + " Feature ID : " + getEAttribute(rdfEntity, testType).getFeatureID());
+		System.out.println(testType + " Value : " + rdfEntity.eGet(getEAttribute(rdfEntity, testType)));
+		
+		equivalentModels(testType + " After", rdf , xmiAfter);
+	}
+	
+	public void saveBeforeXmi (File destinationFile) throws FileNotFoundException, IOException {
+		System.out.println(" ** saveBeforeXmi "); 
+		if (destinationFile.exists()) {
+			destinationFile.delete();
+		}	
+		if (destinationFile.createNewFile()) {
+			try (OutputStream destinationStream = new FileOutputStream(destinationFile)) {
+				xmiBefore.getResources().get(0).save(destinationStream, null);
+				delaySeconds(1);
+			}
+		} else {
+			System.err.println("Failed to save XMI : " + destinationFile.toPath().toString());
+		}		
+		
+	}
+		
 	
 	protected void copyFile(File source, File destination) throws FileNotFoundException, IOException {
 		Files.copy(source.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		delaySeconds(1);
+	}
+	
+	private void delaySeconds(int seconds) {
+		try {
+			TimeUnit.SECONDS.sleep(seconds);
+		} catch (InterruptedException ie) {
+			Thread.currentThread().interrupt();
+		}
 	}
 	
 	protected EObject getRdfEntityForAttributeTest (ResourceSet rdf) {
@@ -131,7 +232,7 @@ public class EAttributeToRDFTest {
 	public EAttribute getEAttribute(EObject eObject, String AttributeName ) {		
 		EList<EAttribute> attributes = eObject.eClass().getEAttributes();
 		for (EAttribute eAttribute : attributes) {
-			if(eAttribute.getName().contains(AttributeName)) {
+			if(eAttribute.getName().equals(AttributeName)) {
 				return eAttribute;
 			}
 		}		 
@@ -169,11 +270,18 @@ public class EAttributeToRDFTest {
 		return rsRDF;
 	}
 	
-	protected ResourceSet getXMIResourceSet(File file, ResourceSet rsMetamodels) throws IOException {		
-		ResourceSet rsXmi = new ResourceSetImpl();
-		registerEPackages(rsMetamodels, rsXmi);
-		loadFileIntoResourceSet(file, rsXmi);
-		return rsXmi;
+	protected ResourceSet getXMIResourceSet(File file, ResourceSet rsMetamodels) throws IOException {
+		if (file.exists()) {
+			ResourceSet rsXmi = new ResourceSetImpl();
+			registerEPackages(rsMetamodels, rsXmi);
+			loadFileIntoResourceSet(file, rsXmi);
+			return rsXmi;
+		} else {
+			System.err.println("Missing file : " + file.toPath().toString());
+			return null;
+		}
+			
+		
 	}
 	
 	protected void assertNoDifferences(String testLabel, Comparison cmp) {

@@ -6,7 +6,7 @@
   <entities
       name="firstEntity"
       eBoolean="true"
-      eBooleanObject="false"
+      eBooleanObject="true"
       eByte="127"
       eByteObject="-127"
       eChar="65"
