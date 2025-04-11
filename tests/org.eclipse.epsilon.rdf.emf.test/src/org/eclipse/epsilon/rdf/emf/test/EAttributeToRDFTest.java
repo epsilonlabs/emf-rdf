@@ -250,8 +250,6 @@ public class EAttributeToRDFTest {
 			System.err.println("Missing file : " + file.toPath().toString());
 			return null;
 		}
-			
-		
 	}
 	
 	protected void assertNoDifferences(String testLabel, Comparison cmp) {
