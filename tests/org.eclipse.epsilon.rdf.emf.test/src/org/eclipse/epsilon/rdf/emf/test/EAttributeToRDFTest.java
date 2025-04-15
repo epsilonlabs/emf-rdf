@@ -21,9 +21,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.Collection;
+import java.time.Instant;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
-
+import org.apache.jena.datatypes.xsd.XSDDateTime;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.compare.Comparison;
@@ -37,9 +38,6 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
-import org.eclipse.emf.ecore.xmi.XMIResource;
-import org.eclipse.emf.ecore.xmi.XMLResource;
-import org.eclipse.emf.ecore.xmi.impl.URIHandlerImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.emf.emfatic.core.EmfaticResourceFactory;
 import org.eclipse.epsilon.rdf.emf.RDFGraphResourceFactory;
@@ -116,17 +114,113 @@ public class EAttributeToRDFTest {
 	}
 
 	@Test
-	public void eByteTest () throws IOException {
-		testType = "eByte";	
-		Byte b = 126;
-		changeAndTest(b);
+	public void nameString () throws IOException {
+		testType = "name"; // String - eString
+		changeAndTest("firstEntity1" );
+	}
+
+	@Test
+	public void eBoolean () throws IOException {
+		testType = "eBoolean";
+		changeAndTest((boolean) false);
 	}
 	
 	@Test
-	public void eBooleanTest () throws IOException {
-		testType = "eBoolean";
+	public void eBooleanObject() throws IOException {
+		testType = "eBooleanObject";
 		changeAndTest((Boolean) false);
 	}
+	
+	@Test
+	public void eByte () throws IOException {
+		testType = "eByte";	
+		changeAndTest((byte) 126);
+	}
+	
+	@Test
+	public void eByteObject () throws IOException {
+		testType = "eByteObject";			
+		changeAndTest((Byte) ((byte) 126));
+	}
+	
+	@Test
+	public void eChar () throws IOException {
+		testType = "eChar";		
+		changeAndTest((char) 'Z');
+	}
+	
+	@Test
+	public void eCharacterObject () throws IOException {
+		testType = "eCharacterObject";
+		changeAndTest((Character) 'C');
+	}
+	
+	@Test
+	public void eDouble () throws IOException {
+		testType = "eDouble";
+		changeAndTest((double) 2);
+	}
+	
+	@Test
+	public void eDoubleObject () throws IOException {
+		testType = "eDoubleObject";
+		changeAndTest((Double) ((double)3));
+	}
+	
+	@Test
+	public void eFloat () throws IOException {
+		testType = "eFloat";
+		changeAndTest((float) 2.0);
+	}
+	
+	@Test
+	public void eFloatObject () throws IOException {
+		testType = "eFloatObject";
+		changeAndTest((Float) ((float)3.0));
+	}
+	
+	@Test
+	public void eInt () throws IOException {
+		testType = "eInt";
+		changeAndTest((int) 2);
+	}
+	
+	@Test
+	public void eIntegerObject () throws IOException {
+		testType = "eIntegerObject";
+		changeAndTest((Integer) 3);
+	}
+	
+	@Test
+	public void eLong () throws IOException {
+		testType = "eLong";
+		changeAndTest((long) 2);
+	}
+	
+	@Test
+	public void eLongObject () throws IOException {
+		testType = "eLongObject";
+		changeAndTest((Long) ((long) 3));
+	}
+	
+	@Test
+	public void eShort () throws IOException {
+		testType = "eShort";
+		changeAndTest((short) 2);
+	}
+	
+	@Test
+	public void eShortObject () throws IOException {
+		testType = "eShortObject";
+		changeAndTest((Short) ((short) 3));
+	}
+	
+	@Test
+	public void eDate () throws IOException {
+		testType = "eDate";
+		changeAndTest((Date) Date.from(Instant.now()));
+	}
+	
 	
 	// TODO Add in all the other types using the simple test pattern (as above)
 	
@@ -146,8 +240,19 @@ public class EAttributeToRDFTest {
 			System.out.println("[TEST] Change " + value.getClass().getTypeName() + " " + value);
 		}
 		
-		rdfEntity.eSet(getEAttribute(rdfEntity, testType), value);
-		xmiEntity.eSet(getEAttribute(xmiEntity, testType), value);
+		if(value.getClass().equals(char.class)) {
+			rdfEntity.eSet(getEAttribute(rdfEntity, testType), (String) value);
+			xmiEntity.eSet(getEAttribute(xmiEntity, testType), (Character) value);
+		}
+		else {
+			rdfEntity.eSet(getEAttribute(rdfEntity, testType), value);
+			xmiEntity.eSet(getEAttribute(xmiEntity, testType), value);			
+		}
+				
+		Object rdfValue = rdfEntity.eGet(getEAttribute(rdfEntity, testType));
+		Object xmiValue = xmiEntity.eGet(getEAttribute(xmiEntity, testType));
+		
+		System.err.print(String.format(" ----> rdf %s :: xmi %s\n", rdfValue ,xmiValue ));
 		
 		rdf.getResources().get(0).save(null);
 		saveBeforeXmi(EMFNativeModelAfter);
@@ -168,7 +273,7 @@ public class EAttributeToRDFTest {
 		if (destinationFile.createNewFile()) {
 			try (OutputStream destinationStream = new FileOutputStream(destinationFile)) {
 				xmiBefore.getResources().get(0).save(destinationStream, null);
-				delaySeconds(1);
+				//delaySeconds(1);
 			}
 		} else {
 			System.err.println("Failed to save XMI : " + destinationFile.toPath().toString());
@@ -179,7 +284,7 @@ public class EAttributeToRDFTest {
 	
 	protected void copyFile(File source, File destination) throws FileNotFoundException, IOException {
 		Files.copy(source.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
-		delaySeconds(1);
+		//delaySeconds(1);
 	}
 	
 	private void delaySeconds(int seconds) {
@@ -252,16 +357,18 @@ public class EAttributeToRDFTest {
 	}
 	
 	protected void assertNoDifferences(String testLabel, Comparison cmp) {
+		StringBuilder report = new StringBuilder();
+		
 		if (cmp.getDifferences().isEmpty()) {
 			return;
 		}
 
-		System.err.println("Differences were found in " + testLabel + ": ");
+		report.append("Differences were found in " + testLabel + ": ");
 		for (Diff diff : cmp.getDifferences()) {
-			System.err.println("* " + diff);
+			report.append("\n   - " + diff);
 		}
-
-		fail("Differences were reported: see error messages");
+		
+		fail("Differences were reported: see error messages\n" + report);
 	}
 	
 	protected void equivalentModels (String testLabel, ResourceSet rsXmi, ResourceSet rsRDF) {
