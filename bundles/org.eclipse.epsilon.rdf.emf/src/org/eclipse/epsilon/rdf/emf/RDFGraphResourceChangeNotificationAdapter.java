@@ -19,6 +19,8 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.lang.LangTurtle;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
@@ -267,7 +269,12 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 			}
 			else {
 				System.err.println(String.format("Old statement not found : %s ", oldStatement));
-			}			
+			}		
+			
+			// TODO remove these debugging lines
+			//System.out.println("oldStatement: " + oldStatement);
+			//System.out.println("newStatement: " + newStatement);			
+			//model.write(System.out, "ttl");
 			//reportRDFnodeProperties("AFTER", model, (Resource) oldObject);
 		}
 	}
