@@ -30,11 +30,17 @@
     simple:eByteObject "-127"^^xsd:byte ;
     simple:eByteObjects ( "127"^^xsd:byte "-127"^^xsd:byte ) ;
     
-    simple:eChar "A"^^xsd:String ;
-    simple:eChars ( "A"^^xsd:String "B"^^xsd:String ) ;
+#    simple:eChar "A"^^xsd:string ;
+#    simple:eChars ( "A"^^xsd:string "B"^^xsd:string ) ;
     
-    simple:eCharacterObject "B"^^xsd:String ;
-    simple:eCharacterObjects ( "A"^^xsd:String "B"^^xsd:String ) ;
+    simple:eChar "A" ;
+    simple:eChars ( "A" "B" ) ;
+
+#    simple:eCharacterObject "B"^^xsd:string ;
+#    simple:eCharacterObjects ( "A"^^xsd:string "B"^^xsd:string ) ;
+
+    simple:eCharacterObject "B" ;
+    simple:eCharacterObjects ( "A" "B" ) ;
     
     simple:eDouble "1"^^xsd:double ;
     simple:eDoubles ( "1"^^xsd:double "2"^^xsd:double );

@@ -152,7 +152,7 @@ public class EAttributeToRDFTest {
 	@Test
 	public void eCharacterObject () throws IOException {
 		testType = "eCharacterObject";
-		changeAndTest((Character) 'C');
+		changeAndTest((Character) 'X');
 	}
 	
 	@Test

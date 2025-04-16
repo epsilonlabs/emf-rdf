@@ -16,8 +16,8 @@ import java.util.List;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EAttribute;
@@ -247,8 +247,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 			System.err.print(String.format("RDF node %s has been found on %s named models : %s",
 					rdfNode.getLocalName(), namedModelURIs.size(), namedModelURIs));
 			// Return here if you want to bail out from changing all the graphs
-		}
-		
+		}	
 
 		String nameSpace = eAttribute.getEContainingClass().getEPackage().getNsURI();
 		String propertyURI = nameSpace + "#" + eAttribute.getName();
@@ -257,20 +256,19 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		// TODO Go through the list of Named models to update and make the changes
 		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
 		for (Model model : namedModelsToUpdate) {
-
-			RDFNode newObject = model.createTypedLiteral(newValue);
-			RDFNode oldObject = model.createTypedLiteral(oldValue);
-						
-			//Resource modelRDFnode = model.getResource(rdfNode.getURI());
-			//reportRDFnodeProperties("BEFORE", model, modelRDFnode);
+			// Update Attributes expressed as a single RDF statement
+			Statement newStatement = model.createLiteralStatement(rdfNode, property, model.createTypedLiteral(newValue));
+			Statement oldStatement = model.createLiteralStatement(rdfNode, property, model.createTypedLiteral(oldValue));
 			
 			// This is an update, so we only replace the statement if it exists
-			if (model.contains(rdfNode, property, oldObject)) {
-				model.remove(rdfNode, property, oldObject);
-				model.add(rdfNode, property, newObject);
+			if (model.contains(oldStatement)) {
+				model.remove(oldStatement);
+				model.add(newStatement);
 			}
-			
-			//reportRDFnodeProperties("AFTER", model, modelRDFnode);
+			else {
+				System.err.println(String.format("Old statement not found : %s ", oldStatement));
+			}			
+			//reportRDFnodeProperties("AFTER", model, (Resource) oldObject);
 		}
 	}
 	
