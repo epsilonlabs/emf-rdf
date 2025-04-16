@@ -42,11 +42,11 @@
     simple:eCharacterObject "B" ;
     simple:eCharacterObjects ( "A" "B" ) ;
     
-    simple:eDouble "1"^^xsd:double ;
-    simple:eDoubles ( "1"^^xsd:double "2"^^xsd:double );
+    simple:eDouble "1.0"^^xsd:double ;
+    simple:eDoubles ( "1.0"^^xsd:double "2.0"^^xsd:double );
     
-    simple:eDoubleObject "2"^^xsd:double ;
-    simple:eDoubleObjects ( "1"^^xsd:double "2"^^xsd:double );
+    simple:eDoubleObject "10.0"^^xsd:double ;
+    simple:eDoubleObjects ( "10.0"^^xsd:double "20.0"^^xsd:double );
     
     simple:eFloat "1.0"^^xsd:float ;
     simple:eFloats ( "1.1"^^xsd:float "1.2"^^xsd:float );

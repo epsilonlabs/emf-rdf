@@ -12,7 +12,7 @@
       eChar="65"
       eCharacterObject="66"
       eDouble="1.0"
-      eDoubleObject="2.0"
+      eDoubleObject="10.0"
       eFloat="1.0"
       eFloatObject="2.0"
       eInt="1"
@@ -38,8 +38,8 @@
     <eCharacterObjects>66</eCharacterObjects>
     <eDoubles>1.0</eDoubles>
     <eDoubles>2.0</eDoubles>
-    <eDoubleObjects>1.0</eDoubleObjects>
-    <eDoubleObjects>2.0</eDoubleObjects>
+    <eDoubleObjects>10.0</eDoubleObjects>
+    <eDoubleObjects>20.0</eDoubleObjects>
     <eFloats>1.1</eFloats>
     <eFloats>1.2</eFloats>
     <eFloatObjects>1.1</eFloatObjects>

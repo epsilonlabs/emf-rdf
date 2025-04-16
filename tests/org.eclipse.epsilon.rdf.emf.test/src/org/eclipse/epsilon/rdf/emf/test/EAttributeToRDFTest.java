@@ -158,13 +158,13 @@ public class EAttributeToRDFTest {
 	@Test
 	public void eDouble () throws IOException {
 		testType = "eDouble";
-		changeAndTest((double) 2);
+		changeAndTest((double) 3.0);
 	}
 	
 	@Test
 	public void eDoubleObject () throws IOException {
 		testType = "eDoubleObject";
-		changeAndTest((Double) ((double)3));
+		changeAndTest((Double) ((double)30.0));
 	}
 	
 	@Test
