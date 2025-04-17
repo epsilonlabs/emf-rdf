@@ -146,6 +146,12 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 				}
 			});
 		}
+		
+		if(modelList.size() > 1) {
+			System.err.print(String.format("RDF node %s has been found on %s named models : %s",
+					res.getLocalName(), modelList.size(), modelList));
+		}
+		
 		return modelList;
 	}
 

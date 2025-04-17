@@ -119,8 +119,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 
 		Class<? extends Object> featureClass = feature.getClass();
 		processTrace.append(String.format("\n - Feature class : %s", featureClass.getName()));
-		
-		
+
 		if(featureClass.equals(EAttributeImpl.class)) {
 			// This is likely a property of the RDF node for the "onEobject"
 			EObject onEObject = (EObject)notification.getNotifier();	// RDF node
@@ -134,10 +133,14 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 				// New statement
 			} else {
 				// Existing statement
-				updateAttributeInRDFGraphs(onEObject, eAttributeChanged, value, notification.getOldValue());
+				
+				// TODO Make a list of Named Models that should be checked for the statements (not just an rdfNode?), and update them
+				RDFGraphResourceImpl graphResource = RDFGraphResourceUpdate.getGraphResourceFor(onEObject);				
+				List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
+				RDFGraphResourceUpdate.updateSingleValueAttribute(namedModelURIs, onEObject, eAttributeChanged, value, notification.getOldValue());
 			}
-		
-			// getGraphResourceFor(onEObject).ttlConsoleOntModel();			
+
+			// getGraphResourceFor(onEObject).ttlConsoleOntModel();
 			
 			// Console output
 			processTrace.append(String.format("\n ON THIS "));
@@ -149,7 +152,6 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 					eAttributeChanged.getEAttributeType().getName(), 
 					eAttributeChanged.getName(),
 					value ));
-
 			return;
 		}
 
@@ -243,86 +245,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		
 	}
 	
-	// TODO RDF updates should be a separate class that does the RDF work
-	private void updateAttributeInRDFGraphs(EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) {
-		// A statement is formed as "subject–predicate–object"
-		
-		//
-		// SUBJECT
-		RDFGraphResourceImpl graphResource = getGraphResourceFor(onEObject);
-		Resource rdfNode = graphResource.getRDFResource(onEObject);
 
-		//
-		// PREDICATE
-		String nameSpace = eAttribute.getEContainingClass().getEPackage().getNsURI();
-		String propertyURI = nameSpace + "#" + eAttribute.getName();
-		Property property = ResourceFactory.createProperty(propertyURI);
-		
-		//
-		// OBJECT (old)
-		Literal oldObject;
-		if (oldValue.getClass().equals(Date.class)) {
-			Calendar c = Calendar.getInstance();
-			c.setTime((Date) oldValue);
-			String date = DateTimeUtils.calendarToXSDDateTimeString(c);		
-			oldObject = ResourceFactory.createTypedLiteral(date, XSDDatatype.XSDdateTime);
-		} else {
-			oldObject = ResourceFactory.createTypedLiteral(oldValue);
-		}
-		
-		//
-		// OBJECT (new)
-		Literal newObject = null;
-		if (newValue.getClass().equals(Date.class)) {
-			Calendar c = Calendar.getInstance();
-			c.setTime((Date) newValue);
-			String date = DateTimeUtils.calendarToXSDDateTimeString(c);
-			newObject = ResourceFactory.createTypedLiteral(date, XSDDatatype.XSDdateTime);
-		} else {
-			newObject = ResourceFactory.createTypedLiteral(newValue);
-		}
-		
-		//
-		// STATEMENTS
-		Statement newStatement = ResourceFactory.createStatement(rdfNode, property, newObject);
-		Statement oldStatement = ResourceFactory.createStatement(rdfNode, property, oldObject);
-		
-		// TODO Make a list of Named Models that should be checked for the statements (not just an rdfNode?), and changed.
-		List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(rdfNode);
-		if(namedModelURIs.size() > 1) {
-			System.err.print(String.format("RDF node %s has been found on %s named models : %s",
-					rdfNode.getLocalName(), namedModelURIs.size(), namedModelURIs));
-			// Return here if you want to bail out from changing all the graphs
-		}	
-
-		// TODO Go through the list of Named models to update and make the changes
-		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
-		for (Model model : namedModelsToUpdate) {
-			// Update Attributes expressed as a single RDF statement
-
-			// This is an update, so we only replace the statement if it exists
-			if (model.contains(oldStatement)) {
-				model.remove(oldStatement);
-				model.add(newStatement);
-			}
-			else {
-				System.err.println(String.format("Old statement not found : %s ", oldStatement));
-			}		
-			
-			// TODO remove these debugging lines
-			//System.out.println("oldStatement: " + oldStatement);
-			//System.out.println("newStatement: " + newStatement);			
-			//model.write(System.out, "ttl");
-			//reportRDFnodeProperties("AFTER", model, (Resource) oldObject);
-		}
-	}
-	
-	private  RDFGraphResourceImpl getGraphResourceFor( EObject eObject) {
-		if (eObject.eResource().getClass().equals(RDFGraphResourceImpl.class)) {
-			return (RDFGraphResourceImpl) eObject.eResource();
-			}
-		return null;
-	}
 	
 	// TODO Remove this experiment code
 	private void reportRDFnodeProperties (String label, Model model, Resource rdfNode ) {
