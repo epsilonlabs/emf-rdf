@@ -13,18 +13,10 @@
 package org.eclipse.epsilon.rdf.emf;
 
 
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
-import org.apache.jena.atlas.lib.DateTimeUtils;
-import org.apache.jena.datatypes.xsd.XSDDatatype;
-import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.rdf.model.Statement;
 
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EAttribute;
