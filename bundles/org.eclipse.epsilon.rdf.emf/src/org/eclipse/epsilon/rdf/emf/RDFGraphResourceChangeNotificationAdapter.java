@@ -282,6 +282,11 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 			newObject = ResourceFactory.createTypedLiteral(newValue);
 		}
 		
+		//
+		// STATEMENTS
+		Statement newStatement = ResourceFactory.createStatement(rdfNode, property, newObject);
+		Statement oldStatement = ResourceFactory.createStatement(rdfNode, property, oldObject);
+		
 		// TODO Make a list of Named Models that should be checked for the statements (not just an rdfNode?), and changed.
 		List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(rdfNode);
 		if(namedModelURIs.size() > 1) {
@@ -294,9 +299,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
 		for (Model model : namedModelsToUpdate) {
 			// Update Attributes expressed as a single RDF statement
-			Statement newStatement = model.createLiteralStatement(rdfNode, property, newObject);
-			Statement oldStatement = model.createLiteralStatement(rdfNode, property, oldObject);
-			
+
 			// This is an update, so we only replace the statement if it exists
 			if (model.contains(oldStatement)) {
 				model.remove(oldStatement);
