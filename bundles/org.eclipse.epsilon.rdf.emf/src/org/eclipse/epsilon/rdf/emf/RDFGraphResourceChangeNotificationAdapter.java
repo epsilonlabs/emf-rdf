@@ -12,15 +12,20 @@
  ********************************************************************************/
 package org.eclipse.epsilon.rdf.emf;
 
+
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
+import org.apache.jena.atlas.lib.DateTimeUtils;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
+import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.rdf.model.impl.PropertyImpl;
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.lang.LangTurtle;
+
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
@@ -239,9 +244,43 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 	}
 	
 	// TODO RDF updates should be a separate class that does the RDF work
-	private void updateAttributeInRDFGraphs(EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) { 
+	private void updateAttributeInRDFGraphs(EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) {
+		// A statement is formed as "subject–predicate–object"
+		
+		//
+		// SUBJECT
 		RDFGraphResourceImpl graphResource = getGraphResourceFor(onEObject);
 		Resource rdfNode = graphResource.getRDFResource(onEObject);
+
+		//
+		// PREDICATE
+		String nameSpace = eAttribute.getEContainingClass().getEPackage().getNsURI();
+		String propertyURI = nameSpace + "#" + eAttribute.getName();
+		Property property = ResourceFactory.createProperty(propertyURI);
+		
+		//
+		// OBJECT (old)
+		Literal oldObject;
+		if (oldValue.getClass().equals(Date.class)) {
+			Calendar c = Calendar.getInstance();
+			c.setTime((Date) oldValue);
+			String date = DateTimeUtils.calendarToXSDDateTimeString(c);		
+			oldObject = ResourceFactory.createTypedLiteral(date, XSDDatatype.XSDdateTime);
+		} else {
+			oldObject = ResourceFactory.createTypedLiteral(oldValue);
+		}
+		
+		//
+		// OBJECT (new)
+		Literal newObject = null;
+		if (newValue.getClass().equals(Date.class)) {
+			Calendar c = Calendar.getInstance();
+			c.setTime((Date) newValue);
+			String date = DateTimeUtils.calendarToXSDDateTimeString(c);
+			newObject = ResourceFactory.createTypedLiteral(date, XSDDatatype.XSDdateTime);
+		} else {
+			newObject = ResourceFactory.createTypedLiteral(newValue);
+		}
 		
 		// TODO Make a list of Named Models that should be checked for the statements (not just an rdfNode?), and changed.
 		List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(rdfNode);
@@ -251,16 +290,12 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 			// Return here if you want to bail out from changing all the graphs
 		}	
 
-		String nameSpace = eAttribute.getEContainingClass().getEPackage().getNsURI();
-		String propertyURI = nameSpace + "#" + eAttribute.getName();
-		Property property = new PropertyImpl(propertyURI);			
-		
 		// TODO Go through the list of Named models to update and make the changes
 		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
 		for (Model model : namedModelsToUpdate) {
 			// Update Attributes expressed as a single RDF statement
-			Statement newStatement = model.createLiteralStatement(rdfNode, property, model.createTypedLiteral(newValue));
-			Statement oldStatement = model.createLiteralStatement(rdfNode, property, model.createTypedLiteral(oldValue));
+			Statement newStatement = model.createLiteralStatement(rdfNode, property, newObject);
+			Statement oldStatement = model.createLiteralStatement(rdfNode, property, oldObject);
 			
 			// This is an update, so we only replace the statement if it exists
 			if (model.contains(oldStatement)) {

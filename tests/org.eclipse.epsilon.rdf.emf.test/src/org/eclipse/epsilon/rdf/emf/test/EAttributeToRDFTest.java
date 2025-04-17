@@ -24,7 +24,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-import org.apache.jena.datatypes.xsd.XSDDateTime;
+
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.compare.Comparison;
@@ -41,6 +41,7 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.emf.emfatic.core.EmfaticResourceFactory;
 import org.eclipse.epsilon.rdf.emf.RDFGraphResourceFactory;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -231,8 +232,8 @@ public class EAttributeToRDFTest {
 			System.out.println(testType + " Value : " + rdfEntity.eGet(getEAttribute(rdfEntity, testType)));
 		}
 	}
-	
-	
+
+
 	public void changeAndTest (Object value) throws IOException {
 		reportConsoleAttributeState("[TEST] Before " + testType);
 		
@@ -269,7 +270,8 @@ public class EAttributeToRDFTest {
 	public void saveBeforeXmi (File destinationFile) throws FileNotFoundException, IOException {
 		if (destinationFile.exists()) {
 			destinationFile.delete();
-		}	
+		}
+		
 		if (destinationFile.createNewFile()) {
 			try (OutputStream destinationStream = new FileOutputStream(destinationFile)) {
 				xmiBefore.getResources().get(0).save(destinationStream, null);
@@ -277,7 +279,7 @@ public class EAttributeToRDFTest {
 			}
 		} else {
 			System.err.println("Failed to save XMI : " + destinationFile.toPath().toString());
-		}		
+		}
 		
 	}
 		
