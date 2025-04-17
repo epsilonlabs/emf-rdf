@@ -47,9 +47,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class EAttributeToRDFTest {
-	
-	// TODO Changes for each type of EAttribute
+public class SingleEAttributeUpdateRDFTest {
+
 	// TODO Changes to the order of Multi-value EAttributes (Not in this pull request)
 	
 	static final boolean CONSOLE_OUTPUT_ACTIVE = false;
