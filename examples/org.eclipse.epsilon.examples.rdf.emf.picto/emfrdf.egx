@@ -1,0 +1,70 @@
+pre {
+  var rootObjects = Model.resource.contents;
+
+  var rootIDs : Map;
+  for (ob in rootObjects) {
+    rootIDs.put(ob, loopCount);
+  }
+
+  var rdfResources = Model.resource.getRDFResources();
+}
+
+rule RootEObjects transform root in: Sequence {"root"} {
+  template: "rootObjects.egl"
+  parameters: Map {
+    "path" = Sequence { "EObjects" },
+    "icon" = "diagram-ffffff",
+    "format" = "graphviz-dot",
+    "rootObjects" = rootObjects,
+    "rootIDs" = rootIDs
+  }
+}
+
+rule EObject transform eob in: Model.allContents {
+  template: "singleObject.egl"
+  parameters: Map {
+    "path" = eob.objectPath(),
+    "icon" = "diagram-ffff00",
+    "format" = "graphviz-dot",
+    "rdfResource" = Model.resource.getRDFResource(eob) 
+  }
+}
+
+rule RootResources transform root in: Sequence {"root"} {
+  template: "rootResources.egl"
+  parameters: Map {
+    "path" = Sequence { "RDF resources" },
+    "icon" = "diagram-ff00ff",
+    "format" = "graphviz-dot",
+    "rdfResources" = rdfResources
+  }
+}
+
+rule RDFResource transform rdfRes in: rdfResources {
+  template: "singleResource.egl"
+  parameters: Map {
+    "path" = Sequence { "RDF resources", rdfRes.uri },
+    "icon" = "diagram-00ffff",
+    "format" = "graphviz-dot",
+    "eObjects" = Model.resource.getEObjects(rdfRes)
+  }
+}
+
+operation Any childPosition() {
+  if (self.eContainer.isDefined()) {
+    return (1 + self.eContainer.children.indexOf(self)).asString();
+  } else {
+    return (1 + Model.resource.contents.indexOf(self)).asString();
+  }
+}
+
+operation Any pathSegment() {
+  return self.eClass.name + ' ' + self.childPosition();
+}
+
+operation Any objectPath() {
+  var path = Sequence { "EObjects" };
+  path.addAll(self.closure(ob|ob.eContainer).collect(ob | ob.pathSegment()).invert());
+  path.add(self.pathSegment());
+  return path;
+}

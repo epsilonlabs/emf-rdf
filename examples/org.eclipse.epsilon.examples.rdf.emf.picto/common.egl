@@ -1,0 +1,36 @@
+[%
+
+operation renderEObject(ob, nodeName: String) { %]
+    [%=nodeName%][
+      shape=plain
+      label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
+        <tr><td>[%=nodeName%] : <b>[%=ob.eClass.name%]</b></td></tr>
+        <tr><td>
+          <table border="0" cellborder="0" cellspacing="0">
+          [% for (eAttr in ob.eClass.eAllAttributes) {
+            if (ob.eIsSet(eAttr)) {
+              var value = ob.eGet(eAttr); %]
+            <tr><td>[%=eAttr.name%] = [%= value.asString() %]</td></tr>
+          [% }} %]
+          </table>
+        </td></tr>
+      </table>>
+    ]
+[% }
+
+operation renderRDFResource(rdfRes, uriToNodeName: Map) {
+  var nodeName = uriToNodeName.get(rdfRes.uri);
+  if (not nodeName.isDefined()) {
+    nodeName = "rdfRes" + uriToNodeName.size();
+    uriToNodeName.put(rdfRes.uri, nodeName);
+  }
+%]
+  [%=uriToNodeName.get(rdfRes.uri)%] [label="[%=rdfRes.uri%]"]
+  [%
+    var stmtIterator = rdfRes.listProperties();
+    while (stmtIterator.hasNext()) {
+      var stmt = stmtIterator.nextStatement(); %]
+        [%=nodeName%]Stmt[%=loopCount%] [label="  [%=stmt.object.asString()%]  "]
+        [%=nodeName%] -> [%=nodeName%]Stmt[%=loopCount%] [label="  [%=stmt.predicate.asString()%]  "]
+  [% } %]
+[% } %]
