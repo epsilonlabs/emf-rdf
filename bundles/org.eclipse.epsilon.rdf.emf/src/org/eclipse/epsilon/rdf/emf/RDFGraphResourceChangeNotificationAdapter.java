@@ -112,7 +112,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		Class<? extends Object> featureClass = feature.getClass();
 		processTrace.append(String.format("\n - Feature class : %s", featureClass.getName()));
 
-		if(featureClass.equals(EAttributeImpl.class)) {
+		if(feature instanceof EAttribute) {
 			// This is likely a property of the RDF node for the "onEobject"
 			EObject onEObject = (EObject)notification.getNotifier();	// RDF node
 			EAttribute eAttributeChanged = (EAttribute) feature;		// RDF property
@@ -147,7 +147,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 			return;
 		}
 
-		if(featureClass.equals(EReferenceImpl.class)) {
+		if(feature instanceof EReference) {
 			EObject onEObject = (EObject)notification.getNotifier();	// RDF node	
 			EReferenceImpl eReference = (EReferenceImpl) feature;		// RDF property
 			EObject referenced = (EObject) value;						// RDF object (node) 

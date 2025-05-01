@@ -43,6 +43,10 @@ public class RDFGraphResourceUpdate {
 	public static void updateSingleValueAttribute(List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) {
 		// A statement is formed as "subject–predicate–object"
 		
+		// Internal code guards
+		assert oldValue != null : "old value must exist";
+		assert newValue != null : "new value must exist";
+		
 		//
 		// SUBJECT
 		RDFGraphResourceImpl graphResource = getGraphResourceFor(onEObject);
