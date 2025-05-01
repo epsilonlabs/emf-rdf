@@ -13,6 +13,7 @@
 package org.eclipse.epsilon.rdf.emf;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.jena.rdf.model.Model;
@@ -32,11 +33,11 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 
 	StringBuilder processTrace;
+	int i = 0;
 
 	@Override
 	public void notifyChanged(Notification notification) {
-		super.notifyChanged(notification);
-		
+
 		// Decode the notification
 		processTrace = new StringBuilder();
 		processTrace.append(String.format("\n[ Notification ]"));
@@ -44,11 +45,11 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		switch (notification.getEventType()) {
 		case Notification.ADD:
 			processTrace.append("\n ADD ");
-			incrementalChange(notification);
+			//incrementalChange(notification);
 			break;			
 		case Notification.ADD_MANY:
 			processTrace.append("\n ADD_MANY ");
-			incrementalChange(notification);
+			//incrementalChange(notification);
 			break;
 		case Notification.SET:
 			processTrace.append("\n SET ");
@@ -150,23 +151,46 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		if(feature instanceof EReference) {
 			EObject onEObject = (EObject)notification.getNotifier();	// RDF node	
 			EReferenceImpl eReference = (EReferenceImpl) feature;		// RDF property
-			EObject referenced = (EObject) value;						// RDF object (node) 
+			
+			// Single
+			if (value instanceof EObject) {
+				EObject referenced = (EObject) value;						// RDF object (node)
+				// TODO Deal with ordering
+				boolean isOrdered = eReference.isOrdered();
+				int orderPosition = -1 ; // This is not notification.getPosition()			
+				
+				// Console output
+				processTrace.append(String.format("\n ON THIS "));
+				reportEObject(onEObject, false, 0);					
+				processTrace.append(String.format("\n - eReference is Ordered? %s %s", 
+						isOrdered, 
+						orderPosition)); // -1 "none" else > 0 position but does not imply order is required
+				processTrace.append(String.format("\n - eReference changed : %s  %s \n\t->", 
+						eReference.getEReferenceType().getName(),
+						eReference.getName()));
+				reportEObject(referenced, false, 1);
+				return;
+			}
+			
+			// Array
+			if (value instanceof ArrayList) {
+				ArrayList<EObject> referenced = (ArrayList) value;						// RDF object (node)
+				// TODO Deal with ordering
+				boolean isOrdered = eReference.isOrdered();
+				int orderPosition = -1 ; // This is not notification.getPosition()			
+				
+				// Console output
+				processTrace.append(String.format("\n ON THIS "));
+				reportEObject(onEObject, false, 0);					
+				processTrace.append(String.format("\n - eReference is Ordered? %s %s", 
+						isOrdered, 
+						orderPosition)); // -1 "none" else > 0 position but does not imply order is required
+				processTrace.append(String.format("\n - eReference changed : %s  %s \n\t->", 
+						eReference.getEReferenceType().getName(),
+						eReference.getName()));
+				referenced.forEach(r -> reportEObject(r, false, 1) );
 
-			// TODO Deal with ordering
-			boolean isOrdered = eReference.isOrdered();
-			int orderPosition = -1 ; // This is not notification.getPosition()			
-			
-			// Console output
-			processTrace.append(String.format("\n ON THIS "));
-			reportEObject(onEObject, false, 0);					
-			processTrace.append(String.format("\n - eReference is Ordered? %s %s", 
-					isOrdered, 
-					orderPosition)); // -1 "none" else > 0 position but does not imply order is required
-			processTrace.append(String.format("\n - eReference changed : %s  %s \n\t->", 
-					eReference.getEReferenceType().getName(),
-					eReference.getName()));
-			reportEObject(referenced, false, 1);
-			
+			}
 			// This is likely a property of the RDF node for onEobject
 			
 			return;
@@ -200,7 +224,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 					value));
 			
 			// What kind of notifier is it?
-			if (notifier.getClass().equals(RDFGraphResourceImpl.class)) {
+			if (notifier instanceof RDFGraphResourceImpl) {
 				RDFGraphResourceImpl notifierResource = (RDFGraphResourceImpl) notifier;				
 				processTrace.append(String.format("\n  - Notifier is RDFGraphResourceImpl : %s ", 
 						notifierResource.getURI()));
@@ -211,8 +235,8 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 						notification.getNotifier() ));
 			}
 							
-			if ( value.getClass().equals(EObject.class)
-					|| value.getClass().equals(DynamicEObjectImpl.class)) {
+			if ( (value instanceof EObject)
+					|| (value instanceof DynamicEObjectImpl) ){
 				processTrace.append(String.format("\n Handle new value as a type of EObject"));
 				EObject valueEObject = (EObject)value;
 				reportEObject(valueEObject, false, 0);
@@ -225,7 +249,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 	}
 	
 	private Resource identifyEObjectsRDFnode (EObject eObject) {	
-		if (eObject.eResource().getClass().equals(RDFGraphResourceImpl.class)) {
+		if (eObject instanceof RDFGraphResourceImpl) {
 			RDFGraphResourceImpl rdfGraphResource = (RDFGraphResourceImpl) eObject.eResource();
 			Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
 			
@@ -331,7 +355,8 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		}
 		final String prefix = p;
 		
-		if (eObject.eResource().getClass().equals(RDFGraphResourceImpl.class)) {
+		//if (eObject.eResource().getClass().equals(RDFGraphResourceImpl.class)) {
+		if (eObject instanceof RDFGraphResourceImpl) {
 			Resource rdfNode = identifyEObjectsRDFnode(eObject);
 			processTrace.append(String.format("%s + RDF Node : %s ", prefix, rdfNode));
 			processTrace.append(String.format("%s %s ", prefix, reportNamedModelsContaining(eObject)));						
@@ -347,7 +372,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		StringBuilder namedModels = new StringBuilder();
 		//List<Model> list = identifyNamedModelsContaining(eObject);
 
-		if (eObject.eResource().getClass().equals(RDFGraphResourceImpl.class)) { 
+		if (eObject instanceof RDFGraphResourceImpl) { 
 			RDFGraphResourceImpl rdfGraphResource = (RDFGraphResourceImpl) eObject.eResource();
 			List<Resource>  list = rdfGraphResource.getResourcesForNamedModelsContaining(eObject);
 			namedModels.append(String.format(" + On Named Model(s) : "));

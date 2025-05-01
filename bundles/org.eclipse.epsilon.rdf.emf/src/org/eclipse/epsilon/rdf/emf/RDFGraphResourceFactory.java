@@ -22,9 +22,6 @@ public class RDFGraphResourceFactory implements Factory {
 	public Resource createResource(URI uri) {
 		RDFGraphResourceImpl impl = new RDFGraphResourceImpl();
 		impl.setURI(uri);
-		
-		//TODO move the application of the notification to RDFGraph resource (impl) constructor
-		impl.eAdapters().add(new RDFGraphResourceChangeNotificationAdapter());
 
 		// define default option values here
 

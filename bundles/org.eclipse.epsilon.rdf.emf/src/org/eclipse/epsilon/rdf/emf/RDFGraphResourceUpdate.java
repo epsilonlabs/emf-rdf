@@ -34,7 +34,7 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	public static RDFGraphResourceImpl getGraphResourceFor(EObject eObject) {
-		if (eObject.eResource().getClass().equals(RDFGraphResourceImpl.class)) {
+		if(eObject.eResource() instanceof RDFGraphResourceImpl) {
 			return (RDFGraphResourceImpl) eObject.eResource();
 		}
 		return null;
