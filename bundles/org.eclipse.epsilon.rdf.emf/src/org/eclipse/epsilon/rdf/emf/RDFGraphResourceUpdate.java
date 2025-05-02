@@ -39,18 +39,14 @@ public class RDFGraphResourceUpdate {
 		}
 		return null;
 	}
-	
-	public static void setSingleValueAttribute(List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) {
+
+	private static Statement getStatement (EObject eObject, EAttribute eAttribute, Object value) {
 		// A statement is formed as "subject–predicate–object"
-		
-		// Internal code guards
-		//assert oldValue != null : "old value must exist";
-		//assert newValue != null : "new value must exist"; //  Can set things null
 		
 		//
 		// SUBJECT
-		RDFGraphResourceImpl graphResource = getGraphResourceFor(onEObject);
-		Resource rdfNode = graphResource.getRDFResource(onEObject);
+		RDFGraphResourceImpl graphResource = getGraphResourceFor(eObject);
+		Resource rdfNode = graphResource.getRDFResource(eObject);
 
 		//
 		// PREDICATE
@@ -59,47 +55,43 @@ public class RDFGraphResourceUpdate {
 		Property property = ResourceFactory.createProperty(propertyURI);
 		
 		//
-		// OBJECT (old)
-		Literal oldObject;
-		if (oldValue.getClass().equals(Date.class)) {
+		// OBJECT
+		Literal object = null;
+		if (value.getClass().equals(Date.class)) {
 			Calendar c = Calendar.getInstance();
-			c.setTime((Date) oldValue);
-			String date = DateTimeUtils.calendarToXSDDateTimeString(c);		
-			oldObject = ResourceFactory.createTypedLiteral(date, XSDDatatype.XSDdateTime);
-		} else {
-			oldObject = ResourceFactory.createTypedLiteral(oldValue);
-		}
-		
-		//
-		// OBJECT (new)
-		Literal newObject = null;
-		if (newValue.getClass().equals(Date.class)) {
-			Calendar c = Calendar.getInstance();
-			c.setTime((Date) newValue);
+			c.setTime((Date) value);
 			String date = DateTimeUtils.calendarToXSDDateTimeString(c);
-			newObject = ResourceFactory.createTypedLiteral(date, XSDDatatype.XSDdateTime);
+			object = ResourceFactory.createTypedLiteral(date, XSDDatatype.XSDdateTime);
 		} else {
-			newObject = ResourceFactory.createTypedLiteral(newValue);
+			object = ResourceFactory.createTypedLiteral(value);
 		}
 		
 		//
 		// STATEMENTS
-		Statement newStatement = ResourceFactory.createStatement(rdfNode, property, newObject);
-		Statement oldStatement = ResourceFactory.createStatement(rdfNode, property, oldObject);
+		return ResourceFactory.createStatement(rdfNode, property, object);
+			
+	}
+	
+	public static void updateSingleValueAttributeStatements(List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) {
 
-		// TODO Go through the list of Named models to update and make the changes
+		// Internal code guards
+		assert oldValue != null : "old value must exist";
+		assert newValue != null : "new value must exist";
+		
+		RDFGraphResourceImpl graphResource = getGraphResourceFor(onEObject);
+
+		Statement newStatement = getStatement(onEObject, eAttribute, newValue);
+		Statement oldStatement = getStatement(onEObject, eAttribute, oldValue);
+
 		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
 		for (Model model : namedModelsToUpdate) {
-			// Update Attributes expressed as a single RDF statement
-
-			// This is an update, so we only replace the statement if it exists
 			if (model.contains(oldStatement)) {
 				model.remove(oldStatement);
 				model.add(newStatement);
 			}
 			else {
 				System.err.println(String.format("Old statement not found : %s ", oldStatement));
-			}		
+			}
 			
 			// TODO remove these debugging lines
 			//System.out.println("oldStatement: " + oldStatement);
@@ -109,9 +101,35 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 
+	public static void removeSingleValueAttributeStatements(List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object oldValue) {
+		// Object type values set a new value "null", remove the statement the deserializer uses the meta-model so we won't have missing attributes
+		assert oldValue != null : "old value must exist";
+		RDFGraphResourceImpl graphResource = getGraphResourceFor(onEObject);
+		Statement oldStatement = getStatement(onEObject, eAttribute, oldValue);
+
+		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
+		for (Model model : namedModelsToUpdate) {
+			if (model.contains(oldStatement)) {
+				model.remove(oldStatement);
+			} else {
+				System.err.println(String.format("Old statement not found : %s ", oldStatement));
+			}
+		}
+	}
 	
-	public static void unsetSingleValueAttribute(List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) {
-		// Object type values set a new value "null", 
+	public static void newSingleValueAttributeStatements (List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue) {
+		assert newValue != null : "new value must exist";
+		RDFGraphResourceImpl graphResource = getGraphResourceFor(onEObject);
+		Statement newStatement = getStatement(onEObject, eAttribute, newValue);
+
+		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
+		for (Model model : namedModelsToUpdate) {
+			if (model.contains(newStatement)) {
+				model.add(newStatement);
+			} else {
+				System.err.println(String.format("New statement already exists? : %s ", newStatement));
+			}
+		}
 	}
 	
 	public static void addMultiValueAttribute () {

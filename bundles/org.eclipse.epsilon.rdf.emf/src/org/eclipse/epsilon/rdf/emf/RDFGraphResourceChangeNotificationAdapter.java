@@ -224,6 +224,9 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		boolean isOrdered = eAttributeChanged.isOrdered();// If this is set then there is Order to the values.				
 		int orderPosition = -1; // This is not notification.getPosition()
 		
+		// TODO Make a list of Named Models that should be checked for the statements (not just an rdfNode?), and update them
+		RDFGraphResourceImpl graphResource = RDFGraphResourceUpdate.getGraphResourceFor(onEObject);				
+		List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
 		
 		if(null == notification.getOldValue() 
 				&& null != notification.getNewValue()) {
@@ -243,10 +246,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 				&& null != notification.getNewValue()) {
 			processTrace.append(String.format(" - existing statement"));
 			// Existing statement
-			// TODO Make a list of Named Models that should be checked for the statements (not just an rdfNode?), and update them
-			RDFGraphResourceImpl graphResource = RDFGraphResourceUpdate.getGraphResourceFor(onEObject);				
-			List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
-			RDFGraphResourceUpdate.setSingleValueAttribute(namedModelURIs, onEObject, eAttributeChanged, value, notification.getOldValue());
+			RDFGraphResourceUpdate.updateSingleValueAttributeStatements(namedModelURIs, onEObject, eAttributeChanged, value, notification.getOldValue());
 		}
 		
 		// getGraphResourceFor(onEObject).ttlConsoleOntModel();
