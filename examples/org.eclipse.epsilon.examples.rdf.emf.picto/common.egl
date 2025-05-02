@@ -59,9 +59,47 @@ operation renderRDFStatement(srcNodeName, stmt, uriToNodeName: Map, depth: Integ
 
   if (not targetNodeName.isDefined()) {
     targetNodeName = renderRDFNodeInternal(sob, uriToNodeName, depth + 1);
-  } %]
-  [%=srcNodeName%] -> [%=targetNodeName%] [label="[%=stmt.predicate.asString()%]"]
+  }
+
+  /*
+   * Note: we color the edge and not the target node, because the target node
+   * may be shared between in-metamodel and off-metamodel statements.
+   */
+  %]
+  [%=srcNodeName%] -> [%=targetNodeName%] [label="  [%=stmt.predicate.asString()%]  "[% if (isStatementFromNonTypeNS(stmt)) {%], color="red"[%}%]]
 [%
+}
+
+/*
+ * Returns true iff the statement comes from a namespace that
+ * is neither RDF/RDFS/OWL, nor a namespace of one of its RDF
+ * types. 
+ */
+operation isStatementFromNonTypeNS(stmt): Boolean {
+  var predNS = stmt.predicate.namespace;
+  if (namespacesInactiveByDefault.contains(predNS)) {
+    return false;
+  }
+
+  var types = stmt.subject.getTypes();
+  var nsURIs = types.collect(ns|ns.asString().split('#')[0] + '#').asSet();
+  return not nsURIs.contains(stmt.predicate.namespace);
+}
+
+/*
+ * Returns the URIs of the RDF types of a resource.
+ */
+@cached
+operation Any getTypes() {
+  var itStmt = self.listProperties();
+  var types = Set {};
+  while (itStmt.hasNext()) {
+    var stmt = itStmt.next();
+    if (stmt.predicate.asString() = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type') {
+      types.add(stmt.object.uri);
+    }
+  }
+  return types;
 }
 
 operation isLayerActive(id : String) {

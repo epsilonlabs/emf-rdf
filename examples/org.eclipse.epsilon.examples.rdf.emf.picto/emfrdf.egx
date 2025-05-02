@@ -50,7 +50,8 @@ rule EObject transform eob in: Model.allContents {
     "icon" = "diagram-ffff00",
     "format" = "graphviz-dot",
     "rdfResource" = Model.resource.getRDFResource(eob),
-    "layers" = rdfLayers
+    "layers" = rdfLayers,
+    "namespacesInactiveByDefault"=namespacesInactiveByDefault
   }
 }
 
@@ -61,7 +62,8 @@ rule RootResources transform root in: Sequence {"root"} {
     "icon" = "diagram-ff00ff",
     "format" = "graphviz-dot",
     "rdfResources" = rdfResources,
-    "layers" = rdfLayers
+    "layers" = rdfLayers,
+    "namespacesInactiveByDefault"=namespacesInactiveByDefault
   }
 }
 
@@ -72,7 +74,8 @@ rule RDFResource transform rdfRes in: rdfResources {
     "icon" = "diagram-00ffff",
     "format" = "graphviz-dot",
     "eObjects" = Model.resource.getEObjects(rdfRes),
-    "layers" = rdfLayers
+    "layers" = rdfLayers,
+    "namespacesInactiveByDefault"=namespacesInactiveByDefault
   }
 }
 
