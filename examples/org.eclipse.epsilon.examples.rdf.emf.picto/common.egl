@@ -27,6 +27,10 @@ operation rdfNodeKey(rdfNode): String {
 }
 
 operation renderRDFNode(rdfRes, uriToNodeName: Map): String {
+  renderRDFNodeInternal(rdfRes, uriToNodeName, 0);
+}
+
+operation renderRDFNodeInternal(rdfRes, uriToNodeName: Map, depth: Integer): String {
   var nodeKey = rdfNodeKey(rdfRes);
   var nodeName = uriToNodeName.get(nodeKey);
   if (not nodeName.isDefined()) {
@@ -40,21 +44,21 @@ operation renderRDFNode(rdfRes, uriToNodeName: Map): String {
     var stmtIterator = rdfRes.listProperties();
     while (stmtIterator.hasNext()) {
       var stmt = stmtIterator.nextStatement();
-      if (isLayerActive(stmt.predicate.namespace)) {
-        renderRDFStatement(nodeName, stmt, uriToNodeName);
+      if (isLayerActive(stmt.predicate.namespace) and (depth < 1 or isLayerActive('unlimited'))) {
+        renderRDFStatement(nodeName, stmt, uriToNodeName, depth);
       }
     }
   }
   return nodeName;
 }
 
-operation renderRDFStatement(srcNodeName, stmt, uriToNodeName: Map) {
+operation renderRDFStatement(srcNodeName, stmt, uriToNodeName: Map, depth: Integer) {
   var sob = stmt.object;
   var sobKey = rdfNodeKey(sob);
   var targetNodeName = uriToNodeName.get(sobKey);
 
   if (not targetNodeName.isDefined()) {
-    targetNodeName = renderRDFNode(sob, uriToNodeName);
+    targetNodeName = renderRDFNodeInternal(sob, uriToNodeName, depth + 1);
   } %]
   [%=srcNodeName%] -> [%=targetNodeName%] [label="[%=stmt.predicate.asString()%]"]
 [%

@@ -25,6 +25,11 @@ pre {
       "title" = ns,
       "active" = not namespacesInactiveByDefault.contains(ns)
     });
+
+  var rdfLayers = Sequence {
+    Map {"id"="unlimited", "title"="Unlimited depth", "active"=false}
+  };
+  rdfLayers.addAll(namespaceLayers);
 }
 
 rule RootEObjects transform root in: Sequence {"root"} {
@@ -45,7 +50,7 @@ rule EObject transform eob in: Model.allContents {
     "icon" = "diagram-ffff00",
     "format" = "graphviz-dot",
     "rdfResource" = Model.resource.getRDFResource(eob),
-    "layers" = namespaceLayers
+    "layers" = rdfLayers
   }
 }
 
@@ -56,7 +61,7 @@ rule RootResources transform root in: Sequence {"root"} {
     "icon" = "diagram-ff00ff",
     "format" = "graphviz-dot",
     "rdfResources" = rdfResources,
-    "layers" = namespaceLayers
+    "layers" = rdfLayers
   }
 }
 
@@ -67,7 +72,7 @@ rule RDFResource transform rdfRes in: rdfResources {
     "icon" = "diagram-00ffff",
     "format" = "graphviz-dot",
     "eObjects" = Model.resource.getEObjects(rdfRes),
-    "layers" = namespaceLayers
+    "layers" = rdfLayers
   }
 }
 
