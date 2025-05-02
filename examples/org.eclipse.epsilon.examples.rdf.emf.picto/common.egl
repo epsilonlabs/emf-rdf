@@ -18,19 +18,43 @@ operation renderEObject(ob, nodeName: String) { %]
     ]
 [% }
 
-operation renderRDFResource(rdfRes, uriToNodeName: Map) {
-  var nodeName = uriToNodeName.get(rdfRes.uri);
+operation rdfNodeKey(rdfNode): String {
+  if (rdfNode.isURIResource()) {
+    return rdfNode.uri;
+  } else {
+    return rdfNode.asString();
+  }
+}
+
+operation renderRDFResource(rdfRes, uriToNodeName: Map): String {
+  var nodeKey = rdfNodeKey(rdfRes);
+  var nodeName = uriToNodeName.get(nodeKey);
   if (not nodeName.isDefined()) {
-    nodeName = "rdfRes" + uriToNodeName.size();
-    uriToNodeName.put(rdfRes.uri, nodeName);
+    nodeName = "rdfNode" + uriToNodeName.size();
+    uriToNodeName.put(nodeKey, nodeName);
   }
 %]
-  [%=uriToNodeName.get(rdfRes.uri)%] [label="[%=rdfRes.uri%]"]
-  [%
+  [%=nodeName%] [label="[%=nodeKey%]"]
+[%
+  if (rdfRes.isResource()) {
     var stmtIterator = rdfRes.listProperties();
     while (stmtIterator.hasNext()) {
-      var stmt = stmtIterator.nextStatement(); %]
-        [%=nodeName%]Stmt[%=loopCount%] [label="  [%=stmt.object.asString()%]  "]
-        [%=nodeName%] -> [%=nodeName%]Stmt[%=loopCount%] [label="  [%=stmt.predicate.asString()%]  "]
-  [% } %]
-[% } %]
+      var stmt = stmtIterator.nextStatement();
+      renderRDFStatement(nodeName, stmt, uriToNodeName);
+    }
+  }
+  return nodeName;
+}
+
+operation renderRDFStatement(srcNodeName, stmt, uriToNodeName: Map) {
+  var sob = stmt.object;
+  var sobKey = rdfNodeKey(sob);
+  var targetNodeName = uriToNodeName.get(sobKey);
+
+  if (not targetNodeName.isDefined()) {
+    targetNodeName = renderRDFResource(sob, uriToNodeName);
+  } %]
+  [%=srcNodeName%] -> [%=targetNodeName%] [label="[%=stmt.predicate.asString()%]"]
+[%
+}
+%]
