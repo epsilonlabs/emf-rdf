@@ -40,7 +40,9 @@ operation renderRDFResource(rdfRes, uriToNodeName: Map): String {
     var stmtIterator = rdfRes.listProperties();
     while (stmtIterator.hasNext()) {
       var stmt = stmtIterator.nextStatement();
-      renderRDFStatement(nodeName, stmt, uriToNodeName);
+      if (isLayerActive(stmt.predicate.namespace)) {
+        renderRDFStatement(nodeName, stmt, uriToNodeName);
+      }
     }
   }
   return nodeName;
@@ -57,4 +59,9 @@ operation renderRDFStatement(srcNodeName, stmt, uriToNodeName: Map) {
   [%=srcNodeName%] -> [%=targetNodeName%] [label="[%=stmt.predicate.asString()%]"]
 [%
 }
+
+operation isLayerActive(id : String) {
+  return layers.selectOne(l|l.id = id)?.active ?: true;
+}
+
 %]
