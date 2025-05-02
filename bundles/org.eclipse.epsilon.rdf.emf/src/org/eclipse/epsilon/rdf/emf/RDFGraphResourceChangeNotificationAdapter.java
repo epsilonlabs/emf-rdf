@@ -83,7 +83,27 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		
 		if(null != feature) {
 			// Work out the change based on feature
-			identifyByFeature(feature, value, notification);
+			Class<? extends Object> featureClass = feature.getClass();
+			processTrace.append(String.format("\n - Feature class : %s", featureClass.getName()));
+
+			if(feature instanceof EAttribute) {
+				additiveFeatureEAttribute(feature, value, notification);
+				return;
+			}
+
+			if(feature instanceof EReference) {
+				additiveFeatureEReference(feature, value, notification);
+				return;
+			}
+
+			if(feature instanceof EObject) {
+				addativeFeatureEObject(feature, value, notification);
+				return;
+			}
+			System.err.println(String.format("\n unhandled additive change : %s ", featureClass.getName()));
+			
+			processTrace.append(String.format("\n unhandled additive change : %s ", featureClass.getName()));
+			return;
 		} else {
 			// Work out the change base on newValue
 			processTrace.append(String.format("\n - Not a Feature"));
@@ -99,7 +119,29 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 
 		if (null != feature) {
 			// Work out what was removed by Feature
-			identifyByFeature(feature, value, notification);
+			//identifyByFeature(feature, value, notification);
+			Class<? extends Object> featureClass = feature.getClass();
+			processTrace.append(String.format("\n - Feature class : %s", featureClass.getName()));
+
+			if(feature instanceof EAttribute) {
+				//subtractiveFeatureEAttribute(feature, value, notification);
+				return;
+			}
+
+			if(feature instanceof EReference) {
+				//subtractiveFeatureEReference(feature, value, notification);
+				return;
+			}
+
+			if(value instanceof EObject) {
+				//subtractiveFeatureEObject(feature, value, notification);
+				return;
+			}
+			
+			System.err.println(String.format("\n unhandled subtractive change : %s ", featureClass.getName()));
+			
+			processTrace.append(String.format("\n unhandled subtractive change : %s ", featureClass.getName()));
+			return;
 
 		} else {
 			// Work out what was removed by old Value?
@@ -108,39 +150,18 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		}
 	}
 
-	private void identifyByFeature(Object feature, Object value, Notification notification) {
-
-		Class<? extends Object> featureClass = feature.getClass();
-		processTrace.append(String.format("\n - Feature class : %s", featureClass.getName()));
-
-		if(feature instanceof EAttribute) {
-			// This is likely a property of the RDF node for the "onEobject"
-			featureEAttribute(feature, value, notification);
-			return;
-		}
-
-		if(feature instanceof EReference) {
-			processTrace.append(String.format("\n - EReference"));
-			featureEReference(feature, value, notification);
-			return;
-		}
-
-		if(value instanceof EObject) {
-			processTrace.append(String.format("\n - EObject %s", value.hashCode()));
-			
-			EObject eObject = (EObject) feature;
-			processTrace.append(String.format("\n - eObject changed : %s  %s ", 
-					eObject.eClass().getName(),
-					EcoreUtil.getIdentification(eObject) ));			
-			return;
-		}
+	private void addativeFeatureEObject(Object feature, Object value, Notification notification) {
+		processTrace.append(String.format("\n - EObject %s", value.hashCode()));
 		
-		processTrace.append(String.format("\n UNKNOWN identifyByFeature() "));
-		return;
-
+		EObject eObject = (EObject) feature;
+		processTrace.append(String.format("\n - eObject changed : %s  %s ", 
+				eObject.eClass().getName(),
+				EcoreUtil.getIdentification(eObject) ));
 	}
 
-	private void featureEReference(Object feature, Object value, Notification notification) {
+	private void additiveFeatureEReference(Object feature, Object value, Notification notification) {
+		processTrace.append(String.format("\n - EReference"));
+		
 		EObject onEObject = (EObject)notification.getNotifier();	// RDF node	
 		EReferenceImpl eReference = (EReferenceImpl) feature;		// RDF property
 		
@@ -194,7 +215,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		return;
 	}
 
-	private void featureEAttribute(Object feature, Object value, Notification notification) {
+	private void additiveFeatureEAttribute(Object feature, Object value, Notification notification) {
 		processTrace.append(String.format("\n - EAttribute"));
 		EObject onEObject = (EObject)notification.getNotifier();	// RDF node
 		EAttribute eAttributeChanged = (EAttribute) feature;		// RDF property
