@@ -45,28 +45,28 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		switch (notification.getEventType()) {
 		case Notification.ADD:
 			processTrace.append("\n ADD ");
-			//incrementalChange(notification);
+			//additiveChange(notification);
 			break;			
 		case Notification.ADD_MANY:
 			processTrace.append("\n ADD_MANY ");
-			//incrementalChange(notification);
+			//additiveChange(notification);
 			break;
 		case Notification.SET:
 			processTrace.append("\n SET ");
-			incrementalChange(notification);
+			additiveChange(notification);
 			break;
 			
 		case Notification.REMOVE:
 			processTrace.append("\n REMOVE ");
-			decrementalChange (notification);
+			subtractiveChange (notification);
 			break;			
 		case Notification.REMOVE_MANY:
 			processTrace.append("\n REMOVE_MANY ");
-			decrementalChange (notification);
+			subtractiveChange (notification);
 			break;
 		case Notification.UNSET:
 			processTrace.append("\n UNSET ");
-			decrementalChange (notification);
+			subtractiveChange (notification);
 			break;
 
 		default:
@@ -75,7 +75,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		System.out.println(processTrace + "");
 	}
 	
-	private void incrementalChange (Notification notification) {
+	private void additiveChange (Notification notification) {
 		reportTarget(this.target);
 		
 		Object feature = notification.getFeature();
@@ -91,7 +91,7 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		}		
 	}
 	
-	private void decrementalChange(Notification notification) {
+	private void subtractiveChange(Notification notification) {
 		reportTarget(this.target);
 
 		Object feature = notification.getFeature();
@@ -115,89 +115,19 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 
 		if(feature instanceof EAttribute) {
 			// This is likely a property of the RDF node for the "onEobject"
-			EObject onEObject = (EObject)notification.getNotifier();	// RDF node
-			EAttribute eAttributeChanged = (EAttribute) feature;		// RDF property
-			// eAttribute's is value									// RDF object (node/literal)
-			
-			boolean isOrdered = eAttributeChanged.isOrdered();// If this is set then there is Order to the values.				
-			int orderPosition = -1; // This is not notification.getPosition()
-			
-			if(null == notification.getOldValue()) {
-				// New statement
-			} else {
-				// Existing statement
-				
-				// TODO Make a list of Named Models that should be checked for the statements (not just an rdfNode?), and update them
-				RDFGraphResourceImpl graphResource = RDFGraphResourceUpdate.getGraphResourceFor(onEObject);				
-				List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
-				RDFGraphResourceUpdate.updateSingleValueAttribute(namedModelURIs, onEObject, eAttributeChanged, value, notification.getOldValue());
-			}
-
-			// getGraphResourceFor(onEObject).ttlConsoleOntModel();
-			
-			// Console output
-			processTrace.append(String.format("\n ON THIS "));
-			reportEObjectRDFnode(onEObject, 0);
-			processTrace.append(String.format("\n - eAttribute is Ordered? %s %s",
-					isOrdered,
-					orderPosition)); // -1 "none" else > 0 position but does not imply order is required 
-			processTrace.append(String.format("\n - eAttribute value : %s  %s  %s ", 
-					eAttributeChanged.getEAttributeType().getName(), 
-					eAttributeChanged.getName(),
-					value ));
+			featureEAttribute(feature, value, notification);
 			return;
 		}
 
 		if(feature instanceof EReference) {
-			EObject onEObject = (EObject)notification.getNotifier();	// RDF node	
-			EReferenceImpl eReference = (EReferenceImpl) feature;		// RDF property
-			
-			// Single
-			if (value instanceof EObject) {
-				EObject referenced = (EObject) value;						// RDF object (node)
-				// TODO Deal with ordering
-				boolean isOrdered = eReference.isOrdered();
-				int orderPosition = -1 ; // This is not notification.getPosition()			
-				
-				// Console output
-				processTrace.append(String.format("\n ON THIS "));
-				reportEObject(onEObject, false, 0);					
-				processTrace.append(String.format("\n - eReference is Ordered? %s %s", 
-						isOrdered, 
-						orderPosition)); // -1 "none" else > 0 position but does not imply order is required
-				processTrace.append(String.format("\n - eReference changed : %s  %s \n\t->", 
-						eReference.getEReferenceType().getName(),
-						eReference.getName()));
-				reportEObject(referenced, false, 1);
-				return;
-			}
-			
-			// Array
-			if (value instanceof ArrayList) {
-				ArrayList<EObject> referenced = (ArrayList) value;						// RDF object (node)
-				// TODO Deal with ordering
-				boolean isOrdered = eReference.isOrdered();
-				int orderPosition = -1 ; // This is not notification.getPosition()			
-				
-				// Console output
-				processTrace.append(String.format("\n ON THIS "));
-				reportEObject(onEObject, false, 0);					
-				processTrace.append(String.format("\n - eReference is Ordered? %s %s", 
-						isOrdered, 
-						orderPosition)); // -1 "none" else > 0 position but does not imply order is required
-				processTrace.append(String.format("\n - eReference changed : %s  %s \n\t->", 
-						eReference.getEReferenceType().getName(),
-						eReference.getName()));
-				referenced.forEach(r -> reportEObject(r, false, 1) );
-
-			}
-			// This is likely a property of the RDF node for onEobject
-			
+			processTrace.append(String.format("\n - EReference"));
+			featureEReference(feature, value, notification);
 			return;
 		}
-		
-		if( (featureClass.equals(EObject.class))
-				|| (featureClass.equals(DynamicEObjectImpl.class)) ) {
+
+		if(value instanceof EObject) {
+			processTrace.append(String.format("\n - EObject %s", value.hashCode()));
+			
 			EObject eObject = (EObject) feature;
 			processTrace.append(String.format("\n - eObject changed : %s  %s ", 
 					eObject.eClass().getName(),
@@ -208,6 +138,108 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		processTrace.append(String.format("\n UNKNOWN identifyByFeature() "));
 		return;
 
+	}
+
+	private void featureEReference(Object feature, Object value, Notification notification) {
+		EObject onEObject = (EObject)notification.getNotifier();	// RDF node	
+		EReferenceImpl eReference = (EReferenceImpl) feature;		// RDF property
+		
+		RDFGraphResourceImpl graphResource = RDFGraphResourceUpdate.getGraphResourceFor(onEObject);
+		if(null == graphResource) {
+			processTrace.append(String.format("Still loading, no graphResource"));
+			return;
+		}
+		
+		// Single
+		if (value instanceof EObject) {
+			processTrace.append(String.format(" - single EObject"));
+			EObject referenced = (EObject) value;						// RDF object (node)
+			// TODO Deal with ordering
+			boolean isOrdered = eReference.isOrdered();
+			int orderPosition = -1 ; // This is not notification.getPosition()			
+			
+			// Console output
+			processTrace.append(String.format("\n ON THIS "));
+			reportEObject(onEObject, false, 0);					
+			processTrace.append(String.format("\n - eReference is Ordered? %s %s", 
+					isOrdered, 
+					orderPosition)); // -1 "none" else > 0 position but does not imply order is required
+			processTrace.append(String.format("\n - eReference changed : %s  %s \n\t->", 
+					eReference.getEReferenceType().getName(),
+					eReference.getName()));
+			reportEObject(referenced, false, 1);
+			return;
+		}
+		
+		// Array
+		if (value instanceof ArrayList) {
+			processTrace.append(String.format(" - ArrayList"));	
+			ArrayList<EObject> referenced = (ArrayList) value;						// RDF object (node)
+			// TODO Deal with ordering
+			boolean isOrdered = eReference.isOrdered();
+			int orderPosition = -1 ; // This is not notification.getPosition()			
+			
+			// Console output
+			processTrace.append(String.format("\n ON THIS "));
+			reportEObject(onEObject, false, 0);					
+			processTrace.append(String.format("\n - eReference is Ordered? %s %s", 
+					isOrdered, 
+					orderPosition)); // -1 "none" else > 0 position but does not imply order is required
+			processTrace.append(String.format("\n - eReference changed : %s  %s \n\t->", 
+					eReference.getEReferenceType().getName(),
+					eReference.getName()));
+			referenced.forEach(r -> reportEObject(r, false, 1) );
+			return;
+		}
+		return;
+	}
+
+	private void featureEAttribute(Object feature, Object value, Notification notification) {
+		processTrace.append(String.format("\n - EAttribute"));
+		EObject onEObject = (EObject)notification.getNotifier();	// RDF node
+		EAttribute eAttributeChanged = (EAttribute) feature;		// RDF property
+		// eAttribute's is value									// RDF object (node/literal)
+		
+		boolean isOrdered = eAttributeChanged.isOrdered();// If this is set then there is Order to the values.				
+		int orderPosition = -1; // This is not notification.getPosition()
+		
+		
+		if(null == notification.getOldValue() 
+				&& null != notification.getNewValue()) {
+			// New statement
+			processTrace.append(String.format(" - new statement"));
+			return;
+		}
+		
+		if(null != notification.getOldValue() 
+				&& null == notification.getNewValue()) {
+			// Setting to null, subtractive?
+			processTrace.append(String.format(" - existing statement set to null"));
+			return;
+		}
+
+		if(null != notification.getOldValue() 
+				&& null != notification.getNewValue()) {
+			processTrace.append(String.format(" - existing statement"));
+			// Existing statement
+			// TODO Make a list of Named Models that should be checked for the statements (not just an rdfNode?), and update them
+			RDFGraphResourceImpl graphResource = RDFGraphResourceUpdate.getGraphResourceFor(onEObject);				
+			List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
+			RDFGraphResourceUpdate.setSingleValueAttribute(namedModelURIs, onEObject, eAttributeChanged, value, notification.getOldValue());
+		}
+		
+		// getGraphResourceFor(onEObject).ttlConsoleOntModel();
+		
+		// Console output
+		processTrace.append(String.format("\n ON THIS "));
+		reportEObjectRDFnode(onEObject, 0);
+		processTrace.append(String.format("\n - eAttribute is Ordered? %s %s",
+				isOrdered,
+				orderPosition)); // -1 "none" else > 0 position but does not imply order is required 
+		processTrace.append(String.format("\n - eAttribute value : %s  %s  %s ", 
+				eAttributeChanged.getEAttributeType().getName(), 
+				eAttributeChanged.getName(),
+				value ));
 	}
 	
  	private void identifyByValue(Object value, Notification notification) {

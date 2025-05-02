@@ -40,12 +40,12 @@ public class RDFGraphResourceUpdate {
 		return null;
 	}
 	
-	public static void updateSingleValueAttribute(List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) {
+	public static void setSingleValueAttribute(List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) {
 		// A statement is formed as "subject–predicate–object"
 		
 		// Internal code guards
-		assert oldValue != null : "old value must exist";
-		assert newValue != null : "new value must exist";
+		//assert oldValue != null : "old value must exist";
+		//assert newValue != null : "new value must exist"; //  Can set things null
 		
 		//
 		// SUBJECT
@@ -109,4 +109,28 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 
+	
+	public static void unsetSingleValueAttribute(List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) {
+		// Object type values set a new value "null", 
+	}
+	
+	public static void addMultiValueAttribute () {
+		
+	}
+	
+	public static void setMultiValueAttribute() {
+		
+	}
+	
+	public static void unsetMultiValueAttribute() {
+		
+	}
+	
+	public static void addModelElement() {
+		
+	}
+	
+	public static void removeModelElement() {
+		
+	}
 }
