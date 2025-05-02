@@ -2,7 +2,7 @@
 digraph G {
 [%
   renderEObject(eob, "thisObject");
-  renderRDFResource(rdfResource, Map { rdfResource.uri = "rdfRes" });
+  renderRDFNode(rdfResource, Map { rdfResource.uri = "rdfRes" });
 %]
   thisObject -> rdfRes
 }

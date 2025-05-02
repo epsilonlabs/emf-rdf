@@ -6,7 +6,7 @@ digraph G {
     uriToNodeName.put(rdfResource.uri, "rdfRes" + loopCount);
   }
   for (rdfResource in rdfResources) {
-    renderRDFResource(rdfResource, uriToNodeName);
+    renderRDFNode(rdfResource, uriToNodeName);
   }
 %]
 } 

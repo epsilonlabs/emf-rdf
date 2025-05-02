@@ -26,7 +26,7 @@ operation rdfNodeKey(rdfNode): String {
   }
 }
 
-operation renderRDFResource(rdfRes, uriToNodeName: Map): String {
+operation renderRDFNode(rdfRes, uriToNodeName: Map): String {
   var nodeKey = rdfNodeKey(rdfRes);
   var nodeName = uriToNodeName.get(nodeKey);
   if (not nodeName.isDefined()) {
@@ -54,7 +54,7 @@ operation renderRDFStatement(srcNodeName, stmt, uriToNodeName: Map) {
   var targetNodeName = uriToNodeName.get(sobKey);
 
   if (not targetNodeName.isDefined()) {
-    targetNodeName = renderRDFResource(sob, uriToNodeName);
+    targetNodeName = renderRDFNode(sob, uriToNodeName);
   } %]
   [%=srcNodeName%] -> [%=targetNodeName%] [label="[%=stmt.predicate.asString()%]"]
 [%
