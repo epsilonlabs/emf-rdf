@@ -51,7 +51,8 @@ rule EObject transform eob in: Model.allContents {
     "format" = "graphviz-dot",
     "rdfResource" = Model.resource.getRDFResource(eob),
     "layers" = rdfLayers,
-    "namespacesInactiveByDefault"=namespacesInactiveByDefault
+    "namespacesInactiveByDefault"=namespacesInactiveByDefault,
+    "rootIDs" = rootIDs
   }
 }
 
@@ -75,7 +76,8 @@ rule RDFResource transform rdfRes in: rdfResources {
     "format" = "graphviz-dot",
     "eObjects" = Model.resource.getEObjects(rdfRes),
     "layers" = rdfLayers,
-    "namespacesInactiveByDefault"=namespacesInactiveByDefault
+    "namespacesInactiveByDefault"=namespacesInactiveByDefault,
+    "rootIDs" = rootIDs
   }
 }
 

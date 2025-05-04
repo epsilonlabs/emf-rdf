@@ -1,10 +1,20 @@
 [%
 
-operation renderEObject(ob, nodeName: String) { %]
+operation Any getEObjectPath() {
+  return Sequence { 'EObjects', self.eClass.name + ' ' + rootIDs.get(self) };
+}
+
+operation Any getEObjectShowView() {
+  return 'javascript:showView([' + self.getEObjectPath().collect(p | "'" + p + "'").concat(', ') + '])';
+}
+
+operation renderEObject(ob, nodeName: String) {
+  var javascript = ob.getEObjectShowView();
+%]
     [%=nodeName%][
       shape=plain
       label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
-        <tr><td>[%=nodeName%] : <b>[%=ob.eClass.name%]</b></td></tr>
+        <tr><td  href="[%=javascript%]">[%=nodeName%] : <b>[%=ob.eClass.name%]</b></td></tr>
         <tr><td>
           <table border="0" cellborder="0" cellspacing="0">
           [% for (eAttr in ob.eClass.eAllAttributes) {
@@ -37,9 +47,13 @@ operation renderRDFNodeInternal(rdfRes, uriToNodeName: Map, depth: Integer): Str
     nodeName = "rdfNode" + uriToNodeName.size();
     uriToNodeName.put(nodeKey, nodeName);
   }
-%]
+
+  if (rdfRes.isURIResource() and Model.resource.getEObjects(rdfRes).isDefined()) { %]
+  [%=nodeName%] [label=<<table border="0"><tr><td href="javascript:showView(['RDF resources', '[%=rdfRes.uri%]'])">[%=nodeKey%]</td></tr></table>>]
+  [% } else { %]
   [%=nodeName%] [label="[%=nodeKey%]"]
-[%
+  [% }
+
   if (rdfRes.isResource()) {
     var stmtIterator = rdfRes.listProperties();
     while (stmtIterator.hasNext()) {

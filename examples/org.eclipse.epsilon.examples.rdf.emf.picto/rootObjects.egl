@@ -16,7 +16,7 @@ digraph G {
       var targets = ob.eGet(eRef).asSequence();
       for (target in targets) {
         if (rootIDs.containsKey(target)) { %]
-        ob[%=rootIDs.get(ob)%] -> ob[%=rootIDs.get(target)%] [label="  [%=eRef.eContainer.eContainer.name%]:[%=eRef.name%]  "]     
+        ob[%=rootIDs.get(ob)%] -> ob[%=rootIDs.get(target)%] [label="[%=eRef.eContainer.eContainer.name%]:[%=eRef.name%]"]
     [% }}} %]
   [% } %]
 }
