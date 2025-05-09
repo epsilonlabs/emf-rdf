@@ -92,12 +92,6 @@ public class RDFGraphResourceUpdate {
 			else {
 				System.err.println(String.format("Old statement not found : %s ", oldStatement));
 			}
-			
-			// TODO remove these debugging lines
-			//System.out.println("oldStatement: " + oldStatement);
-			//System.out.println("newStatement: " + newStatement);			
-			//model.write(System.out, "ttl");
-			//reportRDFnodeProperties("AFTER", model, (Resource) oldObject);
 		}
 	}
 
@@ -124,7 +118,7 @@ public class RDFGraphResourceUpdate {
 
 		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
 		for (Model model : namedModelsToUpdate) {
-			if (model.contains(newStatement)) {
+			if (!model.contains(newStatement)) {
 				model.add(newStatement);
 			} else {
 				System.err.println(String.format("New statement already exists? : %s ", newStatement));
