@@ -365,15 +365,8 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 	}
 	
 	// REPORTING code
-	
-
 	// TODO Remove this experiment code
-	private void reportRDFnodeProperties(String label, Model model, Resource rdfNode) {
-		System.err.println("\n" + label + "\nModel hashCode : " + model.hashCode());
-		System.err.println("Size: " + model.size() + " isEmpty? " + model.isEmpty());
-		System.err.println("listProperties() on : " + rdfNode.getLocalName());
-		rdfNode.listProperties().forEach(s -> System.err.println(s));
-	}
+
 	
 
 	private void reportReferences(EObject eObject, EReference reference, int pad) {
@@ -397,18 +390,6 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		return;
 	}
 	
-
-	private void reportTarget(Object target) {
-		Object targetClass = this.target.getClass();
-
-		if (targetClass.equals(EObject.class) || targetClass.equals(DynamicEObjectImpl.class)) {
-			processTrace.append(
-					String.format("\n - Target (EObject) : %s ", EcoreUtil.getIdentification(((EObject) target))));
-			return;
-		}
-
-		processTrace.append(String.format("\n - Target : %s  %s ", target.getClass(), target));
-	}
 	
 
 	private void reportEObjectIdentity(EObject eObject) {
