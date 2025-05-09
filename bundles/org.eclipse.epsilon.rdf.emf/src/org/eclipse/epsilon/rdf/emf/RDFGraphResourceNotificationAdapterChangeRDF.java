@@ -34,204 +34,153 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 
 	@Override
 	public void notifyChanged(Notification notification) {
-
-		// Decode the notification type
-		switch (notification.getEventType()) {
-		case Notification.ADD:
-			//additiveChange(notification);
-			break;			
-		case Notification.ADD_MANY:
-			//additiveChange(notification);
-			break;
-		case Notification.SET:
-			additiveChange(notification);
-			break;
-			
-		case Notification.REMOVE:
-			subtractiveChange (notification);
-			break;			
-		case Notification.REMOVE_MANY:
-			subtractiveChange (notification);
-			break;
-		case Notification.UNSET:
-			subtractiveChange (notification);
-			break;
-			
-		default:
-			break;			
-		}
-	}
-	
-	private void additiveChange (Notification notification) {
 		Object feature = notification.getFeature();
-		Object value = notification.getNewValue();
-		
-		if(null != feature) {
+		if (null != feature) {
 			// Work out the change based on feature
-			Class<? extends Object> featureClass = feature.getClass();
-
-			if(feature instanceof EAttribute) {
-				additiveFeatureEAttribute(feature, value, notification);
-				return;
-			}
-
-			if(feature instanceof EReference) {
-				additiveFeatureEReference(feature, value, notification);
-				return;
-			}
-
-			if(feature instanceof EObject) {
-				addativeFeatureEObject(feature, value, notification);
-				return;
-			}
-			System.err.println(String.format("\n unhandled additive change : %s ", featureClass.getName()));
-			return;
+			featureNotification(feature, notification);
 		} else {
-			// Work out the change base on newValue
-			identifyByValue(value, notification);
-		}		
+			// Notification is not for a feature
+		}
 	}
 	
-	private void additiveFeatureEAttribute(Object feature, Object value, Notification notification) {
-		EObject onEObject = (EObject)notification.getNotifier();	// RDF node
-		EAttribute eAttributeChanged = (EAttribute) feature;		// RDF property
-		// eAttribute's is value									// RDF object (node/literal)
-		
-		// TODO How many, are they ordered?
-		boolean isOrdered = eAttributeChanged.isOrdered();// If this is set then there is Order to the values.				
-		int orderPosition = -1; // This is not notification.getPosition()
-		
-		// TODO Make a list of Named Models that should be checked for the statements (not just an rdfNode?), and update them
-		RDFGraphResourceImpl graphResource = RDFGraphResourceUpdate.getGraphResourceFor(onEObject);				
-		List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
-		
-		if(null == notification.getOldValue()) {
-			// Create new statement
-			if (null == notification.getNewValue()) {
-				// Create statement null
-				// TODO Handle creating a new statement for a single value with null
-			} else {
-				// Create statement value
-				// TODO Handle creating a new statement for a single value with a value
-			}
-				
-		} else {
-			// Update existing statement
-			 if(null == notification.getNewValue()) {
-				 // Update existing statement to null
-				 // TODO Update existing statement for single value being set to null 
-			 } else {
-				 // Update existing statement value
-				 RDFGraphResourceUpdate.updateSingleValueAttributeStatements(namedModelURIs, onEObject, eAttributeChanged, value, notification.getOldValue());
-			 }
+	private void featureNotification (Object feature, Notification notification){		
+		Class<? extends Object> featureClass = feature.getClass();
+
+		if (feature instanceof EAttribute) {
+			eAttributeFeatureNotification((EAttribute) feature, notification);
+			return;
 		}
 
-	}
+		if (feature instanceof EReference) {
+			//eReferenceFeatureNotification((EReference) feature, notification);
+			return;
+		}
 
-	private void additiveFeatureEReference(Object feature, Object value, Notification notification) {
-		EObject onEObject = (EObject)notification.getNotifier();	// RDF node	
-		EReferenceImpl eReference = (EReferenceImpl) feature;		// RDF property
-		
-		RDFGraphResourceImpl graphResource = RDFGraphResourceUpdate.getGraphResourceFor(onEObject);
-		if(null == graphResource) {
-			// TODO what happens if there is no graph resource?
+		if (feature instanceof EObject) {
+			//eObjectFeatureNotification((EObject) feature, notification);
 			return;
 		}
-		
-		// TODO check for ordering and position information
-		boolean isOrdered = eReference.isOrdered();
-		int orderPosition = -1 ; // This is not notification.getPosition()
-		
-		// Single
-		if (value instanceof EObject) {
-			EObject referenced = (EObject) value;						// RDF object (node)
-			// TODO Deal with ordering
-			
-			return;
-		}
-		
-		// Array
-		if (value instanceof ArrayList) {
-			ArrayList<EObject> referenced = (ArrayList) value;						// RDF object (node)
-			// TODO Deal with ordering
-			return;
-		}
+
+		System.err.println(String.format("\n unhandled additive change : %s ", featureClass.getName()));
 		return;
 	}
-
-	private void addativeFeatureEObject(Object feature, Object value, Notification notification) {	
-		EObject eObject = (EObject) feature;
-	}
-
-	private void subtractiveChange(Notification notification) {
-		Object feature = notification.getFeature();
-		Object value = notification.getOldValue();
-
-		if (null != feature) {
-			// Work out what was removed by Feature
-			//identifyByFeature(feature, value, notification);
-			Class<? extends Object> featureClass = feature.getClass();
-
-			if(feature instanceof EAttribute) {
-				//subtractiveFeatureEAttribute(feature, value, notification);
-				return;
-			}
-
-			if(feature instanceof EReference) {
-				//subtractiveFeatureEReference(feature, value, notification);
-				return;
-			}
-
-			if(value instanceof EObject) {
-				//subtractiveFeatureEObject(feature, value, notification);
-				return;
-			}
-			
-			System.err.println(String.format("\n unhandled subtractive change : %s ", featureClass.getName()));
-			return;
-
-		} else {
-			// Work out what was removed by old Value?
-			return;
-		}
-	}
 	
- 	private void identifyByValue(Object value, Notification notification) {
-		if (null == value) {
-			// TODO identify by value when incoming value is null
-			return;
-		} else {
-			// TODO identify by value when incoming value is not null
-			Object targetClass = this.target.getClass();
-			Object notifier = notification.getNotifier();
-			
-			// Can we work out what the change was from the type of notifier?
-			if (notifier instanceof RDFGraphResourceImpl) {
-				RDFGraphResourceImpl notifierResource = (RDFGraphResourceImpl) notifier;				
-				return;
-			}
-			
-			// Can we work out what the change was is the value is an EObject?
-			if ( (value instanceof EObject)
-					|| (value instanceof DynamicEObjectImpl) ){
-				// TODO Handle new value as a type of EObject
-				EObject valueEObject = (EObject)value;
+	private void eAttributeFeatureNotification(EAttribute feature, Notification notification) {		
+		EObject onEObject = (EObject) notification.getNotifier(); 	// RDF node
+		EAttribute eAttributeChanged = (EAttribute) feature; 		// RDF property
+		// eAttribute's values are the objects						// RDF object (node/literal)
+		Object oldValue = notification.getOldValue();
+		Object newValue = notification.getNewValue();
+		
+		boolean isOrdered = eAttributeChanged.isOrdered(); // If this is set then there is Order to the values.
+		int orderPosition = -1; // This is not notification.getPosition()
+		
+		RDFGraphResourceImpl graphResource = RDFGraphResourceUpdate.getGraphResourceFor(onEObject);				
+		List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
 				
-				// EObject is likely an RDF node?				
-				return;
+		// Decode the notification event type
+		switch (notification.getEventType()) {
+		case Notification.ADD:
+			if(isOrdered) {
+
+			} else {
+
 			}
+			break;
+		case Notification.ADD_MANY:
+			if(isOrdered) {
+
+			} else {
+
+			}
+			break;
+		case Notification.SET:
+			// Single values, don't need to worry about order?
+			if (null == oldValue) {
+				// Create new statement
+				if (null == newValue) {
+					// Create new statement for null value
+				} else {
+					// Create new statement for value
+					RDFGraphResourceUpdate.newSingleValueAttributeStatements(namedModelURIs, onEObject,
+							eAttributeChanged, newValue);
+				}
+
+			} else {
+				// Update existing statement
+				if (null == newValue) {
+					// Update existing statement to null
+					RDFGraphResourceUpdate.removeSingleValueAttributeStatements(namedModelURIs, onEObject,
+							eAttributeChanged, notification.getOldValue());
+
+				} else {
+					// Update existing statement value
+					RDFGraphResourceUpdate.updateSingleValueAttributeStatements(namedModelURIs, onEObject,
+							eAttributeChanged, newValue, oldValue);
+				}
+			}
+
+			break;
+
+		case Notification.REMOVE:
+			if(isOrdered) {
+
+			} else {
+
+			}
+
+			break;
+		case Notification.REMOVE_MANY:
+			if(isOrdered) {
+
+			} else {
+
+			}
+
+			break;
+		case Notification.UNSET:
+			// Single values, don't need to worry about order?
+			RDFGraphResourceUpdate.removeSingleValueAttributeStatements(namedModelURIs, 
+					onEObject, eAttributeChanged, notification.getOldValue());
+			break;
+		default:
+			break;
 		}
 	}
 	
-	private Resource identifyEObjectsRDFnode (EObject eObject) {	
-		if (eObject instanceof RDFGraphResourceImpl) {
-			RDFGraphResourceImpl rdfGraphResource = (RDFGraphResourceImpl) eObject.eResource();
-			Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
-			return rdfNode;
+	private void notImplmentedWarning (Notification notification, boolean isOrdered) {
+		String feature = notification.getFeature().getClass().toString();
+		String operation = "";
+		switch (notification.getEventType()) {
+		case Notification.ADD:
+			operation = "ADD";
+			break;
+		case Notification.ADD_MANY:
+			operation = "ADD_MANY";
+			break;
+		case Notification.SET:
+			operation = "SET";
+			break;
+		case Notification.REMOVE:
+			operation = "REMOVE";
+			break;
+		case Notification.REMOVE_MANY:
+			operation = "REMOVE_MANY";
+			break;
+		case Notification.UNSET:
+			operation = "UNSET";
+			break;
+		default:
+			break;
 		}
-		return null;
+		String order = "";
+		if(isOrdered) {
+			order = "ordered ";
+		} else {
+			order = "unordered ";
+		}
+		System.err.println(String.format("%s %s %s not implmented", feature, operation, order));
 	}
-
 }
 
 	
