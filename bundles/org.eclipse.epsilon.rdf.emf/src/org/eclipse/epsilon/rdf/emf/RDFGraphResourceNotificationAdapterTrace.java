@@ -1,36 +1,22 @@
-/********************************************************************************
- * Copyright (c) 2025 University of York
- *
- * This program and the accompanying materials are made available under the
- * terms of the Eclipse Public License 2.0 which is available at
- * http://www.eclipse.org/legal/epl-2.0.
- *
- * SPDX-License-Identifier: EPL-2.0
- *
- * Contributors:
- *   Antonio Garcia-Dominguez - initial API and implementation
- ********************************************************************************/
 package org.eclipse.epsilon.rdf.emf;
-
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
-
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.impl.DynamicEObjectImpl;
-import org.eclipse.emf.ecore.impl.EAttributeImpl;
 import org.eclipse.emf.ecore.impl.EReferenceImpl;
 import org.eclipse.emf.ecore.util.EContentAdapter;
 import org.eclipse.emf.ecore.util.EcoreEList;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 
-public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
+// Try to keep the logic flow in here the same as the RDFGraphResourceNotificationAdapterChangeRDF
+public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 
 	StringBuilder processTrace;
 	int i = 0;
@@ -111,45 +97,6 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		}		
 	}
 	
-	private void subtractiveChange(Notification notification) {
-		reportTarget(this.target);
-
-		Object feature = notification.getFeature();
-		Object value = notification.getOldValue();
-
-		if (null != feature) {
-			// Work out what was removed by Feature
-			//identifyByFeature(feature, value, notification);
-			Class<? extends Object> featureClass = feature.getClass();
-			processTrace.append(String.format("\n - Feature class : %s", featureClass.getName()));
-
-			if(feature instanceof EAttribute) {
-				//subtractiveFeatureEAttribute(feature, value, notification);
-				return;
-			}
-
-			if(feature instanceof EReference) {
-				//subtractiveFeatureEReference(feature, value, notification);
-				return;
-			}
-
-			if(value instanceof EObject) {
-				//subtractiveFeatureEObject(feature, value, notification);
-				return;
-			}
-			
-			System.err.println(String.format("\n unhandled subtractive change : %s ", featureClass.getName()));
-			
-			processTrace.append(String.format("\n unhandled subtractive change : %s ", featureClass.getName()));
-			return;
-
-		} else {
-			// Work out what was removed by old Value?
-			processTrace.append(String.format("\n No Feature?"));
-			return;
-		}
-	}
-
 	private void addativeFeatureEObject(Object feature, Object value, Notification notification) {
 		processTrace.append(String.format("\n - EObject %s", value.hashCode()));
 		
@@ -228,27 +175,27 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		RDFGraphResourceImpl graphResource = RDFGraphResourceUpdate.getGraphResourceFor(onEObject);				
 		List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
 		
-		if(null == notification.getOldValue() 
-				&& null != notification.getNewValue()) {
-			// New statement
-			processTrace.append(String.format(" - new statement"));
-			return;
+		if(null == notification.getOldValue()) {
+			// Create new statement
+			if (null == notification.getNewValue()) {
+				// Create statement null
+				processTrace.append(String.format(" - new statement set to null", value));
+			} else {
+				// Create statement value
+				processTrace.append(String.format(" - new statement set to value %s", value));
+			}
+				
+		} else {
+			// Update existing statement
+			 if(null == notification.getNewValue()) {
+				 // Update existing statement to null
+				 processTrace.append(String.format(" - existing statement set to null"));
+			 } else {
+				 // Update existing statement value
+				 processTrace.append(String.format(" - existing statement set to value %s", value));
+			 }
 		}
-		
-		if(null != notification.getOldValue() 
-				&& null == notification.getNewValue()) {
-			// Setting to null, subtractive?
-			processTrace.append(String.format(" - existing statement set to null"));
-			return;
-		}
-
-		if(null != notification.getOldValue() 
-				&& null != notification.getNewValue()) {
-			processTrace.append(String.format(" - existing statement"));
-			// Existing statement
-			RDFGraphResourceUpdate.updateSingleValueAttributeStatements(namedModelURIs, onEObject, eAttributeChanged, value, notification.getOldValue());
-		}
-		
+				
 		// getGraphResourceFor(onEObject).ttlConsoleOntModel();
 		
 		// Console output
@@ -263,58 +210,38 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 				value ));
 	}
 	
- 	private void identifyByValue(Object value, Notification notification) {
-		if (null == value) {
-			processTrace.append(String.format("\n No new value to process? : %s ", notification));
-			return;
-		} else {
-			Object targetClass = this.target.getClass();
-			Object notifier = notification.getNotifier();
-			
-			processTrace.append(String.format("\n - Notification : %s ", notification.getClass()));
-			processTrace.append(String.format("\n Attempt to process the Value :  %s  %s",
-					value.getClass(),
-					value));
-			
-			// What kind of notifier is it?
-			if (notifier instanceof RDFGraphResourceImpl) {
-				RDFGraphResourceImpl notifierResource = (RDFGraphResourceImpl) notifier;				
-				processTrace.append(String.format("\n  - Notifier is RDFGraphResourceImpl : %s ", 
-						notifierResource.getURI()));
-				return;
-			} else {
-				processTrace.append(String.format("\n  - Notifier : \n    * %s \n    * %s", 
-						notification.getNotifier().getClass(),
-						notification.getNotifier() ));
-			}
-							
-			if ( (value instanceof EObject)
-					|| (value instanceof DynamicEObjectImpl) ){
-				processTrace.append(String.format("\n Handle new value as a type of EObject"));
-				EObject valueEObject = (EObject)value;
-				reportEObject(valueEObject, false, 0);
-				
-				// EObject is likely an RDF node
-				
-				return;
-			}
-		}
-	}
-	
-	private Resource identifyEObjectsRDFnode (EObject eObject) {	
-		if (eObject instanceof RDFGraphResourceImpl) {
-			RDFGraphResourceImpl rdfGraphResource = (RDFGraphResourceImpl) eObject.eResource();
-			Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
-			
-			processTrace.append(reportNamedModelsContaining(eObject));
-			return rdfNode;
-		}
-		processTrace.append(String.format(" ! No RDFGraphResourceImpl for : %s ", eObject));
-		return null;
-		
-	}
-	
+	private void subtractiveChange(Notification notification) {
+		Object feature = notification.getFeature();
+		Object value = notification.getOldValue();
 
+		if (null != feature) {
+			// Work out what was removed by Feature
+			//identifyByFeature(feature, value, notification);
+			Class<? extends Object> featureClass = feature.getClass();
+
+			if(feature instanceof EAttribute) {
+				//subtractiveFeatureEAttribute(feature, value, notification);
+				return;
+			}
+
+			if(feature instanceof EReference) {
+				//subtractiveFeatureEReference(feature, value, notification);
+				return;
+			}
+
+			if(value instanceof EObject) {
+				//subtractiveFeatureEObject(feature, value, notification);
+				return;
+			}
+			
+			System.err.println(String.format("\n unhandled subtractive change : %s ", featureClass.getName()));
+			return;
+
+		} else {
+			// Work out what was removed by old Value?
+			return;
+		}
+	}
 	
 	// TODO Remove this experiment code
 	private void reportRDFnodeProperties (String label, Model model, Resource rdfNode ) {
@@ -398,6 +325,57 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 			} 
 		});
 	}
+	
+ 	private void identifyByValue(Object value, Notification notification) {
+		if (null == value) {
+			processTrace.append(String.format("\n No new value to process? : %s ", notification));
+			return;
+		} else {
+			Object targetClass = this.target.getClass();
+			Object notifier = notification.getNotifier();
+			
+			processTrace.append(String.format("\n - Notification : %s ", notification.getClass()));
+			processTrace.append(String.format("\n Attempt to process the Value :  %s  %s",
+					value.getClass(),
+					value));
+			
+			// What kind of notifier is it?
+			if (notifier instanceof RDFGraphResourceImpl) {
+				RDFGraphResourceImpl notifierResource = (RDFGraphResourceImpl) notifier;				
+				processTrace.append(String.format("\n  - Notifier is RDFGraphResourceImpl : %s ", 
+						notifierResource.getURI()));
+				return;
+			} else {
+				processTrace.append(String.format("\n  - Notifier : \n    * %s \n    * %s", 
+						notification.getNotifier().getClass(),
+						notification.getNotifier() ));
+			}
+							
+			if ( (value instanceof EObject)
+					|| (value instanceof DynamicEObjectImpl) ){
+				processTrace.append(String.format("\n Handle new value as a type of EObject"));
+				EObject valueEObject = (EObject)value;
+				reportEObject(valueEObject, false, 0);
+				
+				// EObject is likely an RDF node
+				
+				return;
+			}
+		}
+	}
+	
+	private Resource identifyEObjectsRDFnode (EObject eObject) {	
+		if (eObject instanceof RDFGraphResourceImpl) {
+			RDFGraphResourceImpl rdfGraphResource = (RDFGraphResourceImpl) eObject.eResource();
+			Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
+			
+			processTrace.append(reportNamedModelsContaining(eObject));
+			return rdfNode;
+		}
+		processTrace.append(String.format(" ! No RDFGraphResourceImpl for : %s ", eObject));
+		return null;
+		
+	}
 
 	private void reportEObjectRDFnode (EObject eObject, int pad) {
 		final int subPad = pad + 1;
@@ -435,105 +413,4 @@ public class RDFGraphResourceChangeNotificationAdapter extends EContentAdapter {
 		return "";
 
 	}
-	
-	/*
-	 * @Override public Notifier getTarget() { // TODO Auto-generated method stub
-	 * System.out.println("getTarget()"); return null; }
-	 * 
-	 * @Override public void setTarget(Notifier newTarget) { // TODO Auto-generated
-	 * method stub System.out.println("setTarget() " + newTarget); }
-	 * 
-	 * @Override public boolean isAdapterForType(Object type) { // TODO
-	 * Auto-generated method stub //System.out.println("isAdapterForType() " +
-	 * type); return false; }
-	 */
 }
-
-
-/*
-private void identifyIncrementByFeature(Object feature, Object newValue, Notification notification) {
-
-	Class<? extends Object> featureClass = feature.getClass();
-	processTrace.append(String.format("\n - Feature class : %s", featureClass.getName()));
-	processTrace.append(String.format("\n ON THIS "));
-	
-	if(featureClass.equals(EAttributeImpl.class)) {	
-		EObject onEObject = (EObject)notification.getNotifier();	// RDF node
-		EAttribute eAttributeChanged = (EAttribute) feature;		// RDF property
-		
-		boolean isOrdered = eAttributeChanged.isOrdered();			
-		
-		identifyEObject(onEObject, false, 0);
-		processTrace.append(String.format("\n - eAttribute is Ordered? %s", isOrdered)); 
-		processTrace.append(String.format("\n - eAttribute was : %s  %s  %s ", 
-				eAttributeChanged.getEAttributeType().getName(), eAttributeChanged.getName(), notification.getOldValue() ));
-		processTrace.append(String.format("\n - eAttribute changed : %s  %s  %s ", 
-				eAttributeChanged.getEAttributeType().getName(), eAttributeChanged.getName(), newValue ));
-
-		// This is likely a property of the RDF node for onEobject
-		
-		return;
-	}
-
-	if(featureClass.equals(EReferenceImpl.class)) {
-		EObject onEObject = (EObject)notification.getNotifier();	// RDF node	
-		EReferenceImpl eReference = (EReferenceImpl) feature;		// RDF property
-		EObject value = (EObject) newValue;							// RDF node (object) 
-				
-		identifyEObject(onEObject, false, 0);
-		processTrace.append(String.format("\n - eReference changed : %s  %s \n\t->", 
-				eReference.getEReferenceType().getName(), eReference.getName() ));
-		identifyEObject(value, false, 1);
-		
-		// This is likely a property of the RDF node for onEobject
-		
-		return;
-	}
-	
-	if(featureClass.equals(EObject.class) || featureClass.equals(DynamicEObjectImpl.class)) {
-		EObject eObject = (EObject) feature;
-		processTrace.append(String.format("\n - eObject changed : %s  %s ", 
-				eObject.eClass().getName(), EcoreUtil.getIdentification(eObject) ));			
-		return;
-	}
-	
-	processTrace.append(String.format("\n UNKNOWN identifyIncrementByFeature() "));
-	return;
-
-}
-*/
-	
-	/*
-	private void identifyIncrementByValue(Object newValue, Notification notification) {
-	if (null == newValue) {
-		processTrace.append(String.format("\n No new value to process? : %s ", notification));
-		return;
-	} else {
-		Object targetClass = this.target.getClass();
-		Object notifier = notification.getNotifier();
-		
-		processTrace.append(String.format("\n - Notification : %s ", notification.getClass()));
-		processTrace.append(String.format("\n Attempt to process the NewValue :  %s  %s", newValue.getClass(), newValue));			
-		
-		
-		if (notifier.getClass().equals(RDFGraphResourceImpl.class)) {
-			RDFGraphResourceImpl notifierResource = (RDFGraphResourceImpl) notifier;				
-			processTrace.append(String.format("\n  - Notifier is RDFGraphResourceImpl : %s ", notifierResource.getURI()));
-		} else {
-			processTrace.append(String.format("\n  - Notifier : \n    * %s \n    * %s", notification.getNotifier().getClass(), notification.getNotifier() ));
-		}
-						
-		if ( newValue.getClass().equals(EObject.class) || newValue.getClass().equals(DynamicEObjectImpl.class)) {
-			processTrace.append(String.format("\n Handle new value as a type of EObject"));
-			EObject newValueEObject = (EObject)newValue;
-			identifyEObject(newValueEObject, false, 0);
-			
-			// EObject is likely an RDF node
-			
-			return;
-		}
-		
-	}
-}
-*/
-	
