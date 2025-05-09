@@ -13,22 +13,15 @@
 package org.eclipse.epsilon.rdf.emf;
 
 
-import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
-import org.eclipse.emf.ecore.impl.DynamicEObjectImpl;
-import org.eclipse.emf.ecore.impl.EAttributeImpl;
-import org.eclipse.emf.ecore.impl.EReferenceImpl;
 import org.eclipse.emf.ecore.util.EContentAdapter;
-import org.eclipse.emf.ecore.util.EcoreEList;
-import org.eclipse.emf.ecore.util.EcoreUtil;
 
 public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapter {
 
@@ -147,40 +140,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 			break;
 		}
 	}
-	
-	private void notImplmentedWarning (Notification notification, boolean isOrdered) {
-		String feature = notification.getFeature().getClass().toString();
-		String operation = "";
-		switch (notification.getEventType()) {
-		case Notification.ADD:
-			operation = "ADD";
-			break;
-		case Notification.ADD_MANY:
-			operation = "ADD_MANY";
-			break;
-		case Notification.SET:
-			operation = "SET";
-			break;
-		case Notification.REMOVE:
-			operation = "REMOVE";
-			break;
-		case Notification.REMOVE_MANY:
-			operation = "REMOVE_MANY";
-			break;
-		case Notification.UNSET:
-			operation = "UNSET";
-			break;
-		default:
-			break;
-		}
-		String order = "";
-		if(isOrdered) {
-			order = "ordered ";
-		} else {
-			order = "unordered ";
-		}
-		System.err.println(String.format("%s %s %s not implmented", feature, operation, order));
-	}
+		
 }
 
 	
