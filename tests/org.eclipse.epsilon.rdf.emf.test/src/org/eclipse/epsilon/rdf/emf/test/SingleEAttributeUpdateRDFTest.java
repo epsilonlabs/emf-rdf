@@ -221,9 +221,6 @@ public class SingleEAttributeUpdateRDFTest {
 		changeAndTest((Date) Date.from(Instant.now()));
 	}
 	
-	
-	// TODO Add in all the other types using the simple test pattern (as above)
-	
 	public void reportConsoleAttributeState(String reportLabel) {
 		if (CONSOLE_OUTPUT_ACTIVE) { 
 			System.out.println(reportLabel);
@@ -251,8 +248,6 @@ public class SingleEAttributeUpdateRDFTest {
 				
 		Object rdfValue = rdfEntity.eGet(getEAttribute(rdfEntity, testType));
 		Object xmiValue = xmiEntity.eGet(getEAttribute(xmiEntity, testType));
-		
-		//System.err.print(String.format(" ----> rdf %s :: xmi %s\n", rdfValue ,xmiValue ));
 		
 		rdf.getResources().get(0).save(null);
 		saveBeforeXmi(EMFNativeModelAfter);
@@ -285,7 +280,6 @@ public class SingleEAttributeUpdateRDFTest {
 	
 	protected void copyFile(File source, File destination) throws FileNotFoundException, IOException {
 		Files.copy(source.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
-		//delaySeconds(1);
 	}
 	
 	private void delaySeconds(int seconds) {
@@ -297,7 +291,6 @@ public class SingleEAttributeUpdateRDFTest {
 	}
 	
 	protected EObject getRdfEntityForAttributeTest (ResourceSet rdf) {
-		rdf.getResources().forEach(r -> System.out.println("\n RDF: " + r.getURI()) );
 		Resource rdfResource = rdf.getResources().get(0);
 		EObject rdfModel = rdfResource.getContents().get(0);
 		EObject rdfEntity = rdfModel.eContents().get(0);
