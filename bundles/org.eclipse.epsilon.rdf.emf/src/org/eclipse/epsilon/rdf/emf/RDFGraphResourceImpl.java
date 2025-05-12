@@ -57,118 +57,6 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 
 	private Dataset dataModelSet;
 	private Dataset schemaModelSet;
-	
-	//
-	
-	private void storeDatasetNamedModels (Dataset dataset, String namedModelURI, String saveLocationURI) throws IOException {
-		// NamedModelURI is a model in the provided dataset and saveLocationURI is the file system path to save it too.
-		if (dataset.containsNamedModel(namedModelURI))
-		{
-			Model modelToSave = dataset.getNamedModel(namedModelURI);
-
-			Lang lang = RDFDataMgr.determineLang(namedModelURI, namedModelURI, Lang.TTL);  // Hint becomes default
-			
-			
-			try (OutputStream out = new FileOutputStream(saveLocationURI)) {
-				RDFDataMgr.write(out, modelToSave, lang);				
-				out.close();
-				
-				//ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-				//RDFDataMgr.write(byteStream, modelToSave, lang);
-				//String ttlText = byteStream.toString();
-				
-			}
-		}
-		else {
-			System.err.print(String.format("\n Can not find named Model URI : %s \n", namedModelURI ));
-		}
-	}
-	
-	@Override
-	public void save(Map<?, ?> options) throws IOException {
-		// TODO Auto-generated method stub
-		System.out.print("RDFGraphResource.save()");
-		//super.save(options);
-		
-		// TODO need some way to work out which of the Named models we want to write out, for now dump them all.
-		Iterator<Resource> namedModels = dataModelSet.listModelNames();
-		namedModels.forEachRemaining(m -> {
-			System.out.print(String.format("\n -model URI %s \n -model Name %s\n", m.getURI(), m.getLocalName()));
-
-			URL fileSystemPathUrl = null;
-
-			try {
-				URL url = new URL(m.getURI());
-				fileSystemPathUrl = FileLocator.toFileURL(url);
-				storeDatasetNamedModels(dataModelSet, m.getURI(), fileSystemPathUrl.getPath());
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				System.err.println("RDFGraphResourceImpl save error: " + e);
-				e.printStackTrace();
-			}
-		});
-	}
-		
-	@Override
-	protected void doSave(OutputStream outputStream, Map<?, ?> options) throws IOException {
-		// TODO Auto-generated method stub
-		System.err.print("doSave");
-		//super.doSave(outputStream, options);
-	}
-
-	@Override
-	protected void saveOnlyIfChangedWithFileBuffer(Map<?, ?> options) throws IOException {
-		// TODO Auto-generated method stub
-		System.err.print("saveOnlyIfChangedWithFileBuffer");
-		//super.saveOnlyIfChangedWithFileBuffer(options);
-	}
-	
-	@Override
-	protected void saveOnlyIfChangedWithMemoryBuffer(Map<?, ?> options) throws IOException {
-		// TODO Auto-generated method stub
-		System.err.print("saveOnlyIfChangedWithMemoryBuffer");
-		//super.saveOnlyIfChangedWithMemoryBuffer(options);
-	}
-
-	public List<Resource> getResourcesForNamedModelsContaining(EObject eObject) {
-		Resource res = this.getRDFResource(eObject);
-		return getResourcesForNamedModelsContaining(res);
-	}
-	
-	public List<Resource> getResourcesForNamedModelsContaining(Resource res) {
-		List<Resource> modelList = new ArrayList<Resource>();		
-		if (null != dataModelSet) {
-			Iterator<Resource> namedModels = dataModelSet.listModelNames();
-			namedModels.forEachRemaining(m -> {
-				Model model = dataModelSet.getNamedModel(m);
-				if (model.containsResource(res)) {
-					modelList.add(m);
-				}
-			});
-		}
-		
-		if(modelList.size() > 1) {
-			System.err.print(String.format("RDF node %s has been found on %s named models : %s",
-					res.getLocalName(), modelList.size(), modelList));
-		}
-		
-		return modelList;
-	}
-
-	public Model getNamedModel (Resource model) {
-		return dataModelSet.getNamedModel(model);
-	}
-	
-	public List<Model> getNamedModels (List<Resource> namedModelURIs) {
-		List<Model> namedModels = new ArrayList<Model>();
-		for (Resource model : namedModelURIs) {
-			namedModels.add(dataModelSet.getNamedModel(model));
-		}
-		return namedModels;
-	}
-	
-	//
-	
 
 	private Model rdfSchemaModel;
 	private Model rdfDataModel;
@@ -205,6 +93,47 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 				getContents().add(eob);
 			}
 		}
+	}
+	
+	// Save the Graph resource
+	private void storeDatasetNamedModels (Dataset dataset, String namedModelURI, String saveLocationURI) throws IOException {
+		// NamedModelURI is a model in the provided dataset and saveLocationURI is the file system path to save it too.
+		if (dataset.containsNamedModel(namedModelURI))
+		{
+			Model modelToSave = dataset.getNamedModel(namedModelURI);
+			Lang lang = RDFDataMgr.determineLang(namedModelURI, namedModelURI, Lang.TTL);  // Hint becomes default
+			
+			try (OutputStream out = new FileOutputStream(saveLocationURI)) {
+				RDFDataMgr.write(out, modelToSave, lang);				
+				out.close();
+			}
+		}
+		else {
+			System.err.print(String.format("\n Can not find named Model URI : %s \n", namedModelURI ));
+		}
+	}
+	
+	@Override
+	public void save(Map<?, ?> options) throws IOException {
+		System.out.print("RDFGraphResource.save()");
+		
+		// TODO need some way to work out which of the Named models we want to write out, for now dump them all.
+		Iterator<Resource> namedModels = dataModelSet.listModelNames();
+		namedModels.forEachRemaining(m -> {
+			System.out.print(String.format("\n -model URI %s \n -model Name %s\n", m.getURI(), m.getLocalName()));
+
+			URL fileSystemPathUrl = null;
+
+			try {
+				URL url = new URL(m.getURI());
+				fileSystemPathUrl = FileLocator.toFileURL(url);
+				storeDatasetNamedModels(dataModelSet, m.getURI(), fileSystemPathUrl.getPath());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				System.err.println("RDFGraphResourceImpl save error: " + e);
+				e.printStackTrace();
+			}
+		});
 	}
 
 	public Resource getRDFResource(EObject eob) {
@@ -275,19 +204,42 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	public void setConfig(RDFResourceConfiguration config) {
 		this.config = config;
 	}
-	
-	// TODO remove experiment code
-	public void ttlConsoleModel (Model model) {
-		System.out.println("\n TURTLE rdfOntModel \n");
-		OutputStream console = System.out;
-		model.write(console,"ttl" );
+
+	public List<Resource> getResourcesForNamedModelsContaining(EObject eObject) {
+		Resource res = this.getRDFResource(eObject);
+		return getResourcesForNamedModelsContaining(res);
 	}
 	
-	public void ttlConsoleOntModel () {
-		System.out.println("\n TURTLE rdfOntModel \n");
-		OutputStream console = System.out;
-		rdfOntModel.writeAll(console,"ttl" );
+	public List<Resource> getResourcesForNamedModelsContaining(Resource res) {
+		List<Resource> modelList = new ArrayList<Resource>();		
+		if (null != dataModelSet) {
+			Iterator<Resource> namedModels = dataModelSet.listModelNames();
+			namedModels.forEachRemaining(m -> {
+				Model model = dataModelSet.getNamedModel(m);
+				if (model.containsResource(res)) {
+					modelList.add(m);
+				}
+			});
+		}
+		
+		if(modelList.size() > 1) {
+			System.err.print(String.format("RDF node %s has been found on %s named models : %s",
+					res.getLocalName(), modelList.size(), modelList));
+		}
+		
+		return modelList;
+	}
+
+	public Model getNamedModel (Resource model) {
+		return dataModelSet.getNamedModel(model);
 	}
 	
+	public List<Model> getNamedModels (List<Resource> namedModelURIs) {
+		List<Model> namedModels = new ArrayList<Model>();
+		for (Resource model : namedModelURIs) {
+			namedModels.add(dataModelSet.getNamedModel(model));
+		}
+		return namedModels;
+	}
 
 }
