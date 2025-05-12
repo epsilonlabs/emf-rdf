@@ -287,7 +287,7 @@ public class RDFDeserializer {
 			EObject eob = deserializeObjectAttributes(node, eClass);
 			
 			eob.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF());
-			eob.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace());  // Produce a console trace for debugging and development
+			// eob.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace());  // Produce a console trace for debugging and development
 			
 			eobToResource.put(eob, node);
 			resourceToEob.put(node, eob);

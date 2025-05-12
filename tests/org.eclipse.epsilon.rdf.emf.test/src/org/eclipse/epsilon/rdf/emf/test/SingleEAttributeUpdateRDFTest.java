@@ -252,7 +252,7 @@ public class SingleEAttributeUpdateRDFTest {
 		Object rdfValue = rdfEntity.eGet(getEAttribute(rdfEntity, testType));
 		Object xmiValue = xmiEntity.eGet(getEAttribute(xmiEntity, testType));
 		
-		System.err.print(String.format(" ----> rdf %s :: xmi %s\n", rdfValue ,xmiValue ));
+		//System.err.print(String.format(" ----> rdf %s :: xmi %s\n", rdfValue ,xmiValue ));
 		
 		rdf.getResources().get(0).save(null);
 		saveBeforeXmi(EMFNativeModelAfter);
