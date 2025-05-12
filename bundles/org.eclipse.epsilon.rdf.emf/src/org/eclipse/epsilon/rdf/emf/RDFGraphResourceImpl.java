@@ -115,15 +115,10 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	
 	@Override
 	public void save(Map<?, ?> options) throws IOException {
-		System.out.print("RDFGraphResource.save()");
-		
 		// TODO need some way to work out which of the Named models we want to write out, for now dump them all.
 		Iterator<Resource> namedModels = dataModelSet.listModelNames();
 		namedModels.forEachRemaining(m -> {
-			System.out.print(String.format("\n -model URI %s \n -model Name %s\n", m.getURI(), m.getLocalName()));
-
 			URL fileSystemPathUrl = null;
-
 			try {
 				URL url = new URL(m.getURI());
 				fileSystemPathUrl = FileLocator.toFileURL(url);
