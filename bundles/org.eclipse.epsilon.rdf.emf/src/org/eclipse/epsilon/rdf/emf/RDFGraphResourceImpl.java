@@ -236,5 +236,11 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		}
 		return namedModels;
 	}
+	
+	public List<Resource> getResourcesForAllNamedModels() {
+		List<Resource> modelResourceList = new ArrayList<Resource>();
+		dataModelSet.listModelNames().forEachRemaining(m->modelResourceList.add(m));
+		return modelResourceList;
+	}
 
 }
