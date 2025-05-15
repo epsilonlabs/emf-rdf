@@ -51,7 +51,7 @@ public class SingleEAttributeUpdateRDFTest {
 
 	// TODO Changes to the order of Multi-value EAttributes (Not in this pull request)
 	
-	static final boolean CONSOLE_OUTPUT_ACTIVE = false;
+	static final boolean CONSOLE_OUTPUT_ACTIVE = true;
 	
 	
 	@BeforeClass
@@ -80,7 +80,7 @@ public class SingleEAttributeUpdateRDFTest {
 	
 	private String testType = "";
 	
-	@Before
+	
 	public void claimResources() throws IOException {
 		copyFile(OriginalTTL, WorkingTTL);
 
@@ -116,109 +116,127 @@ public class SingleEAttributeUpdateRDFTest {
 	@Test
 	public void nameString () throws IOException {
 		testType = "name"; // String - eString
-		changeAndTest("firstEntity1" );
+		changeSetExistingAndTest("firstEntity1" );
+		changeUnsetExisting();
 	}
 
 	@Test
 	public void eBoolean () throws IOException {
 		testType = "eBoolean";
-		changeAndTest((boolean) false);
+		changeSetExistingAndTest((boolean) false);
+		changeUnsetExisting();
 	}
 	
 	@Test
 	public void eBooleanObject() throws IOException {
 		testType = "eBooleanObject";
-		changeAndTest((Boolean) false);
+		changeSetExistingAndTest((Boolean) false);
+		changeUnsetExisting();
 	}
 	
 	@Test
 	public void eByte () throws IOException {
 		testType = "eByte";	
-		changeAndTest((byte) 126);
+		changeSetExistingAndTest((byte) 126);
+		changeUnsetExisting();
 	}
 	
 	@Test
 	public void eByteObject () throws IOException {
 		testType = "eByteObject";			
-		changeAndTest((Byte) ((byte) 126));
+		changeSetExistingAndTest((Byte) ((byte) 126));
+		changeUnsetExisting();
 	}
 	
 	@Test
 	public void eChar () throws IOException {
 		testType = "eChar";		
-		changeAndTest((char) 'Z');
+		changeSetExistingAndTest((char) 'Z');
+		changeUnsetExisting();
 	}
 	
 	@Test
 	public void eCharacterObject () throws IOException {
 		testType = "eCharacterObject";
-		changeAndTest((Character) 'X');
+		changeSetExistingAndTest((Character) 'X');
+		changeUnsetExisting();
 	}
 	
 	@Test
 	public void eDouble () throws IOException {
 		testType = "eDouble";
-		changeAndTest((double) 3.0);
+		changeSetExistingAndTest((double) 3.0);
+		changeUnsetExisting();
 	}
 	
 	@Test
 	public void eDoubleObject () throws IOException {
 		testType = "eDoubleObject";
-		changeAndTest((Double) ((double)30.0));
+		changeSetExistingAndTest((Double) ((double)30.0));
+		changeUnsetExisting();
 	}
 	
 	@Test
 	public void eFloat () throws IOException {
 		testType = "eFloat";
-		changeAndTest((float) 2.0);
+		changeSetExistingAndTest((float) 2.0);
+		changeUnsetExisting();
 	}
 	
 	@Test
 	public void eFloatObject () throws IOException {
 		testType = "eFloatObject";
-		changeAndTest((Float) ((float)3.0));
+		changeSetExistingAndTest((Float) ((float)3.0));
+		changeUnsetExisting();
 	}
 	
 	@Test
 	public void eInt () throws IOException {
 		testType = "eInt";
-		changeAndTest((int) 2);
+		changeSetExistingAndTest((int) 2);
+		changeUnsetExisting();
 	}
 	
 	@Test
 	public void eIntegerObject () throws IOException {
 		testType = "eIntegerObject";
-		changeAndTest((Integer) 3);
+		changeSetExistingAndTest((Integer) 3);
+		changeUnsetExisting();
 	}
 	
 	@Test
 	public void eLong () throws IOException {
 		testType = "eLong";
-		changeAndTest((long) 2);
+		changeSetExistingAndTest((long) 2);
+		changeUnsetExisting();
 	}
 	
 	@Test
 	public void eLongObject () throws IOException {
 		testType = "eLongObject";
-		changeAndTest((Long) ((long) 3));
+		changeSetExistingAndTest((Long) ((long) 3));
+		changeUnsetExisting();
 	}
 	
 	@Test
 	public void eShort () throws IOException {
 		testType = "eShort";
-		changeAndTest((short) 2);
+		changeSetExistingAndTest((short) 2);
+		changeUnsetExisting();
 	}
 	
 	@Test
 	public void eShortObject () throws IOException {
 		testType = "eShortObject";
-		changeAndTest((Short) ((short) 3));
+		changeSetExistingAndTest((Short) ((short) 3));
+		changeUnsetExisting();
 	}
 	
 	@Test
 	public void eDate () throws IOException {
 		testType = "eDate";
-		changeAndTest((Date) Date.from(Instant.now()));
+		changeSetExistingAndTest((Date) Date.from(Instant.now()));
+		changeUnsetExisting();
 	}
 	
 	public void reportConsoleAttributeState(String reportLabel) {
@@ -230,7 +248,73 @@ public class SingleEAttributeUpdateRDFTest {
 	}
 
 
-	public void changeAndTest (Object value) throws IOException {
+	public void changeUnsetExisting() throws IOException {
+		claimResources();
+		reportConsoleAttributeState("[TEST] Before " + testType);
+		
+		
+		EAttribute attribute = getEAttribute(rdfEntity, testType);
+		
+		if (CONSOLE_OUTPUT_ACTIVE) {
+			System.out.println("[TEST] Unset " + attribute.getClass().getTypeName());
+		}
+				
+		if(attribute.getClass().equals(char.class)) {
+			
+			rdfEntity.eUnset(getEAttribute(rdfEntity, testType));
+			xmiEntity.eUnset(getEAttribute(xmiEntity, testType));
+		}
+		else {
+			rdfEntity.eUnset(getEAttribute(rdfEntity, testType));
+			xmiEntity.eUnset(getEAttribute(xmiEntity, testType));			
+		}
+				
+		saveReloadAndTest("change Existing");
+		releaseResources();
+	}
+
+	public void changeUnSetThenSet(Object value) throws IOException {
+		claimResources();
+		
+		reportConsoleAttributeState("[TEST] Before " + testType);
+		
+		if (CONSOLE_OUTPUT_ACTIVE) {
+			System.out.println("[TEST] Change " + value.getClass().getTypeName() + " " + value);
+		}
+		
+		if(value.getClass().equals(char.class)) {
+			rdfEntity.eUnset(getEAttribute(rdfEntity, testType));
+			xmiEntity.eUnset(getEAttribute(xmiEntity, testType));
+		}
+		else {
+			rdfEntity.eUnset(getEAttribute(rdfEntity, testType));
+			xmiEntity.eUnset(getEAttribute(xmiEntity, testType));			
+		}
+		
+		saveReload();
+		
+		rdfEntity = getRdfEntityForAttributeTest(rdf);
+		xmiEntity = getRdfEntityForAttributeTest(xmiAfter);
+		
+		if(value.getClass().equals(char.class)) {
+			rdfEntity.eSet(getEAttribute(rdfEntity, testType), (String) value);
+			xmiEntity.eSet(getEAttribute(xmiEntity, testType), (Character) value);
+		}
+		else {
+			rdfEntity.eSet(getEAttribute(rdfEntity, testType), value);
+			xmiEntity.eSet(getEAttribute(xmiEntity, testType), value);			
+		}
+				
+		saveReloadAndTest("unSet existing");
+		
+		releaseResources();		
+	}
+	
+	
+	public void changeSetExistingAndTest (Object value) throws IOException {
+		
+		claimResources();
+		
 		reportConsoleAttributeState("[TEST] Before " + testType);
 		
 		if (CONSOLE_OUTPUT_ACTIVE) {
@@ -246,21 +330,31 @@ public class SingleEAttributeUpdateRDFTest {
 			xmiEntity.eSet(getEAttribute(xmiEntity, testType), value);			
 		}
 				
-		Object rdfValue = rdfEntity.eGet(getEAttribute(rdfEntity, testType));
-		Object xmiValue = xmiEntity.eGet(getEAttribute(xmiEntity, testType));
+		saveReloadAndTest("unSet existing");
 		
+		releaseResources();
+	}
+	
+	public void saveReload() throws IOException {
+		rdf.getResources().get(0).save(null);
+		saveBeforeXmi(EMFNativeModelAfter);
+		
+		xmiAfter = getXMIResourceSet(EMFNativeModelAfter, metaModel);
+		rdf = getGraphResourceSet(RDFGraphModel, metaModel);
+	}
+	
+	public void saveReloadAndTest(String changeType) throws IOException {
 		rdf.getResources().get(0).save(null);
 		saveBeforeXmi(EMFNativeModelAfter);
 		
 		xmiAfter = getXMIResourceSet(EMFNativeModelAfter, metaModel);
 		rdf = getGraphResourceSet(RDFGraphModel, metaModel);
 		
-		equivalentModels(testType + " After", rdf , xmiAfter);
+		equivalentModels(testType + " After " + changeType, rdf , xmiAfter);
 		
 		reportConsoleAttributeState("[TEST] After " + testType);
 	}
-	
-	
+		
 	public void saveBeforeXmi (File destinationFile) throws FileNotFoundException, IOException {
 		if (destinationFile.exists()) {
 			destinationFile.delete();
@@ -276,8 +370,7 @@ public class SingleEAttributeUpdateRDFTest {
 		}
 		
 	}
-		
-	
+			
 	protected void copyFile(File source, File destination) throws FileNotFoundException, IOException {
 		Files.copy(source.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
 	}
