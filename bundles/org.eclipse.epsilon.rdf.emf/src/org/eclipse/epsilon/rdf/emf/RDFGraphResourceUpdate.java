@@ -40,7 +40,7 @@ public class RDFGraphResourceUpdate {
 		return null;
 	}
 
-	private static Statement getStatement(EObject eObject, EAttribute eAttribute, Object value) {
+	private static Statement createStatement(EObject eObject, EAttribute eAttribute, Object value) {
 		// A statement is formed as "subject–predicate–object"
 
 		// SUBJECT
@@ -72,8 +72,8 @@ public class RDFGraphResourceUpdate {
 		assert newValue != null : "new value must exist";
 
 		RDFGraphResourceImpl graphResource = getGraphResourceFor(onEObject);
-		Statement newStatement = getStatement(onEObject, eAttribute, newValue);
-		Statement oldStatement = getStatement(onEObject, eAttribute, oldValue);
+		Statement newStatement = createStatement(onEObject, eAttribute, newValue);
+		Statement oldStatement = createStatement(onEObject, eAttribute, oldValue);
 
 		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
 		for (Model model : namedModelsToUpdate) {
@@ -91,7 +91,7 @@ public class RDFGraphResourceUpdate {
 		// Object type values set a new value "null", remove the statement the deserializer uses the meta-model so we won't have missing attributes
 		assert oldValue != null : "old value must exist";
 		RDFGraphResourceImpl graphResource = getGraphResourceFor(onEObject);
-		Statement oldStatement = getStatement(onEObject, eAttribute, oldValue);
+		Statement oldStatement = createStatement(onEObject, eAttribute, oldValue);
 
 		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
 		for (Model model : namedModelsToUpdate) {
@@ -106,7 +106,7 @@ public class RDFGraphResourceUpdate {
 	public static void newSingleValueAttributeStatements (List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue) {
 		assert newValue != null : "new value must exist";
 		RDFGraphResourceImpl graphResource = getGraphResourceFor(onEObject);
-		Statement newStatement = getStatement(onEObject, eAttribute, newValue);
+		Statement newStatement = createStatement(onEObject, eAttribute, newValue);
 
 		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
 		for (Model model : namedModelsToUpdate) {

@@ -67,14 +67,14 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		// Decode the notification event type
 		switch (notification.getEventType()) {
 		case Notification.ADD:
-			if(isOrdered) {
+			if (isOrdered) {
 
 			} else {
 
 			}
 			break;
 		case Notification.ADD_MANY:
-			if(isOrdered) {
+			if (isOrdered) {
 
 			} else {
 
@@ -119,7 +119,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 			break;
 
 		case Notification.REMOVE:
-			if(isOrdered) {
+			if (isOrdered) {
 
 			} else {
 
@@ -127,7 +127,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 
 			break;
 		case Notification.REMOVE_MANY:
-			if(isOrdered) {
+			if (isOrdered) {
 
 			} else {
 
