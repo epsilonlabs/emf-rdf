@@ -12,7 +12,7 @@
  ********************************************************************************/
 package org.eclipse.epsilon.rdf.emf;
 
-import java.io.ByteArrayOutputStream;
+import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,17 +26,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.jena.query.Dataset;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
-
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
@@ -45,7 +44,6 @@ import org.eclipse.epsilon.rdf.emf.config.RDFResourceConfiguration;
 import org.eclipse.epsilon.rdf.validation.RDFValidation.ValidationMode;
 import org.eclipse.epsilon.rdf.validation.RDFValidation.ValidationMode.RDFModelValidationReport;
 import org.eclipse.epsilon.rdf.validation.RDFValidationException;
-
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
@@ -103,32 +101,25 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 			Model modelToSave = dataset.getNamedModel(namedModelURI);
 			Lang lang = RDFDataMgr.determineLang(namedModelURI, namedModelURI, Lang.TTL);  // Hint becomes default
 			
-			try (OutputStream out = new FileOutputStream(saveLocationURI)) {
-				RDFDataMgr.write(out, modelToSave, lang);				
+			try (OutputStream out = new BufferedOutputStream(new FileOutputStream(saveLocationURI))) {
+				RDFDataMgr.write(out, modelToSave, lang);
 				out.close();
 			}
 		}
 		else {
-			System.err.print(String.format("\n Can not find named Model URI : %s \n", namedModelURI ));
+			System.err.printf("Cannot find named model URI: %s\n", namedModelURI);
 		}
 	}
 	
 	@Override
 	public void save(Map<?, ?> options) throws IOException {
 		// TODO need some way to work out which of the Named models we want to write out, for now dump them all.
-		Iterator<Resource> namedModels = dataModelSet.listModelNames();
-		namedModels.forEachRemaining(m -> {
-			URL fileSystemPathUrl = null;
-			try {
-				URL url = new URL(m.getURI());
-				fileSystemPathUrl = FileLocator.toFileURL(url);
-				storeDatasetNamedModels(dataModelSet, m.getURI(), fileSystemPathUrl.getPath());
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				System.err.println("RDFGraphResourceImpl save error: " + e);
-				e.printStackTrace();
-			}
-		});
+		for (Iterator<Resource> namedModels = dataModelSet.listModelNames(); namedModels.hasNext(); ) {
+			Resource m = namedModels.next();
+			URL url = new URL(m.getURI());
+			URL fileSystemPathUrl = FileLocator.toFileURL(url);
+			storeDatasetNamedModels(dataModelSet, m.getURI(), fileSystemPathUrl.getPath());
+		}
 	}
 
 	public Resource getRDFResource(EObject eob) {
@@ -182,7 +173,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 				namedModelSources.add(uri.toString());
 			}
 		}
-		
+
 		// create a dataset with all the named models
 		if (!namedModelSources.isEmpty()) {
 			newDataset = DatasetFactory.createNamed(namedModelSources);
@@ -206,37 +197,31 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	}
 	
 	public List<Resource> getResourcesForNamedModelsContaining(Resource res) {
-		List<Resource> modelList = new ArrayList<Resource>();		
+		List<Resource> resources = new ArrayList<Resource>();		
 		if (null != dataModelSet) {
 			Iterator<Resource> namedModels = dataModelSet.listModelNames();
 			namedModels.forEachRemaining(m -> {
 				Model model = dataModelSet.getNamedModel(m);
 				if (model.containsResource(res)) {
-					modelList.add(m);
+					resources.add(m);
 				}
 			});
 		}
-		
-		if(modelList.size() > 1) {
-			System.err.print(String.format("RDF node %s has been found on %s named models : %s",
-					res.getLocalName(), modelList.size(), modelList));
-		}
-		
-		return modelList;
+		return resources;
 	}
 
-	public Model getNamedModel (Resource model) {
+	public Model getNamedModel(Resource model) {
 		return dataModelSet.getNamedModel(model);
 	}
-	
-	public List<Model> getNamedModels (List<Resource> namedModelURIs) {
+
+	public List<Model> getNamedModels(List<Resource> namedModelURIs) {
 		List<Model> namedModels = new ArrayList<Model>();
 		for (Resource model : namedModelURIs) {
 			namedModels.add(dataModelSet.getNamedModel(model));
 		}
 		return namedModels;
 	}
-	
+
 	public List<Resource> getResourcesForAllNamedModels() {
 		List<Resource> modelResourceList = new ArrayList<Resource>();
 		dataModelSet.listModelNames().forEachRemaining(m->modelResourceList.add(m));

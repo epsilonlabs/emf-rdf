@@ -12,17 +12,13 @@
  ********************************************************************************/
 package org.eclipse.epsilon.rdf.emf;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
-import org.eclipse.emf.ecore.impl.DynamicEObjectImpl;
-import org.eclipse.emf.ecore.impl.EReferenceImpl;
 import org.eclipse.emf.ecore.util.EContentAdapter;
 import org.eclipse.emf.ecore.util.EcoreEList;
 import org.eclipse.emf.ecore.util.EcoreUtil;
@@ -79,7 +75,6 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		// eAttribute's is value 									// RDF object (node/literal)
 
 		boolean isOrdered = eAttributeChanged.isOrdered(); // If this is set then there is Order to the values.
-		int orderPosition = -1; // This is not notification.getPosition()
 		Object oldValue = notification.getOldValue();
 		Object newValue = notification.getNewValue();
 
@@ -172,8 +167,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		Object newValue = notification.getNewValue();
 		
 		boolean isOrdered = eReferenceChanged.isOrdered(); // If this is set then there is Order to the values.
-		int orderPosition = -1; // This is not notification.getPosition()
-			
+
 		// Decode the notification event type
 		switch (notification.getEventType()) {
 		case Notification.ADD:
@@ -377,9 +371,6 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 	}
 	
 	// REPORTING code
-	// TODO Remove this experiment code
-
-	
 
 	private void reportReferences(EObject eObject, EReference reference, int pad) {
 		String p = "\n";

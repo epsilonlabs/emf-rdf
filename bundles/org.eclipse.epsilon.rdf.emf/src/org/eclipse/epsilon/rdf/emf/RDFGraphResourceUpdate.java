@@ -40,21 +40,18 @@ public class RDFGraphResourceUpdate {
 		return null;
 	}
 
-	private static Statement getStatement (EObject eObject, EAttribute eAttribute, Object value) {
+	private static Statement getStatement(EObject eObject, EAttribute eAttribute, Object value) {
 		// A statement is formed as "subject–predicate–object"
-		
-		//
+
 		// SUBJECT
 		RDFGraphResourceImpl graphResource = getGraphResourceFor(eObject);
 		Resource rdfNode = graphResource.getRDFResource(eObject);
 
-		//
 		// PREDICATE
 		String nameSpace = eAttribute.getEContainingClass().getEPackage().getNsURI();
 		String propertyURI = nameSpace + "#" + eAttribute.getName();
 		Property property = ResourceFactory.createProperty(propertyURI);
-		
-		//
+
 		// OBJECT
 		Literal object = null;
 		if (value.getClass().equals(Date.class)) {
@@ -65,21 +62,16 @@ public class RDFGraphResourceUpdate {
 		} else {
 			object = ResourceFactory.createTypedLiteral(value);
 		}
-		
-		//
+
 		// STATEMENTS
 		return ResourceFactory.createStatement(rdfNode, property, object);
-			
 	}
 	
 	public static void updateSingleValueAttributeStatements(List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) {
-
-		// Internal code guards
 		assert oldValue != null : "old value must exist";
 		assert newValue != null : "new value must exist";
-		
-		RDFGraphResourceImpl graphResource = getGraphResourceFor(onEObject);
 
+		RDFGraphResourceImpl graphResource = getGraphResourceFor(onEObject);
 		Statement newStatement = getStatement(onEObject, eAttribute, newValue);
 		Statement oldStatement = getStatement(onEObject, eAttribute, oldValue);
 
@@ -90,7 +82,7 @@ public class RDFGraphResourceUpdate {
 				model.add(newStatement);
 			}
 			else {
-				System.err.println(String.format("Old statement not found : %s ", oldStatement));
+				System.err.println(String.format("Old statement not found : %s", oldStatement));
 			}
 		}
 	}
@@ -106,7 +98,7 @@ public class RDFGraphResourceUpdate {
 			if (model.contains(oldStatement)) {
 				model.remove(oldStatement);
 			} else {
-				System.err.println(String.format("Old statement not found : %s ", oldStatement));
+				System.err.println(String.format("Old statement not found : %s", oldStatement));
 			}
 		}
 	}
@@ -121,11 +113,11 @@ public class RDFGraphResourceUpdate {
 			if (!model.contains(newStatement)) {
 				model.add(newStatement);
 			} else {
-				System.err.println(String.format("New statement already exists? : %s ", newStatement));
+				System.err.println(String.format("New statement already exists? : %s", newStatement));
 			}
 		}
 	}
-	
+
 	public static void addMultiValueAttribute () {
 		
 	}

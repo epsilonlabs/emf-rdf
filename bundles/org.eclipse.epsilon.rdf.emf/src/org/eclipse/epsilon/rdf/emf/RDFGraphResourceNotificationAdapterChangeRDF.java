@@ -16,7 +16,6 @@ package org.eclipse.epsilon.rdf.emf;
 import java.util.List;
 
 import org.apache.jena.rdf.model.Resource;
-
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
@@ -29,10 +28,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 	public void notifyChanged(Notification notification) {
 		Object feature = notification.getFeature();
 		if (null != feature) {
-			// Work out the change based on feature
 			featureNotification(feature, notification);
-		} else {
-			// Notification is not for a feature
 		}
 	}
 	
@@ -54,7 +50,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 			return;
 		}
 
-		System.err.println(String.format("\n unhandled additive change : %s ", featureClass.getName()));
+		System.err.printf("unhandled additive change : %s\n", featureClass.getName());
 		return;
 	}
 	
@@ -64,12 +60,10 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		// eAttribute's values are the objects						// RDF object (node/literal)
 		Object oldValue = notification.getOldValue();
 		Object newValue = notification.getNewValue();
-		
+
 		boolean isOrdered = eAttributeChanged.isOrdered(); // If this is set then there is Order to the values.
-		int orderPosition = -1; // This is not notification.getPosition()
-		
-		RDFGraphResourceImpl graphResource = RDFGraphResourceUpdate.getGraphResourceFor(onEObject);						
-				
+		RDFGraphResourceImpl graphResource = RDFGraphResourceUpdate.getGraphResourceFor(onEObject);
+
 		// Decode the notification event type
 		switch (notification.getEventType()) {
 		case Notification.ADD:
@@ -87,29 +81,26 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 			}
 			break;
 		case Notification.SET:
-			// Single values, don't need to worry about order?
+			// Single values, don't need to worry about order
 			if (null == oldValue) {
 				// Create new statement
 				if (null == newValue) {
-					// Create new statement for null value
+					// No old value and no new value - nothing to do
 				} else {
 					// Create new statement for value					
 					List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
 					if (namedModelURIs.isEmpty()) {
+						// No named RDF models contain the object yet - fall back on the first one
 						namedModelURIs = graphResource.getResourcesForAllNamedModels();
 						if (!namedModelURIs.isEmpty()) {
 							Resource first = namedModelURIs.get(0);
 							namedModelURIs.clear();
 							namedModelURIs.add(first);
-							RDFGraphResourceUpdate.newSingleValueAttributeStatements(namedModelURIs, onEObject,
-									eAttributeChanged, newValue);
 						}
-					} else {
-						RDFGraphResourceUpdate.newSingleValueAttributeStatements(namedModelURIs, onEObject,
-								eAttributeChanged, newValue);
-					}					
+					}
+					RDFGraphResourceUpdate.newSingleValueAttributeStatements(namedModelURIs, onEObject,
+						eAttributeChanged, newValue);
 				}
-
 			} else {
 				// Update existing statement
 				if (null == newValue) {
@@ -117,7 +108,6 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 					List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
 					RDFGraphResourceUpdate.removeSingleValueAttributeStatements(namedModelURIs, onEObject,
 							eAttributeChanged, notification.getOldValue());
-
 				} else {
 					// Update existing statement value
 					List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
@@ -145,7 +135,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 
 			break;
 		case Notification.UNSET:
-			// Single values, don't need to worry about order?
+			// Single values, don't need to worry about order
 			List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
 			RDFGraphResourceUpdate.removeSingleValueAttributeStatements(namedModelURIs, 
 					onEObject, eAttributeChanged, notification.getOldValue());
