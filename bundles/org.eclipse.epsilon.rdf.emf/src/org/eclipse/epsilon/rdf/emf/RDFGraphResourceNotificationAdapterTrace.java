@@ -84,27 +84,18 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		switch (notification.getEventType()) {
 		case Notification.ADD:
 			processTrace.append("ADD");
-			notImplmentedWarning(notification, isOrdered);
-			if(isOrdered) {
-				
-			} else {
-				
-			}
+			reportEObjectIdentity(onEObject);
+			reportEAttributeFeatureChange(eAttributeChanged, oldValue, newValue);
+			
 			break;
 		case Notification.ADD_MANY:
 			processTrace.append("ADD_MANY");
-			notImplmentedWarning(notification, isOrdered);
-			if(isOrdered) {
-				
-			} else {
-				
-			}
+			reportEObjectIdentity(onEObject);
+			reportEAttributeFeatureChange(eAttributeChanged, oldValue, newValue);
+			RDFGraphResourceUpdate.addMultiValueAttribute(null,onEObject,eAttributeChanged,oldValue,newValue);
 			break;
 		case Notification.SET:
 			processTrace.append("SET");					
-			if(isOrdered) {
-				notImplmentedWarning(notification, isOrdered);
-			}
 			reportEObjectIdentity(onEObject);
 			reportEAttributeFeatureChange(eAttributeChanged, oldValue, newValue);
 			if (null == oldValue) {
@@ -129,21 +120,13 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 			break;
 		case Notification.REMOVE:
 			processTrace.append("REMOVE");
-			notImplmentedWarning(notification, isOrdered);
-			if(isOrdered) {
-				
-			} else {
-				
-			}
+			reportEObjectIdentity(onEObject);
+			reportEAttributeFeatureChange(eAttributeChanged, oldValue, newValue);
 			break;
 		case Notification.REMOVE_MANY:
 			processTrace.append("REMOVE_MANY");
-			notImplmentedWarning(notification, isOrdered);
-			if(isOrdered) {
-				
-			} else {
-				
-			}
+			reportEObjectIdentity(onEObject);
+			reportEAttributeFeatureChange(eAttributeChanged, oldValue, newValue);
 			break;
 		case Notification.UNSET:
 			processTrace.append("UNSET");	
@@ -482,8 +465,22 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 	}
 	
 	
-	private void reportEAttributeFeatureChange(EAttribute eAttributeChanged, Object oldValue, Object newValue) {
-		processTrace.append(String.format("\n - eAttribute : %s - %s : %s -> %s",
+	private void reportEAttributeFeatureChange(EAttribute eAttributeChanged, Object oldValue, Object newValue) {		
+		String multi = "";
+		if(eAttributeChanged.isMany()) {
+			multi = "many";
+		} else {
+			multi = "single";
+		}
+		
+		String order = "";
+		if (eAttributeChanged.isOrdered()) {
+			order = "ordered";
+		} else {
+			order = "unordered";
+		}
+		
+		processTrace.append(String.format("\n - eAttribute : (%s, %s) %s - %s : %s -> %s", multi, order,
 				eAttributeChanged.getEAttributeType().getName(), eAttributeChanged.getName(), oldValue, newValue));		
 	}
 }
