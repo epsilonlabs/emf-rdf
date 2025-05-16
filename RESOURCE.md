@@ -15,7 +15,12 @@ These differences are achieved by loading an intermediary `.rdfres` file with al
 
 ## Current limitations
 
-* Saving is not supported at the moment.
+The only modifications that are supported at the moment are:
+
+* Setting/unsetting single-valued EAttributes.
+
+Saving has only been tested against file-based locations.
+We have not tested saving into triple stores.
 
 ## .rdfres file format
 
