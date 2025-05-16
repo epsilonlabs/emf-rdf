@@ -18,12 +18,17 @@ import java.util.List;
 
 import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
+import org.apache.jena.rdf.model.Alt;
+import org.apache.jena.rdf.model.Bag;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.rdf.model.Seq;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.vocabulary.RDF;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 
@@ -65,6 +70,30 @@ public class RDFGraphResourceUpdate {
 
 		// STATEMENTS
 		return ResourceFactory.createStatement(rdfNode, property, object);
+	}
+	
+	private static Property getProperty (EAttribute eAttribute) {
+		//
+		// PREDICATE
+		String nameSpace = eAttribute.getEContainingClass().getEPackage().getNsURI();
+		String propertyURI = nameSpace + "#" + eAttribute.getName();
+		return ResourceFactory.createProperty(propertyURI);
+	}	
+	
+	private static Resource getObject (EObject eObject, EAttribute eAttribute) {
+		//
+		// SUBJECT
+		RDFGraphResourceImpl graphResource = getGraphResourceFor(eObject);
+		Resource rdfNode = graphResource.getRDFResource(eObject);
+
+		//
+		// PREDICATE
+		Property property = getProperty(eAttribute);
+		
+		//
+		// OBJECT
+		Resource object = (Resource) rdfNode.getProperty(property).getObject();
+		return object;
 	}
 	
 	public static void updateSingleValueAttributeStatements(List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) {
@@ -117,9 +146,34 @@ public class RDFGraphResourceUpdate {
 			}
 		}
 	}
+	
+	public static void addMultiValueAttribute (List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) {
 
-	public static void addMultiValueAttribute () {
+		Resource object = getObject(onEObject, eAttribute);
 		
+		if (object.hasProperty(RDF.type, RDF.List)) {
+			RDFList list = object.as(RDFList.class);
+			System.out.println("\nobject RDF.List:");
+		}
+		
+		if (object.hasProperty(RDF.type, RDF.Bag)) {
+			Bag bag = object.as(Bag.class);
+			System.out.println("\nobject RDF.Bag - Size: " + bag.size());
+			bag.iterator().forEach(i -> System.out.println("  * " + i));
+		}
+
+		if (object.hasProperty(RDF.type, RDF.Seq)) {
+			Seq seq = object.as(Seq.class);
+			System.out.println("\nobject RDF.Seq - Size: " + seq.size());
+			seq.iterator().forEach(i -> System.out.println("  * " + i));
+		}
+		
+		if (object.hasProperty(RDF.type, RDF.Alt)) {
+			Alt alt = object.as(Alt.class);
+			System.out.println("\nobject RDF.Alt - Size: " + alt.size());
+			alt.iterator().forEach(i -> System.out.println("  * " + i));
+			System.out.println("Default: " + alt.getDefault());			
+		}
 	}
 	
 	public static void setMultiValueAttribute() {
