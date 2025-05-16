@@ -12,24 +12,30 @@
  ********************************************************************************/
 package org.eclipse.epsilon.rdf.emf;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.jena.query.Dataset;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
@@ -86,6 +92,35 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 			}
 		}
 	}
+	
+	// Save the Graph resource
+	private void storeDatasetNamedModels (Dataset dataset, String namedModelURI, String saveLocationURI) throws IOException {
+		// NamedModelURI is a model in the provided dataset and saveLocationURI is the file system path to save it too.
+		if (dataset.containsNamedModel(namedModelURI))
+		{
+			Model modelToSave = dataset.getNamedModel(namedModelURI);
+			Lang lang = RDFDataMgr.determineLang(namedModelURI, namedModelURI, Lang.TTL);  // Hint becomes default
+			
+			try (OutputStream out = new BufferedOutputStream(new FileOutputStream(saveLocationURI))) {
+				RDFDataMgr.write(out, modelToSave, lang);
+				out.close();
+			}
+		}
+		else {
+			System.err.printf("Cannot find named model URI: %s\n", namedModelURI);
+		}
+	}
+	
+	@Override
+	public void save(Map<?, ?> options) throws IOException {
+		// TODO need some way to work out which of the Named models we want to write out, for now dump them all.
+		for (Iterator<Resource> namedModels = dataModelSet.listModelNames(); namedModels.hasNext(); ) {
+			Resource m = namedModels.next();
+			URL url = new URL(m.getURI());
+			URL fileSystemPathUrl = FileLocator.toFileURL(url);
+			storeDatasetNamedModels(dataModelSet, m.getURI(), fileSystemPathUrl.getPath());
+		}
+	}
 
 	public Resource getRDFResource(EObject eob) {
 		return deserializer.getRDFResource(eob);
@@ -138,7 +173,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 				namedModelSources.add(uri.toString());
 			}
 		}
-		
+
 		// create a dataset with all the named models
 		if (!namedModelSources.isEmpty()) {
 			newDataset = DatasetFactory.createNamed(namedModelSources);
@@ -154,6 +189,43 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 
 	public void setConfig(RDFResourceConfiguration config) {
 		this.config = config;
+	}
+
+	public List<Resource> getResourcesForNamedModelsContaining(EObject eObject) {
+		Resource res = this.getRDFResource(eObject);
+		return getResourcesForNamedModelsContaining(res);
+	}
+	
+	public List<Resource> getResourcesForNamedModelsContaining(Resource res) {
+		List<Resource> resources = new ArrayList<Resource>();		
+		if (null != dataModelSet) {
+			Iterator<Resource> namedModels = dataModelSet.listModelNames();
+			namedModels.forEachRemaining(m -> {
+				Model model = dataModelSet.getNamedModel(m);
+				if (model.containsResource(res)) {
+					resources.add(m);
+				}
+			});
+		}
+		return resources;
+	}
+
+	public Model getNamedModel(Resource model) {
+		return dataModelSet.getNamedModel(model);
+	}
+
+	public List<Model> getNamedModels(List<Resource> namedModelURIs) {
+		List<Model> namedModels = new ArrayList<Model>();
+		for (Resource model : namedModelURIs) {
+			namedModels.add(dataModelSet.getNamedModel(model));
+		}
+		return namedModels;
+	}
+
+	public List<Resource> getResourcesForAllNamedModels() {
+		List<Resource> modelResourceList = new ArrayList<Resource>();
+		dataModelSet.listModelNames().forEachRemaining(m->modelResourceList.add(m));
+		return modelResourceList;
 	}
 
 }

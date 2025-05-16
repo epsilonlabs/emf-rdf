@@ -285,6 +285,10 @@ public class RDFDeserializer {
 		Set<EClass> eClasses = findMostSpecificEClasses(node);
 		for (EClass eClass: eClasses) {
 			EObject eob = deserializeObjectAttributes(node, eClass);
+
+			eob.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF());
+			// eob.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace());  // Produce a console trace for debugging and development
+			
 			eobToResource.put(eob, node);
 			resourceToEob.put(node, eob);
 		}

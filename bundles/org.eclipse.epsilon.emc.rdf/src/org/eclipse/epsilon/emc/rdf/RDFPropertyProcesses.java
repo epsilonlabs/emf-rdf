@@ -24,6 +24,7 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.eclipse.epsilon.eol.execute.context.IEolContext;
+
 public class RDFPropertyProcesses {
 
 	private RDFPropertyProcesses() {
