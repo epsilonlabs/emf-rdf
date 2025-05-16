@@ -297,7 +297,7 @@ public class SingleEAttributeUpdateRDFTest {
 		xmiEntity = getRdfEntityForAttributeTest(xmiAfter);
 		
 		if(value.getClass().equals(char.class)) {
-			rdfEntity.eSet(getEAttribute(rdfEntity, testType), (String) value);
+			rdfEntity.eSet(getEAttribute(rdfEntity, testType), (Character) value);
 			xmiEntity.eSet(getEAttribute(xmiEntity, testType), (Character) value);
 		}
 		else {
