@@ -17,7 +17,7 @@ These differences are achieved by loading an intermediary `.rdfres` file with al
 
 The only modifications that are supported at the moment are:
 
-* Setting/unsetting single-valued EAttributes.
+* Setting/unsetting single-valued `EAttribute`s with the pre-defined `EDataType`s in Ecore.
 
 Saving has only been tested against file-based locations.
 We have not tested saving into triple stores.
