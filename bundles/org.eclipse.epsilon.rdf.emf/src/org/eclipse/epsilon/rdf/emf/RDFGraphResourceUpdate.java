@@ -181,6 +181,9 @@ public class RDFGraphResourceUpdate {
 		
 		eAttribute.isOrdered();
 		eAttribute.isUnique();
+		eAttribute.isMany(); // should be true always?
+		
+		// Work out if we are adding a NEW multi-value attribute with no existing RDF node.
 		
 		// Need to get at the Data models and check for the onEObject.	
 		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
