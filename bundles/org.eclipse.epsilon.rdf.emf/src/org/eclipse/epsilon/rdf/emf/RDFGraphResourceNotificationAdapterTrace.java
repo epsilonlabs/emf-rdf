@@ -75,10 +75,14 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		// eAttribute's is value 									// RDF object (node/literal)
 
 		boolean isOrdered = eAttributeChanged.isOrdered(); // If this is set then there is Order to the values.
+		boolean isUnique = eAttributeChanged.isUnique();
+		boolean isMany = eAttributeChanged.isMany();
+		
 		Object oldValue = notification.getOldValue();
 		Object newValue = notification.getNewValue();
 
-		processTrace.append(String.format("\n EAttribute - "));	
+		processTrace
+				.append(String.format("\n EAttribute (ordered is %s, unique is %s, many is %s)- ", isOrdered, isUnique, isMany));	
 		
 		// Decode the notification event type
 		switch (notification.getEventType()) {
@@ -86,16 +90,18 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 			processTrace.append("ADD");
 			reportEObjectIdentity(onEObject);
 			reportEAttributeFeatureChange(eAttributeChanged, oldValue, newValue);
-			
 			break;
 		case Notification.ADD_MANY:
-			processTrace.append("ADD_MANY");
-			reportEObjectIdentity(onEObject);
-			reportEAttributeFeatureChange(eAttributeChanged, oldValue, newValue);
-			RDFGraphResourceUpdate.addMultiValueAttribute(null,onEObject,eAttributeChanged,oldValue,newValue);
+			processTrace.append("ADD_MANY");			
+			if(eAttributeChanged.isMany() && null != onEObject) {
+				reportEObjectIdentity(onEObject);
+				reportEAttributeFeatureChange(eAttributeChanged, oldValue, newValue);
+			} else {
+				
+			}
 			break;
 		case Notification.SET:
-			processTrace.append("SET");					
+			processTrace.append("SET");
 			reportEObjectIdentity(onEObject);
 			reportEAttributeFeatureChange(eAttributeChanged, oldValue, newValue);
 			if (null == oldValue) {
@@ -124,12 +130,13 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 			reportEAttributeFeatureChange(eAttributeChanged, oldValue, newValue);
 			break;
 		case Notification.REMOVE_MANY:
-			processTrace.append("REMOVE_MANY");
+			processTrace.append("REMOVE_MANY");			
 			reportEObjectIdentity(onEObject);
 			reportEAttributeFeatureChange(eAttributeChanged, oldValue, newValue);
 			break;
 		case Notification.UNSET:
-			processTrace.append("UNSET");	
+			processTrace.append("UNSET");
+			if(eAttributeChanged.isMany()) { processTrace.append(" isMany() true"); } else { processTrace.append(" is Many false"); }
 			if(isOrdered) {
 				notImplmentedWarning(notification, isOrdered);
 			}
@@ -480,7 +487,14 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 			order = "unordered";
 		}
 		
-		processTrace.append(String.format("\n - eAttribute : (%s, %s) %s - %s : %s -> %s", multi, order,
+		String unique = "";
+		if (eAttributeChanged.isUnique()) {
+			unique = "unique";
+		} else {
+			unique = "not unique";
+		}
+		
+		processTrace.append(String.format("\n - eAttribute : (%s, %s, %s) %s - %s : %s -> %s", order, unique, multi,
 				eAttributeChanged.getEAttributeType().getName(), eAttributeChanged.getName(), oldValue, newValue));		
 	}
 }
