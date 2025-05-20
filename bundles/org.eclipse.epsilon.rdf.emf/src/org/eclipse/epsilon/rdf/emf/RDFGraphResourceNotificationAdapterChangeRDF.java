@@ -63,7 +63,11 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 
 		boolean isOrdered = eAttributeChanged.isOrdered(); // If this is set then there is Order to the values.
 		RDFGraphResourceImpl graphResource = RDFGraphResourceUpdate.getGraphResourceFor(onEObject);
-
+		List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
+		
+		boolean isMany = eAttributeChanged.isOrdered();
+		
+		
 		// Decode the notification event type
 		switch (notification.getEventType()) {
 		case Notification.ADD:
@@ -74,11 +78,8 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 			}
 			break;
 		case Notification.ADD_MANY:
-			if (isOrdered) {
-
-			} else {
-
-			}
+			RDFGraphResourceUpdate.addMultiValueAttribute(namedModelURIs, onEObject, eAttributeChanged, 
+					newValue, oldValue);
 			break;
 		case Notification.SET:
 			// Single values, don't need to worry about order
@@ -88,7 +89,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 					// No old value and no new value - nothing to do
 				} else {
 					// Create new statement for value					
-					List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
+					namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
 					if (namedModelURIs.isEmpty()) {
 						// No named RDF models contain the object yet - fall back on the first one
 						namedModelURIs = graphResource.getResourcesForAllNamedModels();
@@ -105,38 +106,36 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 				// Update existing statement
 				if (null == newValue) {
 					// Update existing statement to null
-					List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
+					namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
 					RDFGraphResourceUpdate.removeSingleValueAttributeStatements(namedModelURIs, onEObject,
 							eAttributeChanged, notification.getOldValue());
 				} else {
 					// Update existing statement value
-					List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
+					namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
 					RDFGraphResourceUpdate.updateSingleValueAttributeStatements(namedModelURIs, onEObject,
 							eAttributeChanged, newValue, oldValue);
 				}
 			}
-
 			break;
-
 		case Notification.REMOVE:
-			if (isOrdered) {
+			if (eAttributeChanged.isMany()) {
+				RDFGraphResourceUpdate.removeMultiValueAttribute(namedModelURIs, onEObject, eAttributeChanged, 
+						newValue, oldValue);	
+			}
+			
+			if (eAttributeChanged.isOrdered()) {
 
 			} else {
 
 			}
-
 			break;
 		case Notification.REMOVE_MANY:
-			if (isOrdered) {
-
-			} else {
-
-			}
-
+			RDFGraphResourceUpdate.removeMultiValueAttribute(namedModelURIs, onEObject, eAttributeChanged, 
+					newValue, oldValue);
 			break;
 		case Notification.UNSET:
 			// Single values, don't need to worry about order
-			List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
+			namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
 			RDFGraphResourceUpdate.removeSingleValueAttributeStatements(namedModelURIs, 
 					onEObject, eAttributeChanged, notification.getOldValue());
 			break;
