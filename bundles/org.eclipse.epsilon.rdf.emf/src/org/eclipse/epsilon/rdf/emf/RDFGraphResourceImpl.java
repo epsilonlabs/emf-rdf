@@ -52,7 +52,8 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 
 	private RDFResourceConfiguration config;
 	private RDFDeserializer deserializer;
-
+	private RDFGraphResourceUpdate rdfGraphUpdater;
+	
 	private Dataset dataModelSet;
 	private Dataset schemaModelSet;
 
@@ -91,6 +92,12 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 				getContents().add(eob);
 			}
 		}
+		
+		rdfGraphUpdater = new RDFGraphResourceUpdate(deserializer);
+	}
+	
+	public RDFGraphResourceUpdate getRDFGraphUpdater () {
+		return rdfGraphUpdater;
 	}
 	
 	// Save the Graph resource
@@ -226,6 +233,13 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		List<Resource> modelResourceList = new ArrayList<Resource>();
 		dataModelSet.listModelNames().forEachRemaining(m->modelResourceList.add(m));
 		return modelResourceList;
+	}
+
+	public static RDFGraphResourceImpl getRDFGraphResourceFor(EObject eObject) {
+		if(eObject.eResource() instanceof RDFGraphResourceImpl) {
+			return (RDFGraphResourceImpl) eObject.eResource();
+		}
+		return null;
 	}
 
 }
