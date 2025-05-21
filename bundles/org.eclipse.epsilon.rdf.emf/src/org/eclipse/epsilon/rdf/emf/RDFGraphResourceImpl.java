@@ -93,7 +93,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 			}
 		}
 		
-		rdfGraphUpdater = new RDFGraphResourceUpdate(deserializer);
+		rdfGraphUpdater = new RDFGraphResourceUpdate(deserializer, this);
 	}
 	
 	public RDFGraphResourceUpdate getRDFGraphUpdater () {

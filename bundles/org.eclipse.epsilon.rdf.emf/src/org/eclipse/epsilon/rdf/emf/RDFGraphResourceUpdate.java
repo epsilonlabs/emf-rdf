@@ -41,17 +41,18 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 public class RDFGraphResourceUpdate {
 	
 	private RDFDeserializer deserializer;
+	private RDFGraphResourceImpl rdfGraphResource;
 	
-	public RDFGraphResourceUpdate(RDFDeserializer deserializer) {
+	public RDFGraphResourceUpdate(RDFDeserializer deserializer, RDFGraphResourceImpl rdfGraphResource) {
 		this.deserializer = deserializer;
+		this.rdfGraphResource = rdfGraphResource;
 	}
 
-	private static Statement createStatement(EObject eObject, EAttribute eAttribute, Object value) {
+	private Statement createStatement(EObject eObject, EAttribute eAttribute, Object value) {
 		// A statement is formed as "subject–predicate–object"
 
 		// SUBJECT
-		RDFGraphResourceImpl graphResource = RDFGraphResourceImpl.getRDFGraphResourceFor(eObject);
-		Resource rdfNode = graphResource.getRDFResource(eObject);
+		Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
 
 		// PREDICATE
 		String nameSpace = eAttribute.getEContainingClass().getEPackage().getNsURI();
@@ -81,11 +82,10 @@ public class RDFGraphResourceUpdate {
 		return ResourceFactory.createProperty(propertyURI);
 	}	
 	
-	private static Resource getStmtObject (EObject eObject, EAttribute eAttribute) {
+	private Resource getStmtObject (EObject eObject, EAttribute eAttribute) {
 		//
 		// SUBJECT
-		RDFGraphResourceImpl graphResource = RDFGraphResourceImpl.getRDFGraphResourceFor(eObject);
-		Resource rdfNode = graphResource.getRDFResource(eObject);
+		Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
 
 		//
 		// PREDICATE
@@ -119,11 +119,10 @@ public class RDFGraphResourceUpdate {
 
 	public void removeSingleValueAttributeStatements(List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object oldValue) {
 		// Object type values set a new value "null", remove the statement the deserializer uses the meta-model so we won't have missing attributes
-		assert oldValue != null : "old value must exist";
-		RDFGraphResourceImpl graphResource = RDFGraphResourceImpl.getRDFGraphResourceFor(onEObject);
+		assert oldValue != null : "old value must exist";		
 		Statement oldStatement = createStatement(onEObject, eAttribute, oldValue);
 
-		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
+		List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);
 		for (Model model : namedModelsToUpdate) {
 			if (model.contains(oldStatement)) {
 				model.remove(oldStatement);
@@ -135,10 +134,9 @@ public class RDFGraphResourceUpdate {
 	
 	public void newSingleValueAttributeStatements (List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue) {
 		assert newValue != null : "new value must exist";
-		RDFGraphResourceImpl graphResource = RDFGraphResourceImpl.getRDFGraphResourceFor(onEObject);
 		Statement newStatement = createStatement(onEObject, eAttribute, newValue);
 
-		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
+		List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);
 		for (Model model : namedModelsToUpdate) {
 			if (!model.contains(newStatement)) {
 				model.add(newStatement); 
@@ -180,8 +178,7 @@ public class RDFGraphResourceUpdate {
 	
 	public void addMultiValueAttribute (List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) {
 		
-		RDFGraphResourceImpl graphResource = RDFGraphResourceImpl.getRDFGraphResourceFor(onEObject);
-		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
+		List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);
 		
 		Resource object = getStmtObject(onEObject, eAttribute);
 		boolean isOrdered = eAttribute.isOrdered(); // sequence (ordered), bag (unordered)
@@ -247,7 +244,7 @@ public class RDFGraphResourceUpdate {
 		stmtItr.forEachRemaining(s->container.remove(s));
 
 	}
-
+	
 	private void removeFromContainer(Object values, Container container, EStructuralFeature sf) {
 		reportContainer("Before remove", container);
 
@@ -262,13 +259,12 @@ public class RDFGraphResourceUpdate {
 	}	
 	
 	public void removeMultiValueAttribute (List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) {
-		RDFGraphResourceImpl graphResource = RDFGraphResourceImpl.getRDFGraphResourceFor(onEObject);
 		Resource stmtObject = getStmtObject(onEObject, eAttribute);
 		
 		EStructuralFeature sf = eAttribute.eContainingFeature();
 				
 		// Need to get at the Data models and check for the onEObject.	
-		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
+		List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);
 		for (Model model : namedModelsToUpdate) {
 			if (stmtObject.hasProperty(RDF.type, RDF.List)) {
 				RDFList list = stmtObject.as(RDFList.class);
