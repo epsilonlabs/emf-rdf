@@ -51,7 +51,7 @@ operation renderRDFNodeInternal(rdfRes, uriToNodeName: Map, depth: Integer): Str
   if (rdfRes.isURIResource() and Model.resource.getEObjects(rdfRes).isDefined()) { %]
   [%=nodeName%] [label=<<table border="0"><tr><td href="javascript:showView(['RDF resources', '[%=rdfRes.uri%]'])">[%=nodeKey%]</td></tr></table>>]
   [% } else { %]
-  [%=nodeName%] [label="[%=nodeKey%]"]
+  [%=nodeName%] [label="[%=nodeKey.replace('"', '\\\\"')%]"]
   [% }
 
   if (rdfRes.isResource()) {
