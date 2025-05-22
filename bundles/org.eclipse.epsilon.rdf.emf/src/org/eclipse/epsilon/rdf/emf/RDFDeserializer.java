@@ -168,7 +168,10 @@ public class RDFDeserializer {
 			public Object visitBlank(Resource r, AnonId id) {
 				if (r.hasProperty(RDF.type, RDF.List)) {
 					List<Object> values = new ArrayList<>();
-					values.add(deserializeValue(r.getProperty(RDF.first).getObject(), sf));
+					Object deserializedFirst = deserializeValue(r.getProperty(RDF.first).getObject(), sf);
+					if (deserializedFirst != null) {
+						values.add(deserializedFirst);
+					}
 
 					// TODO: check if Jena has a better API for collections.
 					//
@@ -179,7 +182,7 @@ public class RDFDeserializer {
 						Object convertedRest = deserializeValue(restNode, sf);
 						if (convertedRest instanceof Collection<?> c) {
 							values.addAll(c);
-						} else {
+						} else if (convertedRest != null) {
 							values.add(convertedRest);
 						}
 					}
@@ -246,7 +249,7 @@ public class RDFDeserializer {
 
 				EPackage ePackage = this.packageRegistry.get().getEPackage(nsURI);
 
-				/* 
+				/*
 				 * NOTE: there may be URIs that don't correspond to any namespaces,
 				 * such as the OWL or XML Schema ones. We skip them without raising
 				 * errors.
