@@ -72,11 +72,8 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		// Decode the notification event type
 		switch (notification.getEventType()) {
 		case Notification.ADD:
-			if (isOrdered) {
-
-			} else {
-
-			}
+			rdfUpdater.addMultiValueAttribute(namedModelURIs, onEObject, eAttributeChanged, 
+					newValue, oldValue);
 			break;
 		case Notification.ADD_MANY:
 			rdfUpdater.addMultiValueAttribute(namedModelURIs, onEObject, eAttributeChanged, 

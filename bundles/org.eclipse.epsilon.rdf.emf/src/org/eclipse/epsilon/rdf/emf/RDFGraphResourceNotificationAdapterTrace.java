@@ -344,7 +344,8 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		} else {
 			order = "unordered";
 		}
-		System.out.println(String.format(" [!] %s %s (%s) not implmented", feature, operation, order));
+//		System.out.println(String.format(" [!] %s %s (%s) not implmented", feature, operation, order));
+		processTrace.append(String.format("\n [!] %s %s (%s) not implmented", feature, operation, order));
 	}
 
 	private Resource identifyEObjectsRDFnode(EObject eObject) {

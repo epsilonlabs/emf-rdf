@@ -16,7 +16,9 @@
 <firstEntity>
     a simple:Entity ;
     simple:name "firstEntity" ;
-    simple:names ( "firstName" "secondName" ) ;
+    simple:names    [   rdf:type    rdf:Bag;
+                        rdf:_1      "firstName";
+                        rdf:_2      "secondName" ] ;
     
     simple:eBoolean "true"^^xsd:boolean ;
     simple:eBooleans ( "true"^^xsd:boolean "false"^^xsd:boolean );
