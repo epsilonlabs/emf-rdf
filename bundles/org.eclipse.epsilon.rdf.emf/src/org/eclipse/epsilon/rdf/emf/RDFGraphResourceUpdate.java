@@ -15,8 +15,8 @@ package org.eclipse.epsilon.rdf.emf;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 
 import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
@@ -31,8 +31,8 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Seq;
 import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.vocabulary.RDF;
+
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
@@ -53,12 +53,8 @@ public class RDFGraphResourceUpdate {
 
 		// SUBJECT
 		Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
-
 		// PREDICATE
-		String nameSpace = eAttribute.getEContainingClass().getEPackage().getNsURI();
-		String propertyURI = nameSpace + "#" + eAttribute.getName();
-		Property property = ResourceFactory.createProperty(propertyURI);
-
+		Property property = getProperty(eAttribute);
 		// OBJECT
 		Literal object = null;
 		if (value.getClass().equals(Date.class)) {
@@ -70,31 +66,38 @@ public class RDFGraphResourceUpdate {
 			object = ResourceFactory.createTypedLiteral(value);
 		}
 
-		// STATEMENTS
+		// STATEMENT
 		return ResourceFactory.createStatement(rdfNode, property, object);
 	}
 	
 	private static Property getProperty (EAttribute eAttribute) {
-		//
 		// PREDICATE
 		String nameSpace = eAttribute.getEContainingClass().getEPackage().getNsURI();
 		String propertyURI = nameSpace + "#" + eAttribute.getName();
 		return ResourceFactory.createProperty(propertyURI);
 	}	
 	
-	private Resource getStmtObject (EObject eObject, EAttribute eAttribute) {
-		//
+	private Resource getStmtObjectFor (EObject eObject, EAttribute eAttribute) {
+		// This method will assume a stmt object should come from the ontModel in the RDFGraphResource
+		Model rdfResourceOntModel = rdfGraphResource.getRDFResource(eObject).getModel();
+		return getStmtObjectFor(eObject, eAttribute, rdfResourceOntModel);
+	}
+	
+	private Resource getStmtObjectFor (EObject eObject, EAttribute eAttribute, Model model) {
 		// SUBJECT
 		Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
-
-		//
 		// PREDICATE
 		Property property = getProperty(eAttribute);
-		
-		//
 		// OBJECT
-		Resource stmtObject = (Resource) rdfNode.getProperty(property).getObject();
-		return stmtObject;
+		if(model.contains(rdfNode, property)) {	
+			Resource stmtObject = model.getProperty(rdfNode, property).getObject().asResource();
+			System.out.println(" Returning stmtObject : " + stmtObject);
+			return stmtObject;
+		} else {
+			System.out.println(String.format(" %s RDF Node missing property %s : ", rdfNode, property));
+			model.getResource(rdfNode.getId()).listProperties().forEach(s -> System.out.println("  - " + s));;
+			return null;
+		}
 	}
 	
 	public void updateSingleValueAttributeStatements(List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) {
@@ -145,24 +148,27 @@ public class RDFGraphResourceUpdate {
 			}
 		}
 	}
-	
-	private void addToBag(Object values, Bag bag) {
-		reportContainer("Before add to Bag ", bag);
-		if (values.getClass().equals(ArrayList.class)) {
-			ArrayList<Object> list = (ArrayList<Object>) values;
-			list.forEach(v -> bag.add(v));
-		} else {
-			bag.add(values);
-		}
-		reportContainer("After add to Bag ", bag);
-	}
 
-	private void newSequence() {
-		
+	private Seq newSequence(Model model, EObject onEObject, EAttribute eAttribute) {
+		// SUBJECT
+		Resource subjectNode = rdfGraphResource.getRDFResource(onEObject);
+		// PREDICATE
+		Property property = getProperty(eAttribute);
+		// OBJECT
+		Seq objectNode = model.createSeq();
+		model.add(subjectNode,property,objectNode);
+		return objectNode;
 	}
 	
-	private void newBag() {
-		
+	private Bag newBag(Model model, EObject onEObject, EAttribute eAttribute) {
+		// SUBJECT
+		Resource subjectNode = rdfGraphResource.getRDFResource(onEObject);
+		// PREDICATE
+		Property property = getProperty(eAttribute);
+		// OBJECT
+		Bag objectNode = model.createBag();
+		model.add(subjectNode, property, objectNode);
+		return objectNode;
 	}
 	
 	private void addToContainer(Object values, Container container, boolean isUnique) {
@@ -180,115 +186,148 @@ public class RDFGraphResourceUpdate {
 		
 		List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);
 		
-		Resource object = getStmtObject(onEObject, eAttribute);
+		Resource onEObjectNode = rdfGraphResource.getRDFResource(onEObject);
+
 		boolean isOrdered = eAttribute.isOrdered(); // sequence (ordered), bag (unordered)
 		eAttribute.isUnique(); // check container before adding
 		eAttribute.isMany(); // should be true always?
 		
 		// Work out if we are adding a NEW multi-value attribute with no existing RDF node.
-		Statement type = object.getProperty(RDF.type);
 		
-		if(null == type || null == object) {
+		if(onEObjectNode.hasProperty(getProperty(eAttribute))) {
+			// Exists on a model some where...
+			for (Model model : namedModelsToUpdate) {			
+				// If we have one of these types, then we are updating and existing
+				Resource modelStmtObject = getStmtObjectFor(onEObject, eAttribute, model);
+				if(null == modelStmtObject) {
+					// no operation
+				}
+				else if (modelStmtObject.hasProperty(RDF.type, RDF.List)) {
+					RDFList list = modelStmtObject.as(RDFList.class);
+					System.out.println("\nobject RDF.List:");
+					// TODO Handle a list
+				}
+				else if (modelStmtObject.hasProperty(RDF.type, RDF.Bag)) {
+					Bag bag = model.getBag(modelStmtObject);
+					addToContainer(newValue, bag, eAttribute.isOrdered());
+				}
+				else if (modelStmtObject.hasProperty(RDF.type, RDF.Seq)) {
+					Seq seq = model.getSeq(modelStmtObject);
+					addToContainer(newValue, seq, eAttribute.isOrdered());
+				}
+				else if (modelStmtObject.hasProperty(RDF.type, RDF.Alt)) {
+					Alt alt = model.getAlt(modelStmtObject);
+					// TODO Handle an ALT
+				}
+				else {
+					// no operation
+				}
+			}
+		} else {
+			// NEW RDF representation
 			Model model = namedModelsToUpdate.get(0);
-			// NEW RDF representation				
+			System.out.println("\n No existing container, making a new one");
+			// Need to make the Blank node model.createSeq() and then need to make a statement to attach it to the onEobject - eAttribute			
 			if (eAttribute.isOrdered()) {
 				// Sequence
-				addToContainer(newValue, model.createSeq(), isOrdered);
+				addToContainer(newValue, newSequence(model, onEObject, eAttribute), isOrdered);
 			} else {
 				// Bag
-				addToContainer(newValue, model.createBag(), isOrdered);
+				addToContainer(newValue, newBag(model, onEObject, eAttribute), isOrdered);
 			}
 			return;
 		}
-		
-		// Need to get at the Data models and check for the onEObject.	
-		
-		for (Model model : namedModelsToUpdate) {			
-			// If we have one of these types, then we are updating and existing
-			if (object.hasProperty(RDF.type, RDF.List)) {
-				RDFList list = object.as(RDFList.class);
-				System.out.println("\nobject RDF.List:");
-			}
-			else if (object.hasProperty(RDF.type, RDF.Bag)) {
-				Bag bag = model.getBag(object);
-				addToContainer(newValue, bag, eAttribute.isOrdered());
-			}
-			else if (object.hasProperty(RDF.type, RDF.Seq)) {
-				Seq seq = model.getSeq(object);
-				addToContainer(newValue, seq, eAttribute.isOrdered());
-			}
-			else if (object.hasProperty(RDF.type, RDF.Alt)) {
-				Alt alt = model.getAlt(object);
-				addToContainer(newValue, alt, eAttribute.isOrdered());
-			}
-			else {
-				
+	}
+	
+	private void removeValueFromContainer (Object value, Container container, EStructuralFeature sf) {
+		System.out.println("Remove from container: " + value);
+		List<Statement> containerPropertyStatements = container.listProperties().toList();
+		Iterator<Statement> cpsItr = containerPropertyStatements.iterator();
+		boolean done = false;
+		while (!done) {
+			if (cpsItr.hasNext()) {
+				Statement statement = cpsItr.next();
+				System.out.println(" statement check: " + statement);
+				Object deserializedValue = deserializer.deserializeValue(statement.getObject(), sf);
+				if (value.equals(deserializedValue)) {
+					System.out.println("  removing statement " + statement);
+					container.remove(statement);
+					done = true;
+				}
+			} else {
+				done = true;
+			}		
+		}		
+	}
+	
+	private void removeValueFromContainer (List<Object> values, Container container, EStructuralFeature sf) {
+		values.iterator().forEachRemaining(valueToRemove -> {
+			removeValueFromContainer(valueToRemove, container, sf);
+		});
+	}
+
+	private void checkAndRemoveEmptyContainers(Container container, EObject onEObject, EAttribute eAttribute) {
+		Model model = container.asResource().getModel();
+		if (model.containsResource(container)) {
+			if (0 == container.size()) {
+				System.out.println("\n Removing empty container: container");
+				container.removeAll(RDF.type);
+				Resource subjectNode = rdfGraphResource.getRDFResource(onEObject);
+				Property property = getProperty(eAttribute);
+				model.remove(subjectNode, property, container);
 			}
 		}
 	}
 	
-	private void removeListedFromContainer (List<Object> values, Container container, EStructuralFeature sf) {
-		StmtIterator containerStatementItr = container.listProperties();
-		ArrayList<Statement> containerStatementsToRemove = new ArrayList<Statement>();
-
-		while (containerStatementItr.hasNext()) {
-			Statement statement = containerStatementItr.next();
-			Object deserializedValue = deserializer.deserializeValue(statement.getObject(), sf);
-			if(values.remove(deserializedValue)) {				
-				containerStatementsToRemove.add(statement);
-			}
-		}
-
-		// Remove from the back to front as Jena renumbers ordinal properties (rdf:_nnn) after a statement is removed
-		ListIterator<Statement> stmtItr = containerStatementsToRemove.listIterator();
-		stmtItr.forEachRemaining(s->container.remove(s));
-
-	}
-	
-	private void removeFromContainer(Object values, Container container, EStructuralFeature sf) {
-		reportContainer("Before remove", container);
-
+	private void removeFromContainer(Object values, Container container, EObject onEObject, EAttribute eAttribute) {
+		EStructuralFeature sf = eAttribute.eContainingFeature();
 		if(values instanceof EList<?>) { 
+			reportContainer("Before remove", container);
+			
 			EList<?> valuesList = (EList<?>) values;
-			removeListedFromContainer(new ArrayList<>(valuesList), container, sf);
+			removeValueFromContainer(new ArrayList<>(valuesList), container, sf);
+			
+			reportContainer("After remove", container);
 			// Check if container is empty (size 0), remove the blank node if true
+			checkAndRemoveEmptyContainers(container, onEObject, eAttribute);
 		} else {
-			// not a list?
+			// not a list? Single value?
+			removeValueFromContainer(values, container, sf);
 		}
-		reportContainer("After remove", container);
-	}	
+	}
 	
 	public void removeMultiValueAttribute (List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) {
-		Resource stmtObject = getStmtObject(onEObject, eAttribute);
-		
-		EStructuralFeature sf = eAttribute.eContainingFeature();
-				
-		// Need to get at the Data models and check for the onEObject.	
-		List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);
-		for (Model model : namedModelsToUpdate) {
-			if (stmtObject.hasProperty(RDF.type, RDF.List)) {
-				RDFList list = stmtObject.as(RDFList.class);
-				System.out.println("\nobject RDF.List:");
-			}
-			
-			if (stmtObject.hasProperty(RDF.type, RDF.Bag)) {
-				Bag bag = model.getBag(stmtObject);
-				removeFromContainer(oldValue, bag, sf);
-			}
-	
-			if (stmtObject.hasProperty(RDF.type, RDF.Seq)) {
-				Seq seq = model.getSeq(stmtObject);
-				removeFromContainer(oldValue, seq, sf);
-			}
-			
-			if (stmtObject.hasProperty(RDF.type, RDF.Alt)) {
-				Alt alt = model.getAlt(stmtObject);
-				removeFromContainer(oldValue, alt, sf);
-				
-				System.out.println("\nobject RDF.Alt - Size: " + alt.size());
-				alt.iterator().forEach(i -> System.out.println("  * " + i));
-				System.out.println("Default: " + alt.getDefault());			
-			}			
+		Resource onEObjectNode = rdfGraphResource.getRDFResource(onEObject);
+		if (onEObjectNode.hasProperty(getProperty(eAttribute))) {
+			// Exists on a model some where...
+			List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);
+			for (Model model : namedModelsToUpdate) {
+				// Try and the container from each model to be updated
+				Resource modelStmtObject = getStmtObjectFor(onEObject, eAttribute, model);
+				if (null == modelStmtObject) {
+					// no operation
+				} else if (modelStmtObject.hasProperty(RDF.type, RDF.List)) {
+					RDFList list = modelStmtObject.as(RDFList.class);
+					System.out.println("\nobject RDF.List:");
+					// TODO Handle a list
+				} else if (modelStmtObject.hasProperty(RDF.type, RDF.Bag)) {
+					Bag bag = model.getBag(modelStmtObject);
+					removeFromContainer(oldValue, bag, onEObject, eAttribute);
+				} else if (modelStmtObject.hasProperty(RDF.type, RDF.Seq)) {
+					Seq seq = model.getSeq(modelStmtObject);
+					removeFromContainer(oldValue, seq, onEObject, eAttribute);
+				} else if (modelStmtObject.hasProperty(RDF.type, RDF.Alt)) {
+					Alt alt = model.getAlt(modelStmtObject);
+					System.out.println("\nobject RDF.Alt - Size: " + alt.size());
+					alt.iterator().forEach(i -> System.out.println("  * " + i));
+					System.out.println("Default: " + alt.getDefault());
+					// TODO Handle an ALT
+				} else {
+					// no operation
+				}
+			} 
+		} else {
+			System.err.println("Trying to remove a none existing RDFnode for a multivalue attribute");
 		}
 	}
 	
