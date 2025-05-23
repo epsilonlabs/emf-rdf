@@ -478,14 +478,14 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		if(eAttributeChanged.isMany()) {
 			multi = "many";
 		} else {
-			multi = "single";
+			multi = "not many";
 		}
 		
 		String order = "";
 		if (eAttributeChanged.isOrdered()) {
 			order = "ordered";
 		} else {
-			order = "unordered";
+			order = "not ordered";
 		}
 		
 		String unique = "";
