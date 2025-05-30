@@ -179,6 +179,8 @@ public class ChangeEquivalenceTest {
 	@Test 
 	public void loadModelsAndRunEolTest() throws Exception {
 		
+		System.out.println(String.format("\n ** TEST: %s ** ",eolTestFile.getName()));
+		
 		restoreRdfFiles(); // Clean up any backup files from failed tests.
 		
 		// Load the meta model

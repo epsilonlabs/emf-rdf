@@ -4,6 +4,7 @@ import "../TestOperations.eol";
 
 showModel(" * Before change");
 
+"jeff".println("\nChange sequence add ");
 getNamesOrdered().add("jeff");
 
 showModel(" * After change");

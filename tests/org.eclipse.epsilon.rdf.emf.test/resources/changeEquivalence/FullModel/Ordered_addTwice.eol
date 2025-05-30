@@ -4,6 +4,7 @@ import "../TestOperations.eol";
 
 showModel(" * Before change");
 
+"jeff".println("\nChange sequence add twice ");
 getNamesOrdered().add("jeff");
 getNamesOrdered().add("jeff");
 
