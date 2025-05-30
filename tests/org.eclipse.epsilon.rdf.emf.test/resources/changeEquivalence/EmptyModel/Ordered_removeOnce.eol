@@ -1,0 +1,9 @@
+import "../TestOperations.eol";
+
+"\n Running EOL".println();
+
+showModel(" * Before change");
+
+getNamesOrdered().remove("jeff");
+
+showModel(" * After change");
