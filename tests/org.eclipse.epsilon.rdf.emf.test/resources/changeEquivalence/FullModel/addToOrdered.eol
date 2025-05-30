@@ -1,6 +1,6 @@
 import "../TestOperations.eol";
 
-"Running".println();
+"\n Running EOL".println();
 
 showModel(" * Before change");
 

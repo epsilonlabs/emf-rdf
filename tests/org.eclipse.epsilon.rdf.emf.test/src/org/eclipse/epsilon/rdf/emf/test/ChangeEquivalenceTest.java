@@ -200,20 +200,20 @@ public class ChangeEquivalenceTest {
 		executeEol(rdfModelResource, eolTestFile);
 		
 		// SAVE RDF resource, clear the resource set
-		//backupRdfFiles();
-		//rdfModelResource.save(null);
-		//rsRDF.getResources().remove(0);
+		backupRdfFiles();
+		rdfModelResource.save(null);
+		rsRDF.getResources().remove(0);
 		
 		// Reload RDF model resource
-		//loadModelsWithExtension(eolTestFolder, ".rdfres", rsRDF);
-		//rdfModelResource = rsRDF.getResources().get(0);
+		loadModelsWithExtension(eolTestFolder, ".rdfres", rsRDF);
+		rdfModelResource = rsRDF.getResources().get(0);
 				
 		// Compare reloaded RDF and XMI models
-		//EMFCompare compareEngine = EMFCompare.builder().build();
-		//final IComparisonScope scope = new DefaultComparisonScope(rsXMI, rsRDF, null);
-		//final Comparison cmp = compareEngine.compare(scope);
-		//assertNoDifferences(eolTestFile, cmp);
+		EMFCompare compareEngine = EMFCompare.builder().build();
+		final IComparisonScope scope = new DefaultComparisonScope(rsXMI, rsRDF, null);
+		final Comparison cmp = compareEngine.compare(scope);
+		assertNoDifferences(eolTestFile, cmp);
 		
-		//restoreRdfFiles();
+		restoreRdfFiles();
 	}
 }

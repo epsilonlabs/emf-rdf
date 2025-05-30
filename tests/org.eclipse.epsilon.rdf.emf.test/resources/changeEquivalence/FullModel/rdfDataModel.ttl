@@ -5,18 +5,29 @@ PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX simple: <http://eclipse.org/epsilon/rdf/changeEquivalence#>
 PREFIX xsd:    <http://www.w3.org/2001/XMLSchema#>
 
-<http://example/org/firstEntity>
-        rdf:type                   simple:Entity;
-        simple:label               "fullModelEntity";
-        simple:names               [ rdf:type  rdf:Bag;
-                                     rdf:_1    "[bob, jeff, bob]"^^<java:org.eclipse.emf.common.util.BasicEList>;
-                                     rdf:_2    "[bob, jeff, bob]"^^<java:org.eclipse.emf.common.util.BasicEList>
-                                   ];
-        simple:namesOrdered        [ rdf:type  rdf:Seq ];
-        simple:namesOrderedUnique  [ rdf:type  rdf:Seq ];
-        simple:namesUnique         [ rdf:type  rdf:Bag ] .
-
 <http://example/org/theModel>
         rdf:type         simple:Model;
         simple:entities  <http://example/org/firstEntity>;
-        simple:label     "emptyModel" .
+        simple:label     "FullModel" .
+
+<http://example/org/firstEntity>
+        rdf:type                   simple:Entity;
+        simple:label               "FullModelEntity";
+        simple:names               [ rdf:type  rdf:Bag;
+                                     rdf:_1     "bob";
+                                     rdf:_2     "jeff";
+                                     rdf:_3     "bob";
+                                   ];
+        simple:namesOrdered        [ rdf:type  rdf:Seq;
+                                     rdf:_1    "bob";
+                                     rdf:_2    "bob";
+                                     rdf:_3    "jeff";
+                                   ];
+        simple:namesOrderedUnique  [ rdf:type  rdf:Seq;
+                                     rdf:_1    "bob";
+                                     rdf:_2    "jeff"
+                                   ];
+        simple:namesUnique         [ rdf:type  rdf:Bag;
+                                     rdf:_1    "jeff";
+                                     rdf:_2    "bob"
+                                   ] .
