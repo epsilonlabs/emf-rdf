@@ -14,6 +14,7 @@ package org.eclipse.epsilon.rdf.emf;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -173,10 +174,11 @@ public class RDFGraphResourceUpdate {
 	
 	private void addToContainer(Object values, Container container, boolean isUnique) {
 		reportContainer("Before add to container ", container);
-		if (values.getClass().equals(ArrayList.class)) {
-			ArrayList<Object> list = (ArrayList<Object>) values;
+		try {
+			Collection<?> list = (Collection<?>) values;
 			list.forEach(v -> container.add(v));
-		} else {
+		} catch(Exception e) {
+			// Assume values is a single value
 			container.add(values);
 		}
 		reportContainer("After add to container ", container);

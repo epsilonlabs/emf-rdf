@@ -67,13 +67,15 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		RDFGraphResourceImpl graphResource = RDFGraphResourceImpl.getRDFGraphResourceFor(onEObject);
 		RDFGraphResourceUpdate rdfUpdater = graphResource.getRDFGraphUpdater();
 		
-		List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);		
-		
+		 List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);		
+
 		// Decode the notification event type
 		switch (notification.getEventType()) {
-		case Notification.ADD:
-			rdfUpdater.addMultiValueAttribute(namedModelURIs, onEObject, eAttributeChanged, 
-					newValue, oldValue);
+		case Notification.ADD:	
+			if(isMany) {
+				rdfUpdater.addMultiValueAttribute(namedModelURIs, onEObject, eAttributeChanged, 
+						newValue, oldValue);
+			}
 			break;
 		case Notification.ADD_MANY:
 			rdfUpdater.addMultiValueAttribute(namedModelURIs, onEObject, eAttributeChanged, 
