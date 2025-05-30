@@ -262,12 +262,6 @@ public class RDFGraphResourceUpdate {
 		}		
 	}
 	
-	private void removeValueFromContainer (List<Object> values, Container container, EStructuralFeature sf) {
-		values.iterator().forEachRemaining(valueToRemove -> {
-			removeValueFromContainer(valueToRemove, container, sf);
-		});
-	}
-
 	private void checkAndRemoveEmptyContainers(Container container, EObject onEObject, EAttribute eAttribute) {
 		Model model = container.asResource().getModel();
 		if (model.containsResource(container)) {
@@ -282,20 +276,21 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	private void removeFromContainer(Object values, Container container, EObject onEObject, EAttribute eAttribute) {
-		EStructuralFeature sf = eAttribute.eContainingFeature();
+		reportContainer("Before remove", container);
+		
+		EStructuralFeature sf = eAttribute.eContainingFeature();		
 		if(values instanceof EList<?>) { 
-			reportContainer("Before remove", container);
-			
 			EList<?> valuesList = (EList<?>) values;
-			removeValueFromContainer(new ArrayList<>(valuesList), container, sf);
-			
-			reportContainer("After remove", container);
-			// Check if container is empty (size 0), remove the blank node if true
-			checkAndRemoveEmptyContainers(container, onEObject, eAttribute);
+			valuesList.iterator().forEachRemaining(value -> 
+				removeValueFromContainer(value, container, sf));
 		} else {
-			// not a list? Single value?
 			removeValueFromContainer(values, container, sf);
 		}
+		
+		reportContainer("After remove", container);
+		
+		// Check if container is empty (size 0), remove the blank node if true
+		checkAndRemoveEmptyContainers(container, onEObject, eAttribute);
 	}
 	
 	public void removeMultiValueAttribute (List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) {
