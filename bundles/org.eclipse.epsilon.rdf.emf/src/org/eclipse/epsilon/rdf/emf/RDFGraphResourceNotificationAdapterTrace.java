@@ -314,7 +314,8 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 	}
 	
 	private void notImplmentedWarning (Notification notification, boolean isOrdered) {
-		String feature = notification.getFeature().getClass().toString();
+		String feature = notification.getFeature().getClass().getSimpleName();
+		
 		String operation = "";
 		switch (notification.getEventType()) {
 		case Notification.ADD:
