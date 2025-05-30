@@ -17,14 +17,9 @@ operation getNamesOrderedUnique (){
 
 operation showModel (label : String) {
 	("\n" + label).println();
+	(Model.all())[0].entities[0].label.println();
 	(Model.all())[0].entities[0].names.println();
 	(Model.all())[0].entities[0].namesOrdered.println();
 	(Model.all())[0].entities[0].namesUnique.println();
 	(Model.all())[0].entities[0].namesOrderedUnique.println();
 }
-
-
-//var names = (Model.all())[0].entities[0].names.println();
-var namesOrdered = (Model.all())[0].entities[0].namesOrdered.println();
-var namesUnique = (Model.all())[0].entities[0].namesUnique.println();
-var namesOrderedUnique = (Model.all())[0].entities[0].namesOrderedUnique.println();

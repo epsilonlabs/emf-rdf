@@ -179,6 +179,8 @@ public class ChangeEquivalenceTest {
 	@Test 
 	public void loadModelsAndRunEolTest() throws Exception {
 		
+		restoreRdfFiles(); // Clean up any backup files from failed tests.
+		
 		// Load the meta model
 		ResourceSet rsMetamodels = new ResourceSetImpl();		
 		loadModelsWithExtension(eolTestFolder, ".emf", rsMetamodels);
@@ -207,13 +209,15 @@ public class ChangeEquivalenceTest {
 		// Reload RDF model resource
 		loadModelsWithExtension(eolTestFolder, ".rdfres", rsRDF);
 		rdfModelResource = rsRDF.getResources().get(0);
-				
+		
+		restoreRdfFiles(); // We may crash out on the test
+		
 		// Compare reloaded RDF and XMI models
 		EMFCompare compareEngine = EMFCompare.builder().build();
 		final IComparisonScope scope = new DefaultComparisonScope(rsXMI, rsRDF, null);
 		final Comparison cmp = compareEngine.compare(scope);
 		assertNoDifferences(eolTestFile, cmp);
 		
-		restoreRdfFiles();
+		
 	}
 }
