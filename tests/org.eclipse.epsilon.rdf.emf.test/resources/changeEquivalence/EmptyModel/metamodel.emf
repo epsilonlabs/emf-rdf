@@ -1,0 +1,15 @@
+@namespace(uri="http://eclipse.org/epsilon/rdf/changeEquivalence", prefix="")
+package changeEquivalence;
+
+class Model {
+  attr String label;
+  val Entity[*] entities;
+}
+
+class Entity {
+  attr String label;
+  !ordered !unique attr String[*] names;
+   ordered !unique attr String[*] namesOrdered;
+  !ordered  unique attr String[*] namesUnique;
+   ordered  unique attr String[*] namesOrderedUnique;
+}
