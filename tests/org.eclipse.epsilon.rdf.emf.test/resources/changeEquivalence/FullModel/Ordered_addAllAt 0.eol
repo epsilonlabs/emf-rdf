@@ -1,0 +1,10 @@
+import "../TestOperations.eol";
+
+"\n Running EOL".println();
+
+showModel(" * Before change");
+
+Sequence {"alice", "bob", "jeff"}.println("\nChange sequence addAll ");
+getNamesOrdered().addAll(0, Sequence {"alice", "bob", "jeff"} );
+
+showModel(" * After change");

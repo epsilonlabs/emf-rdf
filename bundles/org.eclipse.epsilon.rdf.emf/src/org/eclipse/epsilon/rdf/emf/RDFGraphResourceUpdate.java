@@ -188,23 +188,14 @@ public class RDFGraphResourceUpdate {
 		reportContainer("Before add to container ", container);
 		try {
 			List<?> values = (List<?>) value;
-			if (0 == position) {
-				values.forEach(v -> container.add(v));
-			} else {
-				for (Object v : values) {
-					++position;
-					System.out.println(String.format( "inserting: %s %s", position, v ) );
-					container.add(position, v);					
-				}
-							
-			}			
-		} catch(Exception e) {
-			// Assume values is a single value
-			if (0 == position) {
-				container.add(value);
-			} else {
-				container.add(++position, value);
+			for (Object v : values) {
+				++position;
+				System.out.println(String.format("inserting: %s %s", position, v));
+				container.add(position, v);
 			}
+		} catch (Exception e) {
+			// Assume values is a single value
+			container.add(++position, value);
 		}
 		reportContainer("After add to container ", container);
 	}
