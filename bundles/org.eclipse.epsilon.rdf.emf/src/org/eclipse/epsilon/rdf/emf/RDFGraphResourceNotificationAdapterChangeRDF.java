@@ -63,6 +63,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		Object newValue = notification.getNewValue();
 		boolean isOrdered = eAttributeChanged.isOrdered(); // If this is set then there is Order to the values.
 		boolean isMany = eAttributeChanged.isOrdered();
+		int position = notification.getPosition();
 		
 		RDFGraphResourceImpl graphResource = RDFGraphResourceImpl.getRDFGraphResourceFor(onEObject);
 		RDFGraphResourceUpdate rdfUpdater = graphResource.getRDFGraphUpdater();
@@ -74,12 +75,12 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		case Notification.ADD:	
 			if(isMany) {
 				rdfUpdater.addMultiValueAttribute(namedModelURIs, onEObject, eAttributeChanged, 
-						newValue, oldValue);
+						newValue, oldValue, position);
 			}
 			break;
 		case Notification.ADD_MANY:
 			rdfUpdater.addMultiValueAttribute(namedModelURIs, onEObject, eAttributeChanged, 
-					newValue, oldValue);
+					newValue, oldValue, position);
 			break;
 		case Notification.SET:
 			// Single values, don't need to worry about order

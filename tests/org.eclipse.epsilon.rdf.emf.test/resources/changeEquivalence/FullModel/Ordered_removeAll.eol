@@ -4,7 +4,7 @@ import "../TestOperations.eol";
 
 showModel(" * Before change");
 
-Bag {"bob" , "jeff"}.println("\nChange sequence addAll ");
-getNamesOrdered().addAll( Bag {"bob" , "jeff"} );
+Bag {"bob" , "jeff"}.println("\nChange sequence removeAll ");
+getNamesOrdered().removeAll( Bag {"bob" , "jeff"} );
 
 showModel(" * After change");

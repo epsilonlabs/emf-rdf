@@ -172,7 +172,7 @@ public class RDFGraphResourceUpdate {
 		return objectNode;
 	}
 	
-	private void addToContainer(Object values, Container container, boolean isUnique) {
+	private void addToContainer(Object values, Bag container) {
 		reportContainer("Before add to container ", container);
 		try {
 			Collection<?> list = (Collection<?>) values;
@@ -184,7 +184,32 @@ public class RDFGraphResourceUpdate {
 		reportContainer("After add to container ", container);
 	}
 	
-	public void addMultiValueAttribute (List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) {
+	private void addToContainer(Object value, Seq container, int position) {
+		reportContainer("Before add to container ", container);
+		try {
+			List<?> values = (List<?>) value;
+			if (0 == position) {
+				values.forEach(v -> container.add(v));
+			} else {
+				for (Object v : values) {
+					++position;
+					System.out.println(String.format( "inserting: %s %s", position, v ) );
+					container.add(position, v);					
+				}
+							
+			}			
+		} catch(Exception e) {
+			// Assume values is a single value
+			if (0 == position) {
+				container.add(value);
+			} else {
+				container.add(++position, value);
+			}
+		}
+		reportContainer("After add to container ", container);
+	}
+	
+	public void addMultiValueAttribute (List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue, int position) {
 		
 		List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);
 		
@@ -211,11 +236,11 @@ public class RDFGraphResourceUpdate {
 				}
 				else if (modelStmtObject.hasProperty(RDF.type, RDF.Bag)) {
 					Bag bag = model.getBag(modelStmtObject);
-					addToContainer(newValue, bag, eAttribute.isOrdered());
+					addToContainer(newValue, bag);
 				}
 				else if (modelStmtObject.hasProperty(RDF.type, RDF.Seq)) {
 					Seq seq = model.getSeq(modelStmtObject);
-					addToContainer(newValue, seq, eAttribute.isOrdered());
+					addToContainer(newValue, seq, position);
 				}
 				else if (modelStmtObject.hasProperty(RDF.type, RDF.Alt)) {
 					Alt alt = model.getAlt(modelStmtObject);
@@ -232,10 +257,10 @@ public class RDFGraphResourceUpdate {
 			// Need to make the Blank node model.createSeq() and then need to make a statement to attach it to the onEobject - eAttribute			
 			if (eAttribute.isOrdered()) {
 				// Sequence
-				addToContainer(newValue, newSequence(model, onEObject, eAttribute), isOrdered);
+				addToContainer(newValue, newSequence(model, onEObject, eAttribute), 0);
 			} else {
 				// Bag
-				addToContainer(newValue, newBag(model, onEObject, eAttribute), isOrdered);
+				addToContainer(newValue, newBag(model, onEObject, eAttribute));
 			}
 			return;
 		}
@@ -243,6 +268,7 @@ public class RDFGraphResourceUpdate {
 	
 	private void removeValueFromContainer (Object value, Container container, EStructuralFeature sf) {
 		System.out.println("Remove from container: " + value);
+
 		List<Statement> containerPropertyStatements = container.listProperties().toList();
 		Iterator<Statement> cpsItr = containerPropertyStatements.iterator();
 		boolean done = false;
@@ -275,16 +301,16 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 	
-	private void removeFromContainer(Object values, Container container, EObject onEObject, EAttribute eAttribute) {
+	private void removeFromContainer(Object value, Container container, EObject onEObject, EAttribute eAttribute) {
 		reportContainer("Before remove", container);
 		
 		EStructuralFeature sf = eAttribute.eContainingFeature();		
-		if(values instanceof EList<?>) { 
-			EList<?> valuesList = (EList<?>) values;
-			valuesList.iterator().forEachRemaining(value -> 
-				removeValueFromContainer(value, container, sf));
+		if(value instanceof EList<?>) { 
+			EList<?> values = (EList<?>) value;
+			values.iterator().forEachRemaining(v -> 
+				removeValueFromContainer(v, container, sf));
 		} else {
-			removeValueFromContainer(values, container, sf);
+			removeValueFromContainer(value, container, sf);
 		}
 		
 		reportContainer("After remove", container);
