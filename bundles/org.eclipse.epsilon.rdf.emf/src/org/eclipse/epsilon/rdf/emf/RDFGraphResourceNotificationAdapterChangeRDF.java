@@ -72,11 +72,10 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 
 		// Decode the notification event type
 		switch (notification.getEventType()) {
-		case Notification.ADD:	
-			if(isMany) {
-				rdfUpdater.addMultiValueAttribute(namedModelURIs, onEObject, eAttributeChanged, 
-						newValue, oldValue, position);
-			}
+		case Notification.ADD:
+			// Watch out for none-multi value attributes being added through here
+			rdfUpdater.addMultiValueAttribute(namedModelURIs, onEObject, eAttributeChanged, 
+					newValue, oldValue, position);
 			break;
 		case Notification.ADD_MANY:
 			rdfUpdater.addMultiValueAttribute(namedModelURIs, onEObject, eAttributeChanged, 
