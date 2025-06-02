@@ -1,0 +1,11 @@
+import "../TestOperations.eol";
+
+"\n Running EOL".println();
+
+showModel(" * Before change");
+
+"alice".println("\nChange bag add ");
+getNames().add("alice");
+
+
+showModel(" * After change");

@@ -1,0 +1,10 @@
+import "../TestOperations.eol";
+
+"\n Running EOL".println();
+
+showModel(" * Before change");
+
+Bag {"bob" , "jeff"}.println("\nChange sequence removeAll ");
+getNames().removeAll( Bag {"bob" , "jeff"} );
+
+showModel(" * After change");
