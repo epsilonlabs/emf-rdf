@@ -1,11 +1,12 @@
 import "../TestOperations.eol";
 
+var value = "alice";
+
 "\n Running EOL".println();
 
 showModel(" * Before change");
 
-"alice".println("\nChange bag add ");
-getNames().add("alice");
-
+value.println("\n * Change:\nValue, "); 
+getNames().add(value);
 
 showModel(" * After change");

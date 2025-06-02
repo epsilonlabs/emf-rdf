@@ -188,7 +188,7 @@ public class ChangeEquivalenceTest {
 		loadModelsWithExtension(eolTestFolder, ".emf", rsMetamodels);
 
 		// Load and change XMI model resource, this is what we want the RDF to match
-		System.out.println("\n\n == XMI ==");
+		System.out.println("\n == XMI ==");
 		ResourceSet rsXMI = new ResourceSetImpl();
 		registerEPackages(rsMetamodels, rsXMI);
 		loadModelsWithExtension(eolTestFolder, ".xmi", rsXMI);

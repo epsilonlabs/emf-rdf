@@ -4,7 +4,7 @@ import "../TestOperations.eol";
 
 showModel(" * Before change");
 
-"jeff".println("\nChange sequence remove ");
+"jeff".println("\nChange NamesOrdered remove ");
 getNamesOrdered().remove("jeff");
 
 showModel(" * After change");

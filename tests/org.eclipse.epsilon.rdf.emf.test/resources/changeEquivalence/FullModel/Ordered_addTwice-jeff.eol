@@ -1,11 +1,15 @@
 import "../TestOperations.eol";
 
+var value = "jeff";
+
 "\n Running EOL".println();
 
 showModel(" * Before change");
 
-"jeff".println("\nChange sequence add twice ");
-getNamesOrdered().add("jeff");
-getNamesOrdered().add("jeff");
+value.println("\n * Change:\nValue, ");
+getNamesOrdered().add(value);
+
+value.println("\n * Change:\nValue, ");
+getNamesOrdered().add(value);
 
 showModel(" * After change");

@@ -1,10 +1,12 @@
 import "../TestOperations.eol";
 
+var value = Sequence {"bob" , "jeff", "alice"};
+
 "\n Running EOL".println();
 
 showModel(" * Before change");
 
-Sequence {"bob" , "jeff", "alice"}.println("\nChange set addAll ");
-getNamesUnique().addAll( Sequence {"bob" , "jeff", "alice"} );
+value.println("\n * Change:\nValue, ");
+getNamesUnique().addAll(value);
 
 showModel(" * After change");

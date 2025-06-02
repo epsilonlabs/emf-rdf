@@ -1,10 +1,14 @@
 import "../TestOperations.eol";
 
+var value = Sequence {"alice", "bob", "jeff"};
+var position = 0;
+
 "\n Running EOL".println();
 
 showModel(" * Before change");
 
-Sequence {"alice", "bob", "jeff"}.println("\nChange sequence addAll ");
-getNamesOrdered().addAll(0, Sequence {"alice", "bob", "jeff"} );
+value.println("\n * Change:\nValue, ");
+position.println("Position, ");
+getNamesOrdered().addAll(position, value);
 
 showModel(" * After change");
