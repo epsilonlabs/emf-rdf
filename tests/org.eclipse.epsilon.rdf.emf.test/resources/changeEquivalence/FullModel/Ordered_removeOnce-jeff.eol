@@ -1,0 +1,12 @@
+import "../TestOperations.eol";
+
+var value = "jeff";
+
+"\n Running EOL".println();
+
+showModel(" * Before change");
+
+value.println("\n * Change:\nValue, ");
+getNamesOrdered().remove(value);
+
+showModel(" * After change");
