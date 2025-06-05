@@ -2,11 +2,8 @@ import "../TestOperations.eol";
 
 var value = Bag {"bob" , "jeff"};
 
-"\n Running EOL".println();
+beforeChange(value);
 
-showModel(" * Before change");
-
-value.println("\n * Change:\nValue, ");
 getNames().removeAll(value);
 
-showModel(" * After change");
+afterChange();

@@ -3,14 +3,8 @@ import "../TestOperations.eol";
 var value = Sequence {"bob" , "jeff", "alice"};
 var position = 0;
 
+beforeChange(value, position);
 
-"\n Running EOL".println();
-
-showModel(" * Before change");
-
-value.println("\n * Change:\nValue, ");
-position.println("Position, ");
 getNamesOrderedUnique().addAll( position, value);
 
-
-showModel(" * After change");
+afterChange();

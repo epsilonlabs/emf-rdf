@@ -2,11 +2,8 @@ import "../TestOperations.eol";
 
 var value = "alice";
 
-"\n Running EOL".println();
+beforeChange(value);
 
-showModel(" * Before change");
-
-value.println("\n * Change:\nValue, "); 
 getNames().add(value);
 
-showModel(" * After change");
+afterChange();

@@ -4,12 +4,8 @@ var value = "alice";
 var position = 1;
 
 
-"\n Running EOL".println();
+beforeChange(value, position);
 
-showModel(" * Before change");
-
-value.println("\n * Change:\nValue, ");
-position.println("Position, ");
 getNamesOrdered().add(position, value);
 
-showModel(" * After change");
+afterChange();

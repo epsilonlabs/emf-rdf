@@ -27,3 +27,35 @@ operation showModel (label : String) {
 	(Model.all())[0].entities[0].namesUnique.println("namesUnique: ");
 	(Model.all())[0].entities[0].namesOrderedUnique.println("namesOrderedUnique: ");
 }
+
+operation beforeChange (value) {
+	if(false) {
+		"\n Running EOL".println();
+		showModel(" * Before change");
+		value.println("\n * Change:\nValue, ");
+	}
+}
+
+operation beforeChange(value, position) {
+	if(false) {
+	"\n Running EOL".println();
+
+		showModel(" * Before change");
+
+		value.println("\n * Change:\nValue, ");
+		position.println("Position, ");
+	}
+}
+
+operation beforeAnotherChange (value) {
+	if(false) {
+		showModel(" * Before change");
+		value.println("\n * Change:\nValue, ");
+	}
+}
+
+operation afterChange () {
+	if(false) {
+		showModel(" * After change");
+	}
+}

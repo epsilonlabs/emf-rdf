@@ -2,11 +2,9 @@ import "../TestOperations.eol";
 
 var value = Sequence {"bob" , "jeff"};
 
-"\n Running EOL".println();
+beforeChange(value);
 
-showModel(" * Before change");
-
-value.println("\n * Change:\nValue, ");
 getNamesUnique().addAll(value);
 
-showModel(" * After change");
+afterChange();
+
