@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="ASCII"?>
+<Model xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns="http://eclipse.org/epsilon/rdf/changeEquivalence" label="FullModel">
+  <entities label="FullModelEntity">
+    <names>bob</names>
+    <names>jeff</names>
+    <names>bob</names>
+    <namesOrdered>bob</namesOrdered>
+    <namesOrdered>bob</namesOrdered>
+    <namesOrdered>jeff</namesOrdered>
+    <namesUnique>jeff</namesUnique>
+    <namesUnique>bob</namesUnique>
+    <namesOrderedUnique>bob</namesOrderedUnique>
+    <namesOrderedUnique>jeff</namesOrderedUnique>
+  </entities>
+</Model>
