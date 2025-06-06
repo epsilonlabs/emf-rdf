@@ -1,5 +1,5 @@
 operation getNames () {
-		if(false) {"Attribute, names ".println;}
+		if(consoleOutput) {"Attribute, names ".println;}
 	return (Model.all())[0].entities[0].names;
 }
 
@@ -10,7 +10,7 @@ operation showModel (label : String) {
 }
 
 operation beforeChange (value) {
-	if(false) {
+	if(consoleOutput) {
 		"\n Running EOL".println();
 		showModel(" * Before change");
 		value.println("\n * Change:\nValue, ");
@@ -18,7 +18,7 @@ operation beforeChange (value) {
 }
 
 operation beforeChange(value, position) {
-	if(false) {
+	if(consoleOutput) {
 	"\n Running EOL".println();
 
 		showModel(" * Before change");
@@ -29,14 +29,14 @@ operation beforeChange(value, position) {
 }
 
 operation beforeAnotherChange (value) {
-	if(false) {
+	if(consoleOutput) {
 		showModel(" * Before change");
 		value.println("\n * Change:\nValue, ");
 	}
 }
 
 operation afterChange () {
-	if(false) {
+	if(consoleOutput) {
 		showModel(" * After change");
 	}
 }

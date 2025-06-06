@@ -26,6 +26,9 @@ import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.emf.emfatic.core.EmfaticResourceFactory;
 import org.eclipse.epsilon.emc.emf.InMemoryEmfModel;
 import org.eclipse.epsilon.eol.EolModule;
+import org.eclipse.epsilon.eol.execute.context.Variable;
+import org.eclipse.epsilon.eol.types.EolAnyType;
+import org.eclipse.epsilon.eol.types.EolType;
 import org.eclipse.epsilon.rdf.emf.RDFGraphResourceFactory;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -152,6 +155,11 @@ public class ChangeEquivalenceTest {
 		// Parses and executes the EOL program
 		EolModule module = new EolModule();
 		module.parse(eolCode);
+		
+		module.getContext().getFrameStack().put(
+				Variable.createReadOnlyVariable("consoleOutput", CONSOLE_OUTPUT_ACTIVE)
+			);
+		
 		module.getContext().getModelRepository().addModel(model);
 		Object result = module.execute();
 		
