@@ -5,13 +5,5 @@
   <entities label="FullModelEntity">
     <names>bob</names>
     <names>jeff</names>
-    <names>bob</names>
-    <namesOrdered>bob</namesOrdered>
-    <namesOrdered>bob</namesOrdered>
-    <namesOrdered>jeff</namesOrdered>
-    <namesUnique>jeff</namesUnique>
-    <namesUnique>bob</namesUnique>
-    <namesOrderedUnique>bob</namesOrderedUnique>
-    <namesOrderedUnique>jeff</namesOrderedUnique>
   </entities>
 </Model>

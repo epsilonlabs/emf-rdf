@@ -1,9 +1,0 @@
-import "../TestOperations.eol";
-
-var value = Sequence {"bob" , "jeff", "alice"};
-
-beforeChange(value);
-
-getNamesOrderedUnique().addAll(value);
-
-afterChange();

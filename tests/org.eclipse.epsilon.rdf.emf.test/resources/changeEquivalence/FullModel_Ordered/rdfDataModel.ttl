@@ -13,21 +13,7 @@ PREFIX xsd:    <http://www.w3.org/2001/XMLSchema#>
 <http://example/org/firstEntity>
         rdf:type                   simple:Entity;
         simple:label               "FullModelEntity";
-        simple:names               [ rdf:type  rdf:Bag;
+        simple:names               [ rdf:type  rdf:Seq;
                                      rdf:_1     "bob";
                                      rdf:_2     "jeff";
-                                     rdf:_3     "bob";
-                                   ];
-        simple:namesOrdered        [ rdf:type  rdf:Seq;
-                                     rdf:_1    "bob";
-                                     rdf:_2    "bob";
-                                     rdf:_3    "jeff";
-                                   ];
-        simple:namesOrderedUnique  [ rdf:type  rdf:Seq;
-                                     rdf:_1    "bob";
-                                     rdf:_2    "jeff"
-                                   ];
-        simple:namesUnique         [ rdf:type  rdf:Bag;
-                                     rdf:_1    "jeff";
-                                     rdf:_2    "bob"
                                    ] .

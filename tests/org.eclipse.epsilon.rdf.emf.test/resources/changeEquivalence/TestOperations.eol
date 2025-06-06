@@ -3,33 +3,14 @@ operation getNames () {
 	return (Model.all())[0].entities[0].names;
 }
 
-operation getNamesOrdered() {
-	"Attribute, namesOrdered ".println;
-	return (Model.all())[0].entities[0].namesOrdered;
-}
-
-operation getNamesUnique() {
-	"Attribute, namesUnique ".println;
-	return (Model.all())[0].entities[0].namesUnique; 
-}
-
-operation getNamesOrderedUnique (){
-	"Attribute, namesOrderedUnique ".println;
-	return (Model.all())[0].entities[0].namesOrderedUnique;
-
-}
-
 operation showModel (label : String) {
 	("\n" + label).println();
 	(Model.all())[0].entities[0].label.println();
 	(Model.all())[0].entities[0].names.println("names: ");
-	(Model.all())[0].entities[0].namesOrdered.println("namesOrdered: ");
-	(Model.all())[0].entities[0].namesUnique.println("namesUnique: ");
-	(Model.all())[0].entities[0].namesOrderedUnique.println("namesOrderedUnique: ");
 }
 
 operation beforeChange (value) {
-	if(false) {
+	if(true) {
 		"\n Running EOL".println();
 		showModel(" * Before change");
 		value.println("\n * Change:\nValue, ");
@@ -37,7 +18,7 @@ operation beforeChange (value) {
 }
 
 operation beforeChange(value, position) {
-	if(false) {
+	if(true) {
 	"\n Running EOL".println();
 
 		showModel(" * Before change");
@@ -48,14 +29,14 @@ operation beforeChange(value, position) {
 }
 
 operation beforeAnotherChange (value) {
-	if(false) {
+	if(true) {
 		showModel(" * Before change");
 		value.println("\n * Change:\nValue, ");
 	}
 }
 
 operation afterChange () {
-	if(false) {
+	if(true) {
 		showModel(" * After change");
 	}
 }

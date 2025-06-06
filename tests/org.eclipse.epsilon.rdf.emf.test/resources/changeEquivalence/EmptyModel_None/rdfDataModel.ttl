@@ -8,10 +8,7 @@ PREFIX xsd:    <http://www.w3.org/2001/XMLSchema#>
 <http://example/org/firstEntity>
         rdf:type                   simple:Entity;
         simple:label               "EmptyModelEntity";
-        simple:names               [ rdf:type  rdf:Bag ];
-        simple:namesOrdered        [ rdf:type  rdf:Seq ];
-        simple:namesOrderedUnique  [ rdf:type  rdf:Seq ];
-        simple:namesUnique         [ rdf:type  rdf:Bag ] .
+        simple:names               [ rdf:type  rdf:Bag ].
 
 <http://example/org/theModel>
         rdf:type         simple:Model;

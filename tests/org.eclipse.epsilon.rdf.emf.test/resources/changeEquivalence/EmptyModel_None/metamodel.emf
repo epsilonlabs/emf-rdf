@@ -9,7 +9,4 @@ class Model {
 class Entity {
   attr String label;
   !ordered !unique attr String[*] names;
-   ordered !unique attr String[*] namesOrdered;
-  !ordered  unique attr String[*] namesUnique;
-   ordered  unique attr String[*] namesOrderedUnique;
 }
