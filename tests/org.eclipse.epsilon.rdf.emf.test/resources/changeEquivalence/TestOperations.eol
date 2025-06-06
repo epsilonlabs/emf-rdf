@@ -1,5 +1,5 @@
 operation getNames () {
-	"Attribute, names ".println;
+		if(false) {"Attribute, names ".println;}
 	return (Model.all())[0].entities[0].names;
 }
 
