@@ -43,26 +43,15 @@ import org.junit.runners.Parameterized.Parameters;
  * </p>
  *
  * <p>
- * Test cases are subfolders of resources/equivalence_multivalue, where metamodels are in .emf
- * format, XMI models use the .xmi extension, and RDF models use the .rdfres extension.
+ * Test cases are eol files in subfolders of resources/equivalence_multivalue, where metamodels are in .emf
+ * format, XMI models use the .xmi extension, and RDF models use the .rdfres extension and RDF data models are .ttl.
  * </p>
  */
 
 @RunWith(Parameterized.class)
 public class ChangeEquivalenceTest {	
 	
-	/*
-	 * For each sub-folder in EAttribute_Multi:
-	 *  1, Copy/load in a model files
-	 *  2, Execute the "test.eol" or test_emptyModel.eol" script in the folder
-	 *  3, Run the model comparison test, result fails/passed J-unit test
-	 *  4, Clean up
-	 */
-	
-	/*
-	 * Either run the EOL script twice, against an XMI and RDF
-	 * Or produce an expected XMI model for the RDF model that is produced
-	 */
+	static final boolean CONSOLE_OUTPUT_ACTIVE = false;
 	
 	@BeforeClass
 	public static void setupDrivers() {
@@ -179,7 +168,7 @@ public class ChangeEquivalenceTest {
 	@Test 
 	public void loadModelsAndRunEolTest() throws Exception {
 		
-		System.out.println(String.format("\n ** TEST: %s ** ",eolTestFile.getName()));
+		if(CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("\n ** TEST: %s ** ",eolTestFile.getName()));}
 		
 		restoreRdfFiles(); // Clean up any backup files from failed tests.
 		
@@ -188,7 +177,7 @@ public class ChangeEquivalenceTest {
 		loadModelsWithExtension(eolTestFolder, ".emf", rsMetamodels);
 
 		// Load and change XMI model resource, this is what we want the RDF to match
-		System.out.println("\n == XMI ==");
+		if(CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n == XMI ==");}
 		ResourceSet rsXMI = new ResourceSetImpl();
 		registerEPackages(rsMetamodels, rsXMI);
 		loadModelsWithExtension(eolTestFolder, ".xmi", rsXMI);
@@ -196,7 +185,7 @@ public class ChangeEquivalenceTest {
 		executeEol(xmiModelResource, eolTestFile);
 		
 		// Load and change RDF model resource, this should match the XMI after save and reload		
-		System.out.println("\n\n == RDF ==");
+		if(CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n\n == RDF ==");}
 		ResourceSet rsRDF = new ResourceSetImpl();
 		registerEPackages(rsMetamodels, rsRDF);
 		loadModelsWithExtension(eolTestFolder, ".rdfres", rsRDF);

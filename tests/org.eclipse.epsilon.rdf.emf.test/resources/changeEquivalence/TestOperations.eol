@@ -10,7 +10,7 @@ operation showModel (label : String) {
 }
 
 operation beforeChange (value) {
-	if(true) {
+	if(false) {
 		"\n Running EOL".println();
 		showModel(" * Before change");
 		value.println("\n * Change:\nValue, ");
@@ -18,7 +18,7 @@ operation beforeChange (value) {
 }
 
 operation beforeChange(value, position) {
-	if(true) {
+	if(false) {
 	"\n Running EOL".println();
 
 		showModel(" * Before change");
@@ -29,14 +29,14 @@ operation beforeChange(value, position) {
 }
 
 operation beforeAnotherChange (value) {
-	if(true) {
+	if(false) {
 		showModel(" * Before change");
 		value.println("\n * Change:\nValue, ");
 	}
 }
 
 operation afterChange () {
-	if(true) {
+	if(false) {
 		showModel(" * After change");
 	}
 }

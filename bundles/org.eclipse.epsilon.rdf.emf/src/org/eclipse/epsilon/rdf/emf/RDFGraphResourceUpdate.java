@@ -207,8 +207,8 @@ public class RDFGraphResourceUpdate {
 		Resource onEObjectNode = rdfGraphResource.getRDFResource(onEObject);
 
 		boolean isOrdered = eAttribute.isOrdered(); // sequence (ordered), bag (unordered)
-		eAttribute.isUnique(); // check container before adding
-		eAttribute.isMany(); // should be true always?
+		boolean isUnique = eAttribute.isUnique(); // check container before adding
+		boolean isMany = eAttribute.isMany(); // should be true always?
 		
 		// Work out if we are adding a NEW multi-value attribute with no existing RDF node.
 		
@@ -223,7 +223,7 @@ public class RDFGraphResourceUpdate {
 				else if (modelStmtObject.hasProperty(RDF.type, RDF.List)) {
 					RDFList list = modelStmtObject.as(RDFList.class);
 					System.out.println("\nobject RDF.List:");
-					// TODO Handle a list
+					// TODO Handle a list ?
 				}
 				else if (modelStmtObject.hasProperty(RDF.type, RDF.Bag)) {
 					Bag bag = model.getBag(modelStmtObject);
@@ -235,7 +235,7 @@ public class RDFGraphResourceUpdate {
 				}
 				else if (modelStmtObject.hasProperty(RDF.type, RDF.Alt)) {
 					Alt alt = model.getAlt(modelStmtObject);
-					// TODO Handle an ALT
+					// TODO Handle an ALT ?
 				}
 				else {
 					// no operation
