@@ -224,7 +224,7 @@ public class RDFGraphResourceUpdate {
 				else if (modelStmtObject.hasProperty(RDF.type, RDF.List)) {
 					RDFList list = modelStmtObject.as(RDFList.class);
 					System.out.println("\nobject RDF.List:");
-					// TODO Handle a list ?
+					// TODO Handle adding to a list ?
 				}
 				else if (modelStmtObject.hasProperty(RDF.type, RDF.Bag)) {
 					Bag bag = model.getBag(modelStmtObject);
@@ -233,10 +233,6 @@ public class RDFGraphResourceUpdate {
 				else if (modelStmtObject.hasProperty(RDF.type, RDF.Seq)) {
 					Seq seq = model.getSeq(modelStmtObject);
 					addToContainer(newValue, seq, position);
-				}
-				else if (modelStmtObject.hasProperty(RDF.type, RDF.Alt)) {
-					Alt alt = model.getAlt(modelStmtObject);
-					// TODO Handle an ALT ?
 				}
 				else {
 					// no operation
@@ -324,19 +320,13 @@ public class RDFGraphResourceUpdate {
 				} else if (modelStmtObject.hasProperty(RDF.type, RDF.List)) {
 					RDFList list = modelStmtObject.as(RDFList.class);
 					if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\nobject RDF.List:");}
-					// TODO Handle a list
+					// TODO Handle remove from a list
 				} else if (modelStmtObject.hasProperty(RDF.type, RDF.Bag)) {
 					Bag bag = model.getBag(modelStmtObject);
 					removeFromContainer(oldValue, bag, onEObject, eAttribute);
 				} else if (modelStmtObject.hasProperty(RDF.type, RDF.Seq)) {
 					Seq seq = model.getSeq(modelStmtObject);
 					removeFromContainer(oldValue, seq, onEObject, eAttribute);
-				} else if (modelStmtObject.hasProperty(RDF.type, RDF.Alt)) {
-					Alt alt = model.getAlt(modelStmtObject);
-					System.out.println("\nobject RDF.Alt - Size: " + alt.size());
-					alt.iterator().forEach(i -> System.out.println("  * " + i));
-					System.out.println("Default: " + alt.getDefault());
-					// TODO Handle an ALT
 				} else {
 					// no operation
 				}
