@@ -194,11 +194,6 @@ public class RDFDeserializer {
 					Seq seq = r.as(Seq.class);
 					return createCollectionOfMultiValues(seq.iterator());
 				}
-				
-				if (r.hasProperty(RDF.type, RDF.Alt)) {
-					Alt alt = r.as(Alt.class);
-					return createCollectionOfMultiValues(alt.iterator());
-				}
 
 				return null;
 			}
