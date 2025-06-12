@@ -220,7 +220,15 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	public Model getNamedModel(Resource model) {
 		return dataModelSet.getNamedModel(model);
 	}
+	
+	public Model getFirstNamedModel() {
+		return dataModelSet.getNamedModel(getResourcesForAllNamedModels().get(0));
+	}
 
+	public Resource getFirstNamedModelResource() {
+		return getResourcesForAllNamedModels().get(0);
+	}
+	
 	public List<Model> getNamedModels(List<Resource> namedModelURIs) {
 		List<Model> namedModels = new ArrayList<Model>();
 		for (Resource model : namedModelURIs) {
@@ -240,6 +248,10 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 			return (RDFGraphResourceImpl) eObject.eResource();
 		}
 		return null;
+	}
+	
+	public void printFirstModelToConsole(String label) {
+		this.printModelToConsole(this.getFirstNamedModel(), label);
 	}
 	
 	public static void printModelToConsole(Model model, String label) {

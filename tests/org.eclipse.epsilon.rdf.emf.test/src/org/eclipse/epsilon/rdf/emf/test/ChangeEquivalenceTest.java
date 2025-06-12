@@ -30,6 +30,7 @@ import org.eclipse.epsilon.eol.execute.context.Variable;
 import org.eclipse.epsilon.eol.types.EolAnyType;
 import org.eclipse.epsilon.eol.types.EolType;
 import org.eclipse.epsilon.rdf.emf.RDFGraphResourceFactory;
+import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,7 +55,7 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class ChangeEquivalenceTest {	
 	
-	static final boolean CONSOLE_OUTPUT_ACTIVE = false;
+	static final boolean CONSOLE_OUTPUT_ACTIVE = true;
 	
 	@BeforeClass
 	public static void setupDrivers() {
@@ -198,6 +199,9 @@ public class ChangeEquivalenceTest {
 		registerEPackages(rsMetamodels, rsRDF);
 		loadModelsWithExtension(eolTestFolder, ".rdfres", rsRDF);
 		Resource rdfModelResource = rsRDF.getResources().get(0);
+		((RDFGraphResourceImpl)rdfModelResource).printFirstModelToConsole("TTL Before change: ");
+		
+		// CHANGE
 		executeEol(rdfModelResource, eolTestFile);
 		
 		// SAVE RDF resource, clear the resource set
@@ -210,6 +214,8 @@ public class ChangeEquivalenceTest {
 		rdfModelResource = rsRDF.getResources().get(0);
 		
 		restoreRdfFiles(); // We may crash out on the test
+		
+		((RDFGraphResourceImpl)rdfModelResource).printFirstModelToConsole("TTL After change: ");
 		
 		// Compare reloaded RDF and XMI models
 		EMFCompare compareEngine = EMFCompare.builder().build();

@@ -12,6 +12,7 @@
  ********************************************************************************/
 package org.eclipse.epsilon.rdf.emf;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -20,13 +21,13 @@ import java.util.List;
 
 import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
-import org.apache.jena.rdf.model.Alt;
 import org.apache.jena.rdf.model.Bag;
 import org.apache.jena.rdf.model.Container;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFList;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Seq;
@@ -40,7 +41,7 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 
 public class RDFGraphResourceUpdate {
 	
-	static final boolean CONSOLE_OUTPUT_ACTIVE = false;
+	static final boolean CONSOLE_OUTPUT_ACTIVE = true;
 	
 	private RDFDeserializer deserializer;
 	private RDFGraphResourceImpl rdfGraphResource;
@@ -173,8 +174,35 @@ public class RDFGraphResourceUpdate {
 		return objectNode;
 	}
 	
+	private RDFList newList(Model model, EObject onEObject, EAttribute eAttribute, Object values) {
+		
+		ArrayList<RDFNode> rdfNodes = new ArrayList<RDFNode>();
+		
+		if(values instanceof List) {
+			List<?> valuesList = (List<?>) values;
+			valuesList.forEach(v -> rdfNodes.add(ResourceFactory.createTypedLiteral(v)));
+		} else {
+			rdfNodes.add(ResourceFactory.createTypedLiteral(values));
+		}
+		
+		// SUBJECT
+		Resource subjectNode = rdfGraphResource.getRDFResource(onEObject);
+		// PREDICATE
+		Property property = getProperty(eAttribute);
+		// OBJECT
+		RDFList objectNode = model.createList(rdfNodes.iterator());
+		model.add(subjectNode, property, objectNode);
+		return objectNode;
+	}
+	
 	private void addToContainer(Object values, Bag container) {
 		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("Before add to container ", container);}
+		
+		// TODO swap out the try for instanceof
+		//if(values instanceof List) {
+		//	List<?> list = (List<?>) values;
+		//}
+		
 		try {
 			Collection<?> list = (Collection<?>) values;
 			list.forEach(v -> container.add(v));
@@ -185,20 +213,59 @@ public class RDFGraphResourceUpdate {
 		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("After add to container ", container);}
 	}
 	
-	private void addToContainer(Object value, Seq container, int position) {
+	private void addToContainer(Object values, Seq container, int position) {
 		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("Before add to container ", container);}
+		// TODO swap out the try for instanceof
+		//if(values instanceof List) {
+		//	List<?> list = (List<?>) values;
+		//}
 		try {
-			List<?> values = (List<?>) value;
-			for (Object v : values) {
+			List<?> list = (List<?>) values;
+			for (Object v : list) {
 				++position;
 				if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("inserting: %s %s", position, v));}
 				container.add(position, v);
 			}
 		} catch (Exception e) {
 			// Assume values is a single value
-			container.add(++position, value);
+			container.add(++position, values);
 		}
 		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("After add to container ", container);}
+	}
+	
+	private void addToContainer(Object values, RDFList container, int position, EAttribute eAttribute) {
+		//if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("Before add to container ", container.toString());}
+		
+		Model model = container.getModel();
+		if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("\n ++ Add to a LIST (strict: %s) (size: %s)\n", container.getStrict(), container.size() ));}
+
+		try {
+			List<?> valueList = (List<?>) values;
+			for (Object value : valueList) {
+				++position;
+				Literal literal = ResourceFactory.createTypedLiteral(value);
+				
+				//RDFList rdfList = model.createList(new RDFNode[] {literal});
+				
+				if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("inserting: %s %s", position, literal));}
+				
+				if(container.isEmpty()) {
+					container.with(literal);
+				} else {
+					container.add(literal);
+				}
+			}
+		} catch (Exception e) {
+			// Assume values is a single value
+			Literal object = ResourceFactory.createTypedLiteral(values);
+			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("EXCEPTION inserting: %s %s", position, object));}
+			
+			Literal literal = ResourceFactory.createTypedLiteral(values);
+
+				container.add(literal);
+
+		}
+		//if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("After add to container ", container);}		
 	}
 	
 	public void addMultiValueAttribute (List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue, int position) {
@@ -218,13 +285,26 @@ public class RDFGraphResourceUpdate {
 			for (Model model : namedModelsToUpdate) {			
 				// If we have one of these types, then we are updating and existing
 				Resource modelStmtObject = getStmtObjectFor(onEObject, eAttribute, model);
+				
+				RDFNode r = model.getRDFNode(modelStmtObject.asNode());
+				Class<? extends Resource> type = modelStmtObject.getClass();
+				
 				if(null == modelStmtObject) {
 					// no operation
 				}
-				else if (modelStmtObject.hasProperty(RDF.type, RDF.List)) {
-					RDFList list = modelStmtObject.as(RDFList.class);
+				else if (modelStmtObject.hasProperty(RDF.rest) || modelStmtObject.hasProperty(RDF.first) || modelStmtObject.hasProperty(RDF.type, RDF.List)) {
 					System.out.println("\nobject RDF.List:");
+					// Lists can be ordered or unique, both or none.
+					//RDFList list = modelStmtObject.as(RDFList.class);
+					RDFList list = model.getList(modelStmtObject);
+					list.setStrict(true);
+										
 					// TODO Handle adding to a list ?
+					if (list.isEmpty()) {
+						newList(model, onEObject, eAttribute, newValue);
+					} else {
+						addToContainer(newValue, list, position, eAttribute);
+					}
 				}
 				else if (modelStmtObject.hasProperty(RDF.type, RDF.Bag)) {
 					Bag bag = model.getBag(modelStmtObject);
@@ -236,11 +316,22 @@ public class RDFGraphResourceUpdate {
 				}
 				else {
 					// no operation
+					System.err.println("Failed to workout how to handle this multivalue: " + eAttribute.getName());
+					RDFList list = model.getList(modelStmtObject);
+					list.setStrict(true);
+										
+					// TODO Handle adding to a list ?
+					if (list.isEmpty()) {
+						newList(model, onEObject, eAttribute, newValue);
+					} else {
+						addToContainer(newValue, list, position, eAttribute);
+					}
 				}
 			}
 		} else {
 			// NEW RDF representation
 			Model model = namedModelsToUpdate.get(0);
+			
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n No existing container, making a new one");}
 			// Need to make the Blank node model.createSeq() and then need to make a statement to attach it to the onEobject - eAttribute			
 			if (eAttribute.isOrdered()) {
@@ -248,7 +339,11 @@ public class RDFGraphResourceUpdate {
 				addToContainer(newValue, newSequence(model, onEObject, eAttribute), 0);
 			} else {
 				// Bag
-				addToContainer(newValue, newBag(model, onEObject, eAttribute));
+				//addToContainer(newValue, newBag(model, onEObject, eAttribute));
+				// List
+				//addToContainer(newValue, newList(model, onEObject, eAttribute), 0, eAttribute);
+				newList(model, onEObject, eAttribute, newValue);
+				
 			}
 			return;
 		}
@@ -289,6 +384,23 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 	
+	private void removeFromContainer(Object values, RDFList container, EObject onEObject, EAttribute eAttribute) {
+		try {
+			List<?> valueList = (List<?>) values;
+			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("list of value to remove: %s", valueList));}
+			for (Object value : valueList) {
+				Literal node = ResourceFactory.createTypedLiteral(value);
+				if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("removing: %s", node));}
+				container = container.remove(node);
+			}
+		} catch (Exception e) {
+			// Assume values is a single value
+			Literal node = ResourceFactory.createTypedLiteral(values);
+			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("EXCEPTION removing: %s", node));}
+			container = container.remove(node);
+		}
+	}
+	
 	private void removeFromContainer(Object value, Container container, EObject onEObject, EAttribute eAttribute) {
 		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("Before remove", container);}
 		
@@ -317,10 +429,11 @@ public class RDFGraphResourceUpdate {
 				Resource modelStmtObject = getStmtObjectFor(onEObject, eAttribute, model);
 				if (null == modelStmtObject) {
 					// no operation
-				} else if (modelStmtObject.hasProperty(RDF.type, RDF.List)) {
+				} else if (modelStmtObject.hasProperty(RDF.rest) || modelStmtObject.hasProperty(RDF.first) || modelStmtObject.hasProperty(RDF.type, RDF.List)) {
 					RDFList list = modelStmtObject.as(RDFList.class);
 					if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\nobject RDF.List:");}
 					// TODO Handle remove from a list
+					removeFromContainer(oldValue, list, onEObject, eAttribute);
 				} else if (modelStmtObject.hasProperty(RDF.type, RDF.Bag)) {
 					Bag bag = model.getBag(modelStmtObject);
 					removeFromContainer(oldValue, bag, onEObject, eAttribute);
