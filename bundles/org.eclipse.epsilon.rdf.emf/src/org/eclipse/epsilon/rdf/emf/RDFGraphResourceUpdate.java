@@ -43,6 +43,8 @@ public class RDFGraphResourceUpdate {
 	
 	static final boolean CONSOLE_OUTPUT_ACTIVE = true;
 	
+	boolean preferListsForMultiValues = false;
+	
 	private RDFDeserializer deserializer;
 	private RDFGraphResourceImpl rdfGraphResource;
 	
@@ -195,7 +197,7 @@ public class RDFGraphResourceUpdate {
 		return objectNode;
 	}
 	
-	private void addToContainer(Object values, Bag container) {
+	private void addToBag(Object values, Bag container) {
 		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("Before add to container ", container);}
 		
 		// TODO swap out the try for instanceof
@@ -213,7 +215,7 @@ public class RDFGraphResourceUpdate {
 		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("After add to container ", container);}
 	}
 	
-	private void addToContainer(Object values, Seq container, int position) {
+	private void addToSequence(Object values, Seq container, int position) {
 		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("Before add to container ", container);}
 		// TODO swap out the try for instanceof
 		//if(values instanceof List) {
@@ -233,37 +235,42 @@ public class RDFGraphResourceUpdate {
 		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("After add to container ", container);}
 	}
 	
-	private void addToContainer(Object values, RDFList container, int position, EAttribute eAttribute) {
+	private void addToList(Object values, RDFList container, int position, EAttribute eAttribute, EObject onEObject) {
 		//if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("Before add to container ", container.toString());}
 		
 		Model model = container.getModel();
 		if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("\n ++ Add to a LIST (strict: %s) (size: %s)\n", container.getStrict(), container.size() ));}
 
-		try {
-			List<?> valueList = (List<?>) values;
-			for (Object value : valueList) {
-				++position;
-				Literal literal = ResourceFactory.createTypedLiteral(value);
-				
-				//RDFList rdfList = model.createList(new RDFNode[] {literal});
-				
-				if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("inserting: %s %s", position, literal));}
-				
-				if(container.isEmpty()) {
-					container.with(literal);
-				} else {
-					container.add(literal);
+		if(container.isEmpty()) {
+			newList(model, onEObject, eAttribute, values);
+		} else {
+		
+			try {
+				List<?> valueList = (List<?>) values;
+				for (Object value : valueList) {
+					++position;
+					Literal literal = ResourceFactory.createTypedLiteral(value);
+					
+					//RDFList rdfList = model.createList(new RDFNode[] {literal});
+					
+					if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("inserting: %s %s", position, literal));}
+					
+					if(container.isEmpty()) {
+						container.with(literal);
+					} else {
+						container.add(literal);
+					}
 				}
+			} catch (Exception e) {
+				// Assume values is a single value
+				Literal object = ResourceFactory.createTypedLiteral(values);
+				if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("EXCEPTION inserting: %s %s", position, object));}
+				
+				Literal literal = ResourceFactory.createTypedLiteral(values);
+
+					container.add(literal);
+
 			}
-		} catch (Exception e) {
-			// Assume values is a single value
-			Literal object = ResourceFactory.createTypedLiteral(values);
-			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("EXCEPTION inserting: %s %s", position, object));}
-			
-			Literal literal = ResourceFactory.createTypedLiteral(values);
-
-				container.add(literal);
-
 		}
 		//if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("After add to container ", container);}		
 	}
@@ -292,40 +299,30 @@ public class RDFGraphResourceUpdate {
 				if(null == modelStmtObject) {
 					// no operation
 				}
-				else if (modelStmtObject.hasProperty(RDF.rest) || modelStmtObject.hasProperty(RDF.first) || modelStmtObject.hasProperty(RDF.type, RDF.List)) {
+				else if ( (modelStmtObject.hasProperty(RDF.rest) && modelStmtObject.hasProperty(RDF.first)) 
+							|| modelStmtObject.hasProperty(RDF.type, RDF.List) ) {
 					System.out.println("\nobject RDF.List:");
 					// Lists can be ordered or unique, both or none.
-					//RDFList list = modelStmtObject.as(RDFList.class);
 					RDFList list = model.getList(modelStmtObject);
-					list.setStrict(true);
-										
-					// TODO Handle adding to a list ?
-					if (list.isEmpty()) {
-						newList(model, onEObject, eAttribute, newValue);
-					} else {
-						addToContainer(newValue, list, position, eAttribute);
-					}
+					list.setStrict(true); // handle the list strictly
+					addToList(newValue, list, position, eAttribute, onEObject);
 				}
 				else if (modelStmtObject.hasProperty(RDF.type, RDF.Bag)) {
 					Bag bag = model.getBag(modelStmtObject);
-					addToContainer(newValue, bag);
+					addToBag(newValue, bag);
 				}
 				else if (modelStmtObject.hasProperty(RDF.type, RDF.Seq)) {
 					Seq seq = model.getSeq(modelStmtObject);
-					addToContainer(newValue, seq, position);
+					addToSequence(newValue, seq, position);
 				}
 				else {
 					// no operation
 					System.err.println("Failed to workout how to handle this multivalue: " + eAttribute.getName());
+					
+					// Fall back is a list structure
 					RDFList list = model.getList(modelStmtObject);
-					list.setStrict(true);
-										
-					// TODO Handle adding to a list ?
-					if (list.isEmpty()) {
-						newList(model, onEObject, eAttribute, newValue);
-					} else {
-						addToContainer(newValue, list, position, eAttribute);
-					}
+					list.setStrict(true); // handle the list strictly
+					addToList(newValue, list, position, eAttribute, onEObject);
 				}
 			}
 		} else {
@@ -333,17 +330,19 @@ public class RDFGraphResourceUpdate {
 			Model model = namedModelsToUpdate.get(0);
 			
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n No existing container, making a new one");}
-			// Need to make the Blank node model.createSeq() and then need to make a statement to attach it to the onEobject - eAttribute			
-			if (eAttribute.isOrdered()) {
-				// Sequence
-				addToContainer(newValue, newSequence(model, onEObject, eAttribute), 0);
-			} else {
-				// Bag
-				//addToContainer(newValue, newBag(model, onEObject, eAttribute));
-				// List
-				//addToContainer(newValue, newList(model, onEObject, eAttribute), 0, eAttribute);
+			// Need to make the Blank node model.createSeq() and then need to make a statement to attach it to the onEobject - eAttribute
+
+			if(preferListsForMultiValues) {
 				newList(model, onEObject, eAttribute, newValue);
-				
+			} else {
+			
+				if (eAttribute.isOrdered()) {
+					// Sequence
+					addToSequence(newValue, newSequence(model, onEObject, eAttribute), 0);
+				} else {
+					// Bag
+					addToBag(newValue, newBag(model, onEObject, eAttribute));					
+				}
 			}
 			return;
 		}
