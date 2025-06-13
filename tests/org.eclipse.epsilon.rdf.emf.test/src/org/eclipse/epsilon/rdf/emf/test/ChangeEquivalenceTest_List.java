@@ -53,26 +53,13 @@ import org.junit.runners.Parameterized.Parameters;
  */
 
 @RunWith(Parameterized.class)
-public class ChangeEquivalenceTest {	
+public class ChangeEquivalenceTest_List {	
 	
 	static final boolean CONSOLE_OUTPUT_ACTIVE = true;
 	
-	@BeforeClass
-	public static void setupDrivers() {
-		Resource.Factory.Registry.INSTANCE
-			.getExtensionToFactoryMap()
-			.put("xmi", new XMIResourceFactoryImpl());
-		Resource.Factory.Registry.INSTANCE
-			.getExtensionToFactoryMap()
-			.put("rdfres", new RDFGraphResourceFactory());
-		Resource.Factory.Registry.INSTANCE
-			.getExtensionToFactoryMap()
-			.put("emf", new EmfaticResourceFactory());
-	}
-	
 	// Folders for processing as tests
 	final static File RESOURCES_FOLDER = new File("resources");
-	final static File TEST_FOLDER = new File(RESOURCES_FOLDER, "changeEquivalence");
+	final static File TEST_FOLDER = new File(RESOURCES_FOLDER, "changeEquivalence_List");
 	
 	@Parameters(name = "{0}")
 	public static Object[] data() {
@@ -92,9 +79,73 @@ public class ChangeEquivalenceTest {
 	protected final File eolTestFile;
 	protected final File eolTestFolder;
 	
-	public ChangeEquivalenceTest(File eolTestFile) {		
+	public ChangeEquivalenceTest_List(File eolTestFile) {		
 		this.eolTestFile = eolTestFile;
 		this.eolTestFolder = eolTestFile.getParentFile();
+	}
+	
+	@BeforeClass
+	public static void setupDrivers() {
+		Resource.Factory.Registry.INSTANCE
+			.getExtensionToFactoryMap()
+			.put("xmi", new XMIResourceFactoryImpl());
+		Resource.Factory.Registry.INSTANCE
+			.getExtensionToFactoryMap()
+			.put("rdfres", new RDFGraphResourceFactory());
+		Resource.Factory.Registry.INSTANCE
+			.getExtensionToFactoryMap()
+			.put("emf", new EmfaticResourceFactory());
+	}
+	
+	@Test 
+	public void loadModelsAndRunEolTest() throws Exception {
+		
+		if(CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("\n ** TEST: %s ** ",eolTestFile.getName()));}
+		
+		restoreRdfFiles(); // Clean up any backup files from failed tests.
+		
+		// Load the meta model
+		ResourceSet rsMetamodels = new ResourceSetImpl();		
+		loadModelsWithExtension(eolTestFolder, ".emf", rsMetamodels);
+
+		// Load and change XMI model resource, this is what we want the RDF to match
+		if(CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n == XMI ==");}
+		ResourceSet rsXMI = new ResourceSetImpl();
+		registerEPackages(rsMetamodels, rsXMI);
+		loadModelsWithExtension(eolTestFolder, ".xmi", rsXMI);
+		Resource xmiModelResource = rsXMI.getResources().get(0);
+		executeEol(xmiModelResource, eolTestFile);
+		
+		// Load and change RDF model resource, this should match the XMI after save and reload		
+		if(CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n\n == RDF ==");}
+		ResourceSet rsRDF = new ResourceSetImpl();
+		registerEPackages(rsMetamodels, rsRDF);
+		loadModelsWithExtension(eolTestFolder, ".rdfres", rsRDF);
+		Resource rdfModelResource = rsRDF.getResources().get(0);
+		((RDFGraphResourceImpl)rdfModelResource).printFirstModelToConsole("TTL Before change: ");
+		
+		// CHANGE
+		executeEol(rdfModelResource, eolTestFile);
+		
+		// SAVE RDF resource, clear the resource set
+		backupRdfFiles();
+		rdfModelResource.save(null);
+		rsRDF.getResources().remove(0);
+		
+		// Reload RDF model resource
+		loadModelsWithExtension(eolTestFolder, ".rdfres", rsRDF);
+		rdfModelResource = rsRDF.getResources().get(0);
+		
+		restoreRdfFiles(); // We may crash out on the test
+		
+		((RDFGraphResourceImpl)rdfModelResource).printFirstModelToConsole("TTL After change: ");
+		
+		// Compare reloaded RDF and XMI models
+		EMFCompare compareEngine = EMFCompare.builder().build();
+		final IComparisonScope scope = new DefaultComparisonScope(rsXMI, rsRDF, null);
+		final Comparison cmp = compareEngine.compare(scope);
+		assertNoDifferences(eolTestFile, cmp);
+
 	}
 	
 	protected void backupRdfFiles() throws FileNotFoundException, IOException {
@@ -163,66 +214,8 @@ public class ChangeEquivalenceTest {
 		
 		module.getContext().getModelRepository().addModel(model);
 		Object result = module.execute();
-		
-		// Check result, we may expect something to fail like trying to remove things from an empty model
-		
-		// Resource has been changed, we can save it or stream it if needed...
-		// resource.save(null);
-		
-		// remember to clear out the model 
-		// model.dispose();
-	}
 
-	//Do not try and run this yet!
-	@Test 
-	public void loadModelsAndRunEolTest() throws Exception {
-		
-		if(CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("\n ** TEST: %s ** ",eolTestFile.getName()));}
-		
-		restoreRdfFiles(); // Clean up any backup files from failed tests.
-		
-		// Load the meta model
-		ResourceSet rsMetamodels = new ResourceSetImpl();		
-		loadModelsWithExtension(eolTestFolder, ".emf", rsMetamodels);
-
-		// Load and change XMI model resource, this is what we want the RDF to match
-		if(CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n == XMI ==");}
-		ResourceSet rsXMI = new ResourceSetImpl();
-		registerEPackages(rsMetamodels, rsXMI);
-		loadModelsWithExtension(eolTestFolder, ".xmi", rsXMI);
-		Resource xmiModelResource = rsXMI.getResources().get(0);
-		executeEol(xmiModelResource, eolTestFile);
-		
-		// Load and change RDF model resource, this should match the XMI after save and reload		
-		if(CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n\n == RDF ==");}
-		ResourceSet rsRDF = new ResourceSetImpl();
-		registerEPackages(rsMetamodels, rsRDF);
-		loadModelsWithExtension(eolTestFolder, ".rdfres", rsRDF);
-		Resource rdfModelResource = rsRDF.getResources().get(0);
-		((RDFGraphResourceImpl)rdfModelResource).printFirstModelToConsole("TTL Before change: ");
-		
-		// CHANGE
-		executeEol(rdfModelResource, eolTestFile);
-		
-		// SAVE RDF resource, clear the resource set
-		backupRdfFiles();
-		rdfModelResource.save(null);
-		rsRDF.getResources().remove(0);
-		
-		// Reload RDF model resource
-		loadModelsWithExtension(eolTestFolder, ".rdfres", rsRDF);
-		rdfModelResource = rsRDF.getResources().get(0);
-		
-		restoreRdfFiles(); // We may crash out on the test
-		
-		((RDFGraphResourceImpl)rdfModelResource).printFirstModelToConsole("TTL After change: ");
-		
-		// Compare reloaded RDF and XMI models
-		EMFCompare compareEngine = EMFCompare.builder().build();
-		final IComparisonScope scope = new DefaultComparisonScope(rsXMI, rsRDF, null);
-		final Comparison cmp = compareEngine.compare(scope);
-		assertNoDifferences(eolTestFile, cmp);
-		
-		
+		model.dispose();
 	}
+	
 }
