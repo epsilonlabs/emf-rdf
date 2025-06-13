@@ -200,38 +200,32 @@ public class RDFGraphResourceUpdate {
 	private void addToBag(Object values, Bag container) {
 		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("Before add to container ", container);}
 		
-		// TODO swap out the try for instanceof
-		//if(values instanceof List) {
-		//	List<?> list = (List<?>) values;
-		//}
-		
-		try {
+		if(values instanceof Collection) {
 			Collection<?> list = (Collection<?>) values;
 			list.forEach(v -> container.add(v));
-		} catch(Exception e) {
+		} else {
 			// Assume values is a single value
 			container.add(values);
 		}
+		
 		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("After add to container ", container);}
 	}
 	
 	private void addToSequence(Object values, Seq container, int position) {
 		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("Before add to container ", container);}
-		// TODO swap out the try for instanceof
-		//if(values instanceof List) {
-		//	List<?> list = (List<?>) values;
-		//}
-		try {
+
+		if(values instanceof List) {			
 			List<?> list = (List<?>) values;
 			for (Object v : list) {
 				++position;
 				if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("inserting: %s %s", position, v));}
 				container.add(position, v);
 			}
-		} catch (Exception e) {
+		} else {
 			// Assume values is a single value
 			container.add(++position, values);
 		}
+		
 		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("After add to container ", container);}
 	}
 	
