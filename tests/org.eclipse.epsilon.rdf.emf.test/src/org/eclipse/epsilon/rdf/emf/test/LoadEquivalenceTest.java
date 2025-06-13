@@ -51,7 +51,7 @@ import org.junit.runners.Parameterized.Parameters;
  * </p>
  */
 @RunWith(Parameterized.class)
-public class ModelEquivalenceTest {
+public class LoadEquivalenceTest {
 
 	@BeforeClass
 	public static void setupDrivers() {
@@ -68,7 +68,7 @@ public class ModelEquivalenceTest {
 
 	@Parameters(name = "{0}")
 	public static Object[] data() {
-		final File baseFolder = new File(new File("resources"), "equivalence");
+		final File baseFolder = new File(new File("resources"), "loadEquivalence");
 		File[] subdirs = baseFolder.listFiles(f -> f.isDirectory());
 		Arrays.sort(subdirs, (a, b) -> a.getName().compareTo(b.getName()));
 		return subdirs;
@@ -76,7 +76,7 @@ public class ModelEquivalenceTest {
 
 	private final File testCaseFolder;
 
-	public ModelEquivalenceTest(File testCaseFolder) {
+	public LoadEquivalenceTest(File testCaseFolder) {
 		this.testCaseFolder = testCaseFolder;
 	}
 
