@@ -326,7 +326,7 @@ public class RDFGraphResourceUpdate {
 				}
 			}
 		} else {
-			// NEW RDF representation
+			// Does not exist anywhere so we need a NEW RDF representation
 			Model model = namedModelsToUpdate.get(0);
 			
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n No existing container, making a new one");}
@@ -335,7 +335,6 @@ public class RDFGraphResourceUpdate {
 			if(preferListsForMultiValues) {
 				newList(model, onEObject, eAttribute, newValue);
 			} else {
-			
 				if (eAttribute.isOrdered()) {
 					// Sequence
 					addToSequence(newValue, newSequence(model, onEObject, eAttribute), 0);
@@ -383,7 +382,7 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 	
-	private void removeFromContainer(Object values, RDFList container, EObject onEObject, EAttribute eAttribute) {
+	private void removeFromList(Object values, RDFList container, EObject onEObject, EAttribute eAttribute) {
 		try {
 			List<?> valueList = (List<?>) values;
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("list of value to remove: %s", valueList));}
@@ -398,6 +397,14 @@ public class RDFGraphResourceUpdate {
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("EXCEPTION removing: %s", node));}
 			container = container.remove(node);
 		}
+	}
+	
+	private void removeFromBag(Object value, Container container, EObject onEObject, EAttribute eAttribute) {
+		removeFromContainer(value, container, onEObject, eAttribute);
+	}
+	
+	private void removeFromSeq(Object value, Container container, EObject onEObject, EAttribute eAttribute) {
+		removeFromContainer(value, container, onEObject, eAttribute);
 	}
 	
 	private void removeFromContainer(Object value, Container container, EObject onEObject, EAttribute eAttribute) {
@@ -428,11 +435,11 @@ public class RDFGraphResourceUpdate {
 				Resource modelStmtObject = getStmtObjectFor(onEObject, eAttribute, model);
 				if (null == modelStmtObject) {
 					// no operation
-				} else if (modelStmtObject.hasProperty(RDF.rest) || modelStmtObject.hasProperty(RDF.first) || modelStmtObject.hasProperty(RDF.type, RDF.List)) {
+				} else if ( (modelStmtObject.hasProperty(RDF.rest) && modelStmtObject.hasProperty(RDF.first)) 
+						|| modelStmtObject.hasProperty(RDF.type, RDF.List) ) {
 					RDFList list = modelStmtObject.as(RDFList.class);
-					if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\nobject RDF.List:");}
-					// TODO Handle remove from a list
-					removeFromContainer(oldValue, list, onEObject, eAttribute);
+					list.setStrict(true);
+					removeFromList(oldValue, list, onEObject, eAttribute);
 				} else if (modelStmtObject.hasProperty(RDF.type, RDF.Bag)) {
 					Bag bag = model.getBag(modelStmtObject);
 					removeFromContainer(oldValue, bag, onEObject, eAttribute);
