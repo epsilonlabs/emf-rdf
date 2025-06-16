@@ -231,8 +231,9 @@ public class RDFGraphResourceUpdate {
 	
 	private void addToList(Object values, RDFList container, int position, EAttribute eAttribute, EObject onEObject) {	
 		Model model = container.getModel();
-		if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("\n ++ Add to a LIST (strict: %s) (size: %s)\n", container.getStrict(), container.size() ));}
-
+		
+		//if (CONSOLE_OUTPUT_ACTIVE) {reportRDFList("Before add to container ", container);}
+		
 		if (container.isEmpty()) {
 			newList(model, onEObject, eAttribute, values);
 			return;
@@ -252,6 +253,8 @@ public class RDFGraphResourceUpdate {
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("EXCEPTION inserting: %s %s", position, literal));}
 			container.add(literal);
 		}
+
+		if (CONSOLE_OUTPUT_ACTIVE) {reportRDFList("After add to container ", container);}
 	}
 	
 	public void addMultiValueAttribute (List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue, int position) {
@@ -271,7 +274,6 @@ public class RDFGraphResourceUpdate {
 				// If we have one of these types, then we are updating an existing statement on a model
 				if ( (modelStmtObject.hasProperty(RDF.rest) && modelStmtObject.hasProperty(RDF.first)) 
 							|| modelStmtObject.hasProperty(RDF.type, RDF.List) ) {
-					if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\nobject RDF.List:");}
 					// Lists can be ordered or unique, both or none.
 					RDFList list = model.getList(modelStmtObject);
 					list.setStrict(true); // handle the list strictly
@@ -434,9 +436,28 @@ public class RDFGraphResourceUpdate {
 	private static void reportContainer(String label, Container container) {
 		boolean hasType = container.hasProperty(RDF.type);
 		if (hasType) {
-			System.out.println(String.format("\n%s Containter: Type %s , Size %s", label,
-					container.getProperty(RDF.type), container.size()));
+			System.out.println(String.format("\n%s Containter: Type %s, Size %s", 
+					label, container.getProperty(RDF.type), container.size()));
 			container.iterator().forEach(i -> System.out.println("  * " + i));
+		}
+	}
+	
+	private static void reportRDFList (String label, RDFList container) {
+		System.out.println(String.format("\n%s List: Strict %s, Size: %s", 
+				label, container.getStrict(), container.size() ));
+		
+		Resource item = container;
+		while (null != item) {
+			Statement restStatement = item.getProperty(RDF.rest);
+			Statement firstStatement = item.getProperty(RDF.first);
+			
+			if(null != restStatement) {
+				System.out.println(String.format(" * RDFnode %s \n\t--> rest: %s \n\t--> first: %s ",
+					item, restStatement.getObject(), firstStatement.getObject()));
+				item = item.getProperty(RDF.rest).getResource();
+			} else {
+				item = null;
+			}
 		}
 	}
 
