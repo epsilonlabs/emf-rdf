@@ -255,30 +255,21 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	public void addMultiValueAttribute (List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue, int position) {
+		// sequence (ordered), bag (unordered)
 		
-		List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);
-		
+		List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);		
 		Resource onEObjectNode = rdfGraphResource.getRDFResource(onEObject);
-
-		boolean isOrdered = eAttribute.isOrdered(); // sequence (ordered), bag (unordered)
-		boolean isUnique = eAttribute.isUnique(); // check container before adding
-		boolean isMany = eAttribute.isMany(); // should be true always?
 		
-		// Work out if we are adding a NEW multi-value attribute with no existing RDF node.
-		
+		// Work out if we are adding a NEW multi-value attribute with no existing RDF node.		
 		if(onEObjectNode.hasProperty(getProperty(eAttribute))) {
 			// Exists on a model some where...
-			for (Model model : namedModelsToUpdate) {			
-				// If we have one of these types, then we are updating and existing
-				Resource modelStmtObject = getStmtObjectFor(onEObject, eAttribute, model);
-				
+			for (Model model : namedModelsToUpdate) {		
+				Resource modelStmtObject = getStmtObjectFor(onEObject, eAttribute, model);				
 				RDFNode r = model.getRDFNode(modelStmtObject.asNode());
 				Class<? extends Resource> type = modelStmtObject.getClass();
-				
-				if(null == modelStmtObject) {
-					// no operation
-				}
-				else if ( (modelStmtObject.hasProperty(RDF.rest) && modelStmtObject.hasProperty(RDF.first)) 
+
+				// If we have one of these types, then we are updating an existing statement on a model
+				if ( (modelStmtObject.hasProperty(RDF.rest) && modelStmtObject.hasProperty(RDF.first)) 
 							|| modelStmtObject.hasProperty(RDF.type, RDF.List) ) {
 					if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\nobject RDF.List:");}
 					// Lists can be ordered or unique, both or none.
@@ -304,22 +295,22 @@ public class RDFGraphResourceUpdate {
 					addToList(newValue, list, position, eAttribute, onEObject);
 				}
 			}
+			return;
 		} else {
-			// Does not exist anywhere so we need a NEW RDF representation
-			Model model = namedModelsToUpdate.get(0);
-			
+			// Does not exist anywhere so we need a NEW RDF representation			
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n No existing container, making a new one");}
-			// Need to make the Blank node model.createSeq() and then need to make a statement to attach it to the onEobject - eAttribute
-
-			if(preferListsForMultiValues) {
-				newList(model, onEObject, eAttribute, newValue);
-			} else {
-				if (eAttribute.isOrdered()) {
-					// Sequence
-					addToSequence(newValue, newSequence(model, onEObject, eAttribute), 0);
+			
+			for (Model model : namedModelsToUpdate) {
+				if(preferListsForMultiValues) {
+					newList(model, onEObject, eAttribute, newValue);
 				} else {
-					// Bag
-					addToBag(newValue, newBag(model, onEObject, eAttribute));					
+					if (eAttribute.isOrdered()) {
+						// Sequence
+						addToSequence(newValue, newSequence(model, onEObject, eAttribute), 0);
+					} else {
+						// Bag
+						addToBag(newValue, newBag(model, onEObject, eAttribute));					
+					}
 				}
 			}
 			return;
@@ -412,9 +403,7 @@ public class RDFGraphResourceUpdate {
 			for (Model model : namedModelsToUpdate) {
 				// Try and the container from each model to be updated
 				Resource modelStmtObject = getStmtObjectFor(onEObject, eAttribute, model);
-				if (null == modelStmtObject) {
-					// no operation
-				} else if ( (modelStmtObject.hasProperty(RDF.rest) && modelStmtObject.hasProperty(RDF.first)) 
+				if ( (modelStmtObject.hasProperty(RDF.rest) && modelStmtObject.hasProperty(RDF.first)) 
 						|| modelStmtObject.hasProperty(RDF.type, RDF.List) ) {
 					RDFList list = modelStmtObject.as(RDFList.class);
 					list.setStrict(true);
