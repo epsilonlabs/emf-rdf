@@ -280,7 +280,7 @@ public class RDFGraphResourceUpdate {
 				}
 				else if ( (modelStmtObject.hasProperty(RDF.rest) && modelStmtObject.hasProperty(RDF.first)) 
 							|| modelStmtObject.hasProperty(RDF.type, RDF.List) ) {
-					System.out.println("\nobject RDF.List:");
+					if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\nobject RDF.List:");}
 					// Lists can be ordered or unique, both or none.
 					RDFList list = model.getList(modelStmtObject);
 					list.setStrict(true); // handle the list strictly
