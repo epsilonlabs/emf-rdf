@@ -267,6 +267,8 @@ public class RDFGraphResourceUpdate {
 		}
 		RDFList newList = model.createList(rdfNodes.iterator());
 		
+		// Un-ordered lists should be handed with these two methods
+		
 		if (container.isEmpty()) {
 			// This should never happen, empty is handled else where
 			container.concatenate(newList);
@@ -278,13 +280,14 @@ public class RDFGraphResourceUpdate {
 			return;
 		} 
 		
+		// Ordered lists that are not empty will be handled with the methods below.
+		
 		if(eAttribute.isOrdered()){			
-						
+
 			if (container.size() == position) {
 				// Append new list to existing list on model
 				container.concatenate(newList);
 				return;
-				
 			} 
 			
 			
@@ -301,40 +304,47 @@ public class RDFGraphResourceUpdate {
 				model.add(subjectNode, property, objectNode);
 
 				objectNode.concatenate(container);
-				return;	
+				return;
 			}
 			
 			// Split the existing list and insert the new list			
 			
+			// EMF/Epsilon will complain if you try to add at a position beyond the size of the list
 			int listIndex = 0;
 			if(position > 0) {
 				listIndex = position-1;
 			}
 			
-			RDFNode head = container.getHead();
-			RDFNode posNode = container.get(listIndex);	
-			System.out.println(String.format("\n [ORDERED] headNode: %s -- listIndex: %s -- posNode %s \n",
-					head, listIndex, posNode));
+			System.out.println(String.format("\n [ORDERED insert] headNode: %s -- listIndex: %s -- posNode %s \n",
+					container.getHead(), listIndex, container.get(listIndex)));
 			
+			// Run down the list via RDF.rest to the node at the index position
 			int i = 0;
 			Resource insertAtNode = container;
 			while (i < listIndex) {
 				insertAtNode = insertAtNode.getProperty(RDF.rest).getResource();
 				++i;
 			}
+			
 			System.out.println("[Insert at node] " + insertAtNode);
-						
+			
+			// Get the tail end of the current container list after the node we insert at.
 			RDFList oldTail = insertAtNode.getProperty(RDF.rest).getList();
 			
+			// Cut off the tail end of the current container list
 			insertAtNode.getProperty(RDF.rest).changeObject(RDF.nil);
+			
+			// Append the new values to the current container values
 			container.concatenate(newList);
 
 			System.out.println("[OLD Tail] " + oldTail);
 
+			// Append the tail end of values we saved above from the original container lists
 			container.concatenate(oldTail);
 			
+			return;
 		}
-		
+
 		if (CONSOLE_OUTPUT_ACTIVE) {reportRDFList("After add to container ", container);}
 	}
 	
