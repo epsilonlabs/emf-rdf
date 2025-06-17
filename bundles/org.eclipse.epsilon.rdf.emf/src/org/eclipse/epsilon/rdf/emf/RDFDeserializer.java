@@ -60,6 +60,8 @@ import com.google.common.collect.Multimap;
  * Maps RDF nodes to EClasses and EObjects.
  */
 public class RDFDeserializer {
+	
+	private final boolean NOTIFICATION_TRACE = false;
 
 	private final Supplier<Registry> packageRegistry;
 
@@ -294,7 +296,7 @@ public class RDFDeserializer {
 		for (EClass eClass: eClasses) {
 			EObject eob = deserializeObjectAttributes(node, eClass);
 
-			eob.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace());  // Produce a console trace for debugging and development
+			if (NOTIFICATION_TRACE) {eob.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace());}  // Produce a console trace for debugging and development
 			eob.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF());
 			
 			
