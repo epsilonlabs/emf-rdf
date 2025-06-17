@@ -32,6 +32,8 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Seq;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.sparql.pfunction.library.container;
+import org.apache.jena.sparql.sse.Item;
 import org.apache.jena.vocabulary.RDF;
 
 import org.eclipse.emf.common.util.EList;
@@ -53,6 +55,15 @@ public class RDFGraphResourceUpdate {
 		this.rdfGraphResource = rdfGraphResource;
 	}
 
+	private Statement createStatement(EObject subject, EAttribute predicate, RDFNode object) {
+		// SUBJECT
+		Resource rdfNode = rdfGraphResource.getRDFResource(subject);
+		// PREDICATE
+		Property property = getProperty(predicate);
+		// OBJECT
+		return ResourceFactory.createStatement(rdfNode, property, object);
+	}
+	
 	private Statement createStatement(EObject eObject, EAttribute eAttribute, Object value) {
 		// A statement is formed as "subject–predicate–object"
 
@@ -81,6 +92,16 @@ public class RDFGraphResourceUpdate {
 		String propertyURI = nameSpace + "#" + eAttribute.getName();
 		return ResourceFactory.createProperty(propertyURI);
 	}	
+	
+	
+	private Statement getStatementFor (EObject subject, EAttribute predicate, Model model) {
+		// SUBJECT
+		Resource rdfNode = rdfGraphResource.getRDFResource(subject);
+		// PREDICATE
+		Property property = getProperty(predicate);
+		return model.getProperty(rdfNode, property);
+		
+	}
 	
 	private Resource getStmtObjectFor (EObject eObject, EAttribute eAttribute) {
 		// This method will assume a stmt object should come from the ontModel in the RDFGraphResource
@@ -230,30 +251,91 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	private void addToList(Object values, RDFList container, int position, EAttribute eAttribute, EObject onEObject) {	
-		Model model = container.getModel();
+		if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("\n RDFList  ordered: %s position: %s size: %s", 
+				eAttribute.isOrdered() ,position, container.size()));}
+		if (CONSOLE_OUTPUT_ACTIVE) {reportRDFList("Before add to container ", container);}
 		
-		//if (CONSOLE_OUTPUT_ACTIVE) {reportRDFList("Before add to container ", container);}
+		Model model = container.getModel();
+
+		// Turn the values into an RDFList
+		ArrayList<RDFNode> rdfNodes = new ArrayList<RDFNode>();
+		if(values instanceof List) {
+			List<?> valuesList = (List<?>) values;
+			valuesList.forEach(v -> rdfNodes.add(ResourceFactory.createTypedLiteral(v)));
+		} else {
+			rdfNodes.add(ResourceFactory.createTypedLiteral(values));
+		}
 		
 		if (container.isEmpty()) {
-			newList(model, onEObject, eAttribute, values);
+			//container.append(rdfNodes.iterator());
+			container.concatenate(model.createList(rdfNodes.iterator()));
 			return;
+		} 
+		
+		if (!eAttribute.isOrdered()) {
+			//container.concatenate(rdfNodes.iterator());
+			container.concatenate(model.createList(rdfNodes.iterator()));
+			return;
+		} 
+		
+		if(eAttribute.isOrdered()){			
+						
+			if (container.size() == position) {
+				// Append new list to existing list on model
+				//container.concatenate(rdfNodes.iterator());
+				container.concatenate(model.createList(rdfNodes.iterator()));
+				return;
+				
+			} 
+			
+			
+			if (0 == position) {
+				// Make a new list and append the old List							
+				// SUBJECT
+				Resource subjectNode = rdfGraphResource.getRDFResource(onEObject);
+				// PREDICATE
+				Property property = getProperty(eAttribute);
+				// OLD OBJECT - remove list statement
+				model.remove(subjectNode,property,container);			
+				// NEW OBJECT - add new list statement
+				RDFList objectNode = model.createList(rdfNodes.iterator());								
+				model.add(subjectNode, property, objectNode);
+
+				objectNode.concatenate(container);
+				return;	
+			}
+			
+			// Split the existing list and insert the new list			
+			
+			int listIndex = 0;
+			if(position > 0) {
+				listIndex = position-1;
+			}
+			
+			RDFNode head = container.getHead();
+			RDFNode posNode = container.get(listIndex);	
+			System.out.println(String.format("\n [ORDERED] headNode: %s -- listIndex: %s -- posNode %s \n",
+					head, listIndex, posNode));
+			
+			int i = 0;
+			Resource insertAtNode = container;
+			while (i < listIndex) {
+				insertAtNode = insertAtNode.getProperty(RDF.rest).getResource();
+				++i;
+			}
+			System.out.println("[Insert at node] " + insertAtNode);
+						
+			RDFList oldTail = insertAtNode.getProperty(RDF.rest).getList();
+			
+			insertAtNode.getProperty(RDF.rest).changeObject(RDF.nil);
+			container.concatenate(model.createList(rdfNodes.iterator()));
+
+			System.out.println("[OLD Tail] " + oldTail);
+
+			container.concatenate(oldTail);
+			
 		}
 		
-		if(values instanceof List) {
-			List<?> valueList = (List<?>) values;
-			for (Object value : valueList) {
-				++position;
-				Literal literal = ResourceFactory.createTypedLiteral(value);
-				if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("inserting: %s %s", position, literal));}
-				container.add(literal);
-			}
-		} else {
-			// Assume values is a single value
-			Literal literal = ResourceFactory.createTypedLiteral(values);
-			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("EXCEPTION inserting: %s %s", position, literal));}
-			container.add(literal);
-		}
-
 		if (CONSOLE_OUTPUT_ACTIVE) {reportRDFList("After add to container ", container);}
 	}
 	
@@ -273,23 +355,25 @@ public class RDFGraphResourceUpdate {
 
 				// If we have one of these types, then we are updating an existing statement on a model
 				if ( (modelStmtObject.hasProperty(RDF.rest) && modelStmtObject.hasProperty(RDF.first)) 
-							|| modelStmtObject.hasProperty(RDF.type, RDF.List) ) {
+							|| modelStmtObject.hasProperty(RDF.type, RDF.List)) {
 					// Lists can be ordered or unique, both or none.
 					RDFList list = model.getList(modelStmtObject);
-					list.setStrict(true); // handle the list strictly
+					//list.setStrict(true); // handle the list strictly
 					addToList(newValue, list, position, eAttribute, onEObject);
-				}
-				else if (modelStmtObject.hasProperty(RDF.type, RDF.Bag)) {
+				} else if (modelStmtObject.equals(RDF.nil)) {
+					// List - Empty lists maybe represented with an RDF.nil value
+					Statement stmt = createStatement(onEObject, eAttribute, modelStmtObject);
+					model.remove(stmt);
+					newList(model, onEObject, eAttribute, newValue);
+				} else if (modelStmtObject.hasProperty(RDF.type, RDF.Bag)) {
 					Bag bag = model.getBag(modelStmtObject);
 					addToBag(newValue, bag);
-				}
-				else if (modelStmtObject.hasProperty(RDF.type, RDF.Seq)) {
+				} else if (modelStmtObject.hasProperty(RDF.type, RDF.Seq)) {
 					Seq seq = model.getSeq(modelStmtObject);
 					addToSequence(newValue, seq, position);
-				}
-				else {
-					// no operation
-					System.err.println("Failed to workout how to handle this multivalue: " + eAttribute.getName());
+				} else {
+					// An empty List may appear as a Resource 
+					System.err.println(String.format("Failed to workout how to handle this multivalue: \n %s \n - %s \n- %s", getStatementFor(onEObject, eAttribute, model) , type , eAttribute.getName()));
 					
 					// Fall back is a list structure
 					RDFList list = model.getList(modelStmtObject);
