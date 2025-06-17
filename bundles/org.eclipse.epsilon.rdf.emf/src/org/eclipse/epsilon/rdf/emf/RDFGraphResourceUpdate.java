@@ -265,16 +265,16 @@ public class RDFGraphResourceUpdate {
 		} else {
 			rdfNodes.add(ResourceFactory.createTypedLiteral(values));
 		}
+		RDFList newList = model.createList(rdfNodes.iterator());
 		
 		if (container.isEmpty()) {
-			//container.append(rdfNodes.iterator());
-			container.concatenate(model.createList(rdfNodes.iterator()));
+			// This should never happen, empty is handled else where
+			container.concatenate(newList);
 			return;
 		} 
-		
+
 		if (!eAttribute.isOrdered()) {
-			//container.concatenate(rdfNodes.iterator());
-			container.concatenate(model.createList(rdfNodes.iterator()));
+			container.concatenate(newList);
 			return;
 		} 
 		
@@ -282,8 +282,7 @@ public class RDFGraphResourceUpdate {
 						
 			if (container.size() == position) {
 				// Append new list to existing list on model
-				//container.concatenate(rdfNodes.iterator());
-				container.concatenate(model.createList(rdfNodes.iterator()));
+				container.concatenate(newList);
 				return;
 				
 			} 
@@ -298,7 +297,7 @@ public class RDFGraphResourceUpdate {
 				// OLD OBJECT - remove list statement
 				model.remove(subjectNode,property,container);			
 				// NEW OBJECT - add new list statement
-				RDFList objectNode = model.createList(rdfNodes.iterator());								
+				RDFList objectNode = newList;								
 				model.add(subjectNode, property, objectNode);
 
 				objectNode.concatenate(container);
@@ -328,7 +327,7 @@ public class RDFGraphResourceUpdate {
 			RDFList oldTail = insertAtNode.getProperty(RDF.rest).getList();
 			
 			insertAtNode.getProperty(RDF.rest).changeObject(RDF.nil);
-			container.concatenate(model.createList(rdfNodes.iterator()));
+			container.concatenate(newList);
 
 			System.out.println("[OLD Tail] " + oldTail);
 
