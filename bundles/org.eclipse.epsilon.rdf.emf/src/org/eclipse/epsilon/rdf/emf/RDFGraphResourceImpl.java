@@ -60,6 +60,33 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	private Model rdfSchemaModel;
 	private Model rdfDataModel;
 	private OntModel rdfOntModel;
+
+
+	public enum MultiValueAttributeMode {
+		LIST("List"), CONTAINER("Container");
+
+		private final String value;
+
+		public String getValue() {
+			return value;
+		}
+
+		MultiValueAttributeMode(String value) {
+			this.value = value;
+		}
+
+		public static MultiValueAttributeMode fromValue(String value) {
+			for (MultiValueAttributeMode mode : values()) {
+				if (mode.value.equalsIgnoreCase(value)) {
+					return mode;
+				}
+			}
+			return null; // or throw an exception if not found
+		}
+
+	};
+
+	private MultiValueAttributeMode multiValueAttributeMode = MultiValueAttributeMode.CONTAINER;
 	
 	public static final ValidationMode VALIDATION_SELECTION_DEFAULT = ValidationMode.NONE;
 	protected ValidationMode validationMode = VALIDATION_SELECTION_DEFAULT;
@@ -84,6 +111,8 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		loadRDFModels();
 
 		validationMode = config.getRawValidationMode();
+		
+		multiValueAttributeMode = MultiValueAttributeMode.fromValue(this.config.getMultiValueAttributeMode());
 
 		deserializer = new RDFDeserializer(() -> this.getResourceSet().getPackageRegistry());
 		deserializer.deserialize(rdfOntModel);
@@ -93,7 +122,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 			}
 		}
 		
-		rdfGraphUpdater = new RDFGraphResourceUpdate(deserializer, this);
+		rdfGraphUpdater = new RDFGraphResourceUpdate(deserializer, this, multiValueAttributeMode);
 	}
 	
 	public RDFGraphResourceUpdate getRDFGraphUpdater () {

@@ -32,14 +32,13 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Seq;
 import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.sparql.pfunction.library.container;
-import org.apache.jena.sparql.sse.Item;
 import org.apache.jena.vocabulary.RDF;
 
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl.MultiValueAttributeMode;
 
 public class RDFGraphResourceUpdate {
 	
@@ -50,16 +49,15 @@ public class RDFGraphResourceUpdate {
 	private RDFDeserializer deserializer;
 	private RDFGraphResourceImpl rdfGraphResource;
 	
-	public RDFGraphResourceUpdate(RDFDeserializer deserializer, RDFGraphResourceImpl rdfGraphResource) {
+	public RDFGraphResourceUpdate(RDFDeserializer deserializer, RDFGraphResourceImpl rdfGraphResource, MultiValueAttributeMode multiValueMode) {
 		this.deserializer = deserializer;
 		this.rdfGraphResource = rdfGraphResource;
-		this.preferListsForMultiValues = false;
-	}
-	
-	public RDFGraphResourceUpdate(RDFDeserializer deserializer, RDFGraphResourceImpl rdfGraphResource, boolean preferListsForMultiValues) {
-		this.deserializer = deserializer;
-		this.rdfGraphResource = rdfGraphResource;
-		this.preferListsForMultiValues = preferListsForMultiValues;
+		
+		if(MultiValueAttributeMode.LIST == multiValueMode) {
+			preferListsForMultiValues = true;
+		} else {
+			preferListsForMultiValues = false;
+		}
 	}
 
 	private Statement createStatement(EObject subject, EAttribute predicate, RDFNode object) {
