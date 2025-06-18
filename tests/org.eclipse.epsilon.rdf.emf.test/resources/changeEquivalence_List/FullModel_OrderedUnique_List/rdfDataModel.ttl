@@ -13,4 +13,4 @@ PREFIX xsd:    <http://www.w3.org/2001/XMLSchema#>
 <http://example/org/firstEntity>
         rdf:type                   simple:Entity;
         simple:label               "FullModelEntity";
-        simple:names  ("bob" "jeff") .
+        simple:names  ("bob" "jeff" "jeff") .

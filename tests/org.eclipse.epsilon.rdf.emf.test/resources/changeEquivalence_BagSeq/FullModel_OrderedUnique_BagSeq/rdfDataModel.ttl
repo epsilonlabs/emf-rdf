@@ -16,4 +16,5 @@ PREFIX xsd:    <http://www.w3.org/2001/XMLSchema#>
         simple:names               [ rdf:type  rdf:Seq;
                                      rdf:_1     "bob";
                                      rdf:_2     "jeff";
+                                     rdf:_3     "jeff";
                                    ] .

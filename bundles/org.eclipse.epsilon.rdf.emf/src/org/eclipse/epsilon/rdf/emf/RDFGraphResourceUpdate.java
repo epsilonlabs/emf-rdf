@@ -429,7 +429,9 @@ public class RDFGraphResourceUpdate {
 				if (value.equals(deserializedValue)) {
 					if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("  removing statement " + statement);}
 					container.remove(statement);
-					done = true;
+					if (!sf.isUnique()) {
+						done = true;
+					}
 				}
 			} else {
 				done = true;
@@ -483,13 +485,27 @@ public class RDFGraphResourceUpdate {
 			for (Object value : valueList) {
 				Literal node = ResourceFactory.createTypedLiteral(value);
 				if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("removing: %s", node));}
-				container = container.remove(node);
+				
+				if (eAttribute.isUnique()) {
+					while (container.contains(node)) {
+						container = container.remove(node);
+					}
+				} else {
+					container = container.remove(node);
+				}
 			}
 		} else {
 			// Assume values is a single value
 			Literal node = ResourceFactory.createTypedLiteral(values);
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("removing (single value): %s", node));}
-			container = container.remove(node);
+			
+			if (eAttribute.isUnique()) {
+				while (container.contains(node)) {
+					container = container.remove(node);
+				}
+			} else {
+				container = container.remove(node);
+			}
 		}
 	}
 
