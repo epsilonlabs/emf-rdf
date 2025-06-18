@@ -61,3 +61,20 @@ schemaModels:
   - schema.ttl
 ```
 
+### Multi value Attribute support
+
+EMF multi value attribute options `unique` and `ordered` are supported by the RDF-EMF resource.
+
+Unique values are not enforced in RDF. We are depending on the EMF meta-model attribute options to be correctly handled by an EMF modelling tool. Duplicates in an RDF data model are persisted when handled as an EMF model. Removing a value from a unique where there are duplicates of a value will only remove a single instance of the duplicate value.
+
+RDF can handle multi value attributes using _Containers_ or _Lists_. The RDF resource will opt to update the RDF representation of a multi value attribute based on the current structure (container/list) in the RDF data model. However, when there is no existing structure by default a container structure will be used. If you would prefer to use lists for representing the multi value attributes then you can add a line to the configuration file `multiValueAttributeMode: List`.
+
+
+```yaml
+validationMode: jena-clean
+dataModels:
+  - model.ttl
+schemaModels:
+  - schema.ttl
+multiValueAttributeMode: List
+```
