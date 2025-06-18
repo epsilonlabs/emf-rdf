@@ -43,7 +43,7 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 
 public class RDFGraphResourceUpdate {
 	
-	static final boolean CONSOLE_OUTPUT_ACTIVE = true;
+	static final boolean CONSOLE_OUTPUT_ACTIVE = false;
 	
 	boolean preferListsForMultiValues = false;
 	
@@ -53,6 +53,13 @@ public class RDFGraphResourceUpdate {
 	public RDFGraphResourceUpdate(RDFDeserializer deserializer, RDFGraphResourceImpl rdfGraphResource) {
 		this.deserializer = deserializer;
 		this.rdfGraphResource = rdfGraphResource;
+		this.preferListsForMultiValues = false;
+	}
+	
+	public RDFGraphResourceUpdate(RDFDeserializer deserializer, RDFGraphResourceImpl rdfGraphResource, boolean preferListsForMultiValues) {
+		this.deserializer = deserializer;
+		this.rdfGraphResource = rdfGraphResource;
+		this.preferListsForMultiValues = preferListsForMultiValues;
 	}
 
 	private Statement createStatement(EObject subject, EAttribute predicate, RDFNode object) {
