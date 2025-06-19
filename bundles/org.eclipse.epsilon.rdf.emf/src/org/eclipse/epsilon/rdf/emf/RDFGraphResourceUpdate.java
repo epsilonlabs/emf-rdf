@@ -109,8 +109,8 @@ public class RDFGraphResourceUpdate {
 	
 	private Resource getStmtObjectFor (EObject eObject, EAttribute eAttribute) {
 		// This method will assume a stmt object should come from the ontModel in the RDFGraphResource
-		Model rdfResourceOntModel = rdfGraphResource.getRDFResource(eObject).getModel();
-		return getStmtObjectFor(eObject, eAttribute, rdfResourceOntModel);
+		Model model = rdfGraphResource.getRDFResource(eObject).getModel();
+		return getStmtObjectFor(eObject, eAttribute, model);
 	}
 	
 	private Resource getStmtObjectFor (EObject eObject, EAttribute eAttribute, Model model) {
@@ -507,7 +507,18 @@ public class RDFGraphResourceUpdate {
 				container = container.remove(node);
 			}
 		}
+		checkAndRemoveEmptyList(container, onEObject, eAttribute);
 	}
+	
+	private void checkAndRemoveEmptyList(RDFList container, EObject onEObject, EAttribute eAttribute) {
+		Model model = container.getModel();
+		if(container.isEmpty()) {
+			Resource object = getStmtObjectFor(onEObject, eAttribute);
+			Statement stmtToRemove = createStatement(onEObject, eAttribute, object);			
+			model.remove(stmtToRemove);
+		}
+	}
+	
 
 	public void removeMultiValueAttribute (List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object newValue, Object oldValue) {
 		Resource onEObjectNode = rdfGraphResource.getRDFResource(onEObject);
