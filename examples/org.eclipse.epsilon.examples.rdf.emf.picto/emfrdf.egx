@@ -83,7 +83,7 @@ rule RDFResource transform rdfRes in: rdfResources {
 
 operation Any childPosition() {
   if (self.eContainer.isDefined()) {
-    return (1 + self.eContainer.children.indexOf(self)).asString();
+    return (1 + self.eContainer.eContents().indexOf(self)).asString();
   } else {
     return (1 + Model.resource.contents.indexOf(self)).asString();
   }

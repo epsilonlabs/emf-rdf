@@ -256,7 +256,7 @@ public class RDFDeserializer {
 
 				EPackage ePackage = this.packageRegistry.get().getEPackage(nsURI);
 
-				/* 
+				/*
 				 * NOTE: there may be URIs that don't correspond to any namespaces,
 				 * such as the OWL or XML Schema ones. We skip them without raising
 				 * errors.
