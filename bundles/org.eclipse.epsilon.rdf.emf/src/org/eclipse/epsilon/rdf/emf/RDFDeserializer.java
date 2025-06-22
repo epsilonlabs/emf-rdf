@@ -296,10 +296,12 @@ public class RDFDeserializer {
 		for (EClass eClass: eClasses) {
 			EObject eob = deserializeObjectAttributes(node, eClass);
 
-			if (NOTIFICATION_TRACE) {eob.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace());}  // Produce a console trace for debugging and development
+			if (NOTIFICATION_TRACE) {
+				// Produce a console trace for debugging and development
+				eob.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace());
+			}
 			eob.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF());
-			
-			
+
 			eobToResource.put(eob, node);
 			resourceToEob.put(node, eob);
 		}
