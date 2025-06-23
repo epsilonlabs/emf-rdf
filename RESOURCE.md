@@ -61,14 +61,19 @@ schemaModels:
   - schema.ttl
 ```
 
-### Multi value Attribute support
+### Multi-value attributes
 
-EMF multi value attribute options `unique` and `ordered` are supported by the RDF-EMF resource.
+`EAttribute`s with cardinality > 1 ("multi-value attributes") are supported by the resource.
+This includes support for the `unique` and `ordered` flags.
 
-Unique values are not enforced in RDF. We are depending on the EMF meta-model attribute options to be correctly handled by an EMF modelling tool. Duplicates in an RDF data model are persisted when handled as an EMF model. Removing a value from a unique where there are duplicates of a value will remove all instances of the duplicate value; this maintains an equivalence between EMF and RDF represenations of the model.
+Note that unique values are not enforced by RDF: the resource leaves it to EMF `EList`s to ensure uniqueness of values.
+Duplicates in an RDF data model are persisted when handled as an EMF model.
+Removing a value from a unique where there are duplicates of a value will remove all instances of the duplicate value: this maintains an equivalence between EMF and RDF represenations of the model.
 
-RDF can handle multi value attributes using _Containers_ or _Lists_. The RDF resource will opt to update the RDF representation of a multi value attribute based on the current structure (container/list) in the RDF data model. However, when there is no existing structure by default a container structure will be used. If you would prefer to use lists for representing the multi value attributes then you can add a line to the configuration file `multiValueAttributeMode: List`.
-
+RDF can handle multi-value attributes using [Containers](https://www.w3.org/TR/rdf-schema/#ch_containervocab) or [Lists](https://www.w3.org/TR/rdf-schema/#ch_collectionvocab).
+The RDF resource will opt to update the RDF representation of a multi-value attribute based on the current structure (container/list) in the RDF data model.
+However, when there is no existing structure, by default a container structure will be used.
+If you would prefer to use lists for representing multi-value attributes, you can specify `multiValueAttributeMode: List` in the `.rdfres` file, as follows:
 
 ```yaml
 validationMode: jena-clean
