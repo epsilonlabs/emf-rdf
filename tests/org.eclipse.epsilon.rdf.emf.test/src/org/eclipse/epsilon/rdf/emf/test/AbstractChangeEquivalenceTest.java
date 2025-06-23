@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.jena.rdf.model.Model;
 import org.eclipse.emf.common.util.URI;
@@ -43,32 +46,45 @@ import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-// Add this link to the RESOURCE.MD, how to load custom resources https://eclipse.dev/epsilon/doc/articles/in-memory-emf-model/
-
 /**
  * <p>
  * Parameterized test which uses EMF Compare to compare the {@code .xmi} version
- * of a given model with its {@code .rdfres} version. It fails if any differences
- * are found.
+ * of a given model with its {@code .rdfres} version. It fails if any
+ * differences are found after running an EOL program on the XMI and RDF
+ * representations.
  * </p>
  *
  * <p>
- * Test cases are eol files in subfolders of resources/equivalence_multivalue, where metamodels are in .emf
- * format, XMI models use the .xmi extension, and RDF models use the .rdfres extension and RDF data models are .ttl.
+ * Test cases are eol files in subfolders of resources/equivalence_multivalue,
+ * where metamodels are in .emf format, XMI models use the .xmi extension, and
+ * RDF models use the .rdfres extension and RDF data models are .ttl.
  * </p>
  */
-public abstract class AbstractChangeEquivalenceTest {	
+public abstract class AbstractChangeEquivalenceTest {
 	
 	static final boolean CONSOLE_OUTPUT_ACTIVE = true;
 	
 	protected final File eolTestFile;
 	protected final File eolTestFolder;
 	
-	public AbstractChangeEquivalenceTest(File eolTestFile) {		
+	public AbstractChangeEquivalenceTest(File eolTestFile) {
 		this.eolTestFile = eolTestFile;
 		this.eolTestFolder = eolTestFile.getParentFile();
 	}
-	
+
+	public static List<File> findEOLScriptsWithin(File baseFolder) {
+		List<File> fileList = new ArrayList<File>();
+		File[] subdirs = baseFolder.listFiles(f -> f.isDirectory());
+		for (File subdir : subdirs) {
+			File[] eolTestFiles = subdir.listFiles(fn -> fn.getName().endsWith(".eol"));
+			Arrays.sort(eolTestFiles, (a, b) -> a.getName().compareTo(b.getName()));
+			for (File file : eolTestFiles) {
+				fileList.add(file);
+			}
+		}
+		return fileList;
+	}
+
 	@BeforeClass
 	public static void setupDrivers() {
 		Resource.Factory.Registry.INSTANCE

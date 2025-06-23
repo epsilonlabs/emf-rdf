@@ -13,51 +13,24 @@
 package org.eclipse.epsilon.rdf.emf.test;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 /**
- * <p>
- * Parameterized test which uses EMF Compare to compare the {@code .xmi} version
- * of a given model with its {@code .rdfres} version. It fails if any differences
- * are found.
- * </p>
- *
- * <p>
- * Test cases are eol files in subfolders of resources/equivalence_multivalue, where metamodels are in .emf
- * format, XMI models use the .xmi extension, and RDF models use the .rdfres extension and RDF data models are .ttl.
- * </p>
+ * Parameterized tests for change equivalence with RDF collections (bags and sequences).
  */
 @RunWith(Parameterized.class)
 public class ChangeEquivalenceTest_BagSeq extends AbstractChangeEquivalenceTest {
-	static final boolean CONSOLE_OUTPUT_ACTIVE = true;
-
-	// Folders for processing as tests
-	final static File RESOURCES_FOLDER = new File("resources");
-	final static File TEST_FOLDER = new File(RESOURCES_FOLDER, "changeEquivalence_BagSeq");
+	final static File TEST_FOLDER = new File("resources", "changeEquivalence_BagSeq");
 
 	@Parameters(name = "{0}")
 	public static Object[] data() {
-		List<File> fileList = new ArrayList<File>();
-		final File baseFolder = TEST_FOLDER;
-		File[] subdirs = baseFolder.listFiles(f -> f.isDirectory());
-		for (File subdir : subdirs) {
-			File[] eolTestFiles = subdir.listFiles(fn -> fn.getName().endsWith(".eol"));
-			Arrays.sort(eolTestFiles, (a, b) -> a.getName().compareTo(b.getName()));
-			for (File file : eolTestFiles) {
-				fileList.add(file);
-			}
-		}
-		return fileList.toArray();
+		return AbstractChangeEquivalenceTest.findEOLScriptsWithin(TEST_FOLDER).toArray();
 	}
 
 	public ChangeEquivalenceTest_BagSeq(File eolTestFile) {
 		super(eolTestFile);
 	}
-
 }
