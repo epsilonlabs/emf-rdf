@@ -113,7 +113,7 @@ public class RDFGraphResourceUpdate {
 		return getStmtObjectFor(eObject, eAttribute, model);
 	}
 	
-	private Resource getStmtObjectFor (EObject eObject, EAttribute eAttribute, Model model) {
+	private Resource getStmtObjectFor(EObject eObject, EAttribute eAttribute, Model model) {
 		// SUBJECT
 		Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
 		// PREDICATE
@@ -121,11 +121,15 @@ public class RDFGraphResourceUpdate {
 		// OBJECT
 		if(model.contains(rdfNode, property)) {	
 			Resource stmtObject = model.getProperty(rdfNode, property).getObject().asResource();
-			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(" Returning stmtObject : " + stmtObject);}
+			if (CONSOLE_OUTPUT_ACTIVE) {
+				System.out.println(" Returning stmtObject : " + stmtObject);
+			}
 			return stmtObject;
 		} else {
 			System.out.println(String.format(" %s RDF Node missing property %s : ", rdfNode, property));
-			if (CONSOLE_OUTPUT_ACTIVE) {model.getResource(rdfNode.getId()).listProperties().forEach(s -> System.out.println("  - " + s));}
+			if (CONSOLE_OUTPUT_ACTIVE) {
+				model.getResource(rdfNode.getId()).listProperties().forEach(s -> System.out.println("  - " + s));
+			}
 			return null;
 		}
 	}
@@ -285,32 +289,30 @@ public class RDFGraphResourceUpdate {
 		
 		// Ordered lists that are not empty will be handled with the methods below.
 		
-		if(eAttribute.isOrdered()){			
-
+		if(eAttribute.isOrdered()){
 			if (container.size() == position) {
 				// Append new list to existing list on model
 				container.concatenate(newList);
 				return;
 			} 
 			
-			
 			if (0 == position) {
-				// Make a new list and append the old List							
+				// Make a new list and append the old List
 				// SUBJECT
 				Resource subjectNode = rdfGraphResource.getRDFResource(onEObject);
 				// PREDICATE
 				Property property = getProperty(eAttribute);
 				// OLD OBJECT - remove list statement
-				model.remove(subjectNode,property,container);			
+				model.remove(subjectNode,property,container);
 				// NEW OBJECT - add new list statement
-				RDFList objectNode = newList;								
+				RDFList objectNode = newList;
 				model.add(subjectNode, property, objectNode);
 
 				objectNode.concatenate(container);
 				return;
 			}
 			
-			// Split the existing list and insert the new list			
+			// Split the existing list and insert the new list
 			
 			// EMF/Epsilon will complain if you try to add at a position beyond the size of the list
 			int listIndex = 0;
@@ -362,7 +364,6 @@ public class RDFGraphResourceUpdate {
 			// Exists on a model some where...
 			for (Model model : namedModelsToUpdate) {		
 				Resource modelStmtObject = getStmtObjectFor(onEObject, eAttribute, model);				
-				RDFNode r = model.getRDFNode(modelStmtObject.asNode());
 				Class<? extends Resource> type = modelStmtObject.getClass();
 
 				// If we have one of these types, then we are updating an existing statement on a model
@@ -435,8 +436,8 @@ public class RDFGraphResourceUpdate {
 				}
 			} else {
 				done = true;
-			}		
-		}		
+			}
+		}
 	}
 	
 	private void removeFromBag(Object value, Container container, EObject onEObject, EAttribute eAttribute) {
