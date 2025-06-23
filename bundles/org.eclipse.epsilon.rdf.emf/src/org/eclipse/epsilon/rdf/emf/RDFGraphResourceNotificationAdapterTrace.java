@@ -80,9 +80,10 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		Object oldValue = notification.getOldValue();
 		Object newValue = notification.getNewValue();
 
-		processTrace
-				.append(String.format("\n EAttribute (ordered is %s, unique is %s, many is %s)- ", isOrdered, isUnique, isMany));	
-		
+		processTrace.append(String.format(
+			"\n EAttribute (ordered is %s, unique is %s, many is %s)- ",
+			isOrdered, isUnique, isMany));
+
 		// Decode the notification event type
 		switch (notification.getEventType()) {
 		case Notification.ADD:
@@ -339,7 +340,6 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		} else {
 			order = "unordered";
 		}
-//		System.out.println(String.format(" [!] %s %s (%s) not implmented", feature, operation, order));
 		processTrace.append(String.format("\n [!] %s %s (%s) not implmented", feature, operation, order));
 	}
 

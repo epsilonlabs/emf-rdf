@@ -64,19 +64,19 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	public static enum MultiValueAttributeMode {
 		LIST("List"), CONTAINER("Container");
 
-		private final String value;
+		private final String id;
 
-		public String getValue() {
-			return value;
+		public String getId() {
+			return id;
 		}
 
 		MultiValueAttributeMode(String value) {
-			this.value = value;
+			this.id = value;
 		}
 
 		public static MultiValueAttributeMode fromValue(String value) {
 			for (MultiValueAttributeMode mode : values()) {
-				if (mode.value.equalsIgnoreCase(value)) {
+				if (mode.id.equalsIgnoreCase(value)) {
 					return mode;
 				}
 			}
