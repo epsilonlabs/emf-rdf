@@ -174,7 +174,10 @@ public class RDFDeserializer {
 			private Collection<?> createCollectionOfMultiValues (ExtendedIterator<RDFNode> i) {
 				List<Object> values = new ArrayList<>();
 				i.forEach(n -> {
-					values.add(deserializeValue(n,sf));
+					Object newValue = deserializeValue(n,sf);
+					if (newValue != null) {
+						values.add(newValue);
+					}
 				});
 				return values;
 			}
