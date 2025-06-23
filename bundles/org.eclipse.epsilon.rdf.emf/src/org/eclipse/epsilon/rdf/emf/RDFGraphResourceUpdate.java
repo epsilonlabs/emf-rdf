@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
@@ -32,8 +33,8 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Seq;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.vocabulary.RDF;
-
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
@@ -156,16 +157,52 @@ public class RDFGraphResourceUpdate {
 		Statement newStatement = createStatement(onEObject, eAttribute, newValue);
 		Statement oldStatement = createStatement(onEObject, eAttribute, oldValue);
 
+		boolean found = false;
 		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
 		for (Model model : namedModelsToUpdate) {
 			if (model.contains(oldStatement)) {
 				model.remove(oldStatement);
 				model.add(newStatement);
-			}
-			else {
-				System.err.println(String.format("Old statement not found : %s", oldStatement));
+				found = true;
 			}
 		}
+
+		if (!found) {
+			/*
+			 * Could not find directly via object-to-literal conversion: try using the
+			 * deserialiser (literal-to-object) and comparing instead.
+			 */
+			for (Model model : namedModelsToUpdate) {
+				Statement stmtToRemove = modelContainsEquivalent(model, eAttribute, oldValue, oldStatement);
+				if (stmtToRemove != null) {
+					model.remove(stmtToRemove);
+					model.add(newStatement);
+					found = true;
+				}
+			}
+		}
+
+		if (!found) {
+			/*
+			 * Couldn't find old statement through either object-to-literal or literal-to-object conversion
+			 */
+			System.err.println(String.format("Old statement not found during single update: %s" , oldStatement));
+		}
+	}
+
+	public Statement modelContainsEquivalent(Model model, EAttribute eAttribute, Object oldValue,
+			Statement oldStatement) {
+		Statement stmtToRemove = null;
+		StmtIterator itOldStmt = model.listStatements(
+			oldStatement.getSubject(), oldStatement.getPredicate(), (RDFNode) null);
+		while (itOldStmt.hasNext() && stmtToRemove == null) {
+			Statement stmt = itOldStmt.next();
+			Object stmtObject = deserializer.deserializeProperty(stmt.getSubject(), eAttribute);
+			if (Objects.equals(oldValue, stmtObject)) {
+				stmtToRemove = stmt;
+			}
+		}
+		return stmtToRemove;
 	}
 
 	public void removeSingleValueAttributeStatements(List<Resource> namedModelURIs, EObject onEObject, EAttribute eAttribute, Object oldValue) {
@@ -173,13 +210,29 @@ public class RDFGraphResourceUpdate {
 		assert oldValue != null : "old value must exist";		
 		Statement oldStatement = createStatement(onEObject, eAttribute, oldValue);
 
+		// Same as above: try object-to-literal first, then literal-to-object
+		boolean found = false;
 		List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);
 		for (Model model : namedModelsToUpdate) {
 			if (model.contains(oldStatement)) {
 				model.remove(oldStatement);
-			} else {
-				System.err.println(String.format("Old statement not found : %s", oldStatement));
+				found = true;
 			}
+		}
+		if (!found) {
+			for (Model model : namedModelsToUpdate) {
+				Statement stmtToRemove = modelContainsEquivalent(model, eAttribute, oldValue, oldStatement);
+				if (stmtToRemove != null) {
+					model.remove(stmtToRemove);
+					found = true;
+				}
+			}
+		}
+		if (!found) {
+			/*
+			 * Couldn't find old statement through either object-to-literal or literal-to-object conversion
+			 */
+			System.err.println(String.format("Old statement not found during single removal: %s" , oldStatement));
 		}
 	}
 	

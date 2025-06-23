@@ -74,9 +74,5 @@
     simple:eShortObject "2"^^xsd:short ;
     simple:eShortObjects ( "1"^^xsd:short "2"^^xsd:short ) ;
     
-    simple:eDate "2001-12-30T00:00:00+00:00"^^xsd:dateTime ;
-    simple:eDates ( "2001-12-30T00:00:00+00:00"^^xsd:dateTime "2001-12-29T01:00:00+00:00"^^xsd:dateTime ) .
-    
-    
-    
-    
+    simple:eDate "2001-12-30T00:00:00+08:00"^^xsd:dateTime ;
+    simple:eDates ( "2001-12-30T00:00:00+08:00"^^xsd:dateTime "2001-12-29T01:00:00+00:00"^^xsd:dateTime ) .
