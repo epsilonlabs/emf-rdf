@@ -92,7 +92,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 			reportEAttributeFeatureChange(eAttributeChanged, oldValue, newValue);
 			break;
 		case Notification.ADD_MANY:
-			processTrace.append("ADD_MANY");			
+			processTrace.append("ADD_MANY");
 			if(eAttributeChanged.isMany() && null != onEObject) {
 				reportEObjectIdentity(onEObject);
 				reportEAttributeFeatureChange(eAttributeChanged, oldValue, newValue);
