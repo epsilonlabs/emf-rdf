@@ -61,8 +61,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	private Model rdfDataModel;
 	private OntModel rdfOntModel;
 
-
-	public enum MultiValueAttributeMode {
+	public static enum MultiValueAttributeMode {
 		LIST("List"), CONTAINER("Container");
 
 		private final String value;
@@ -83,9 +82,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 			}
 			return null; // or throw an exception if not found
 		}
-
 	};
-
 	private MultiValueAttributeMode multiValueAttributeMode = MultiValueAttributeMode.CONTAINER;
 	
 	public static final ValidationMode VALIDATION_SELECTION_DEFAULT = ValidationMode.NONE;
@@ -125,7 +122,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		rdfGraphUpdater = new RDFGraphResourceUpdate(deserializer, this, multiValueAttributeMode);
 	}
 	
-	public RDFGraphResourceUpdate getRDFGraphUpdater () {
+	public RDFGraphResourceUpdate getRDFGraphUpdater() {
 		return rdfGraphUpdater;
 	}
 	
@@ -270,23 +267,6 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		List<Resource> modelResourceList = new ArrayList<Resource>();
 		dataModelSet.listModelNames().forEachRemaining(m->modelResourceList.add(m));
 		return modelResourceList;
-	}
-
-	public static RDFGraphResourceImpl getRDFGraphResourceFor(EObject eObject) {
-		if(eObject.eResource() instanceof RDFGraphResourceImpl) {
-			return (RDFGraphResourceImpl) eObject.eResource();
-		}
-		return null;
-	}
-	
-	public void printFirstModelToConsole(String label) {
-		this.printModelToConsole(this.getFirstNamedModel(), label);
-	}
-	
-	public static void printModelToConsole(Model model, String label) {
-		System.out.println(String.format("\n %s \n", label));
-		OutputStream console = System.out;
-		model.write(console, "ttl");
 	}
 
 }

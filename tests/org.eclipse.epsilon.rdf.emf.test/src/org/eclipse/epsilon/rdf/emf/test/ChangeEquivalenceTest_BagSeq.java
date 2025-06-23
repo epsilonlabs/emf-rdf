@@ -17,12 +17,14 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.jena.rdf.model.Model;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.Diff;
@@ -39,8 +41,6 @@ import org.eclipse.emf.emfatic.core.EmfaticResourceFactory;
 import org.eclipse.epsilon.emc.emf.InMemoryEmfModel;
 import org.eclipse.epsilon.eol.EolModule;
 import org.eclipse.epsilon.eol.execute.context.Variable;
-import org.eclipse.epsilon.eol.types.EolAnyType;
-import org.eclipse.epsilon.eol.types.EolType;
 import org.eclipse.epsilon.rdf.emf.RDFGraphResourceFactory;
 import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl;
 import org.junit.BeforeClass;
@@ -134,7 +134,7 @@ public class ChangeEquivalenceTest_BagSeq {
 		registerEPackages(rsMetamodels, rsRDF);
 		loadModelsWithExtension(eolTestFolder, ".rdfres", rsRDF);
 		Resource rdfModelResource = rsRDF.getResources().get(0);
-		((RDFGraphResourceImpl)rdfModelResource).printFirstModelToConsole("TTL Before change: ");
+		printModelToConsole(((RDFGraphResourceImpl)rdfModelResource).getFirstNamedModel(), "TTL before change: ");
 		
 		// CHANGE
 		executeEol(rdfModelResource, eolTestFile);
@@ -149,8 +149,7 @@ public class ChangeEquivalenceTest_BagSeq {
 		rdfModelResource = rsRDF.getResources().get(0);
 		
 		restoreRdfFiles(); // We may crash out on the test
-		
-		((RDFGraphResourceImpl)rdfModelResource).printFirstModelToConsole("TTL After change: ");
+		printModelToConsole(((RDFGraphResourceImpl)rdfModelResource).getFirstNamedModel(), "TTL after change: ");
 		
 		// Compare reloaded RDF and XMI models
 		EMFCompare compareEngine = EMFCompare.builder().build();
@@ -225,9 +224,13 @@ public class ChangeEquivalenceTest_BagSeq {
 			);
 		
 		module.getContext().getModelRepository().addModel(model);
-		Object result = module.execute();
-
+		module.execute();
 		model.dispose();
 	}
-	
+
+	public static void printModelToConsole(Model model, String label) {
+		System.out.println(String.format("\n %s \n", label));
+		OutputStream console = System.out;
+		model.write(console, "ttl");
+	}
 }

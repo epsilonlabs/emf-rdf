@@ -20,7 +20,6 @@ import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.util.EContentAdapter;
-import org.eclipse.emf.ecore.util.EcoreEList;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 
 // Try to keep the logic flow in here the same as the RDFGraphResourceNotificationAdapterChangeRDF
@@ -150,7 +149,6 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 
 	
 	private void eReferenceFeatureNotification(EReference feature, Notification notification) {		
-		EObject onEObject = (EObject) notification.getNotifier(); 	// RDF node
 		EReference eReferenceChanged = feature; 					// RDF property
 		// eAttribute's values are the objects						// RDF object (node/literal)
 		Object oldValue = notification.getOldValue();
@@ -231,15 +229,11 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 	}
 	
 	private void eObjectFeatureNotification(EObject feature, Notification notification) {
-		EObject onEObject = (EObject) notification.getNotifier(); 	// RDF node
-		EObject eObjectChanged = feature; 		// RDF property
 		// eAttribute's values are the objects						// RDF object (node/literal)
 		Object oldValue = notification.getOldValue();
 		Object newValue = notification.getNewValue();
-		
 		boolean isOrdered = false; // If this is set then there is Order to the values.
-		int orderPosition = -1; // This is not notification.getPosition()
-				
+
 		// Decode the notification event type
 		switch (notification.getEventType()) {
 		case Notification.ADD:
@@ -364,6 +358,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 	
 	// REPORTING code
 
+	@SuppressWarnings("unchecked")
 	private void reportReferences(EObject eObject, EReference reference, int pad) {
 		String p = "\n";
 		for (int i = 0; i < pad; i++) {
@@ -371,7 +366,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		}
 		final String prefix = p;
 
-		EcoreEList<EObject> listOfreferences = (EcoreEList<EObject>) eObject.eGet(reference);
+		List<EObject> listOfreferences = (List<EObject>) eObject.eGet(reference);
 		if (!listOfreferences.isEmpty()) {
 			listOfreferences.forEach(r -> {
 				processTrace.append(String.format("%s-> {", prefix));
@@ -393,6 +388,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 	}
 	
 
+	@SuppressWarnings("unchecked")
 	private void reportEObject(EObject eObject, boolean followReference, int pad) {
 		String p = "\n";
 		for (int i = 0; i < pad; i++) {
@@ -415,7 +411,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		eObject.eClass().getEAllReferences().forEach(e -> {
 			processTrace.append(String.format("%s\t%s  %s:", prefix, e.getEReferenceType().getName(), e.getName()));
 			try {
-				EcoreEList<EObject> listOfreferences = (EcoreEList<EObject>) eObject.eGet(e);
+				List<EObject> listOfreferences = (List<EObject>) eObject.eGet(e);
 				if (!listOfreferences.isEmpty()) {
 					if (followReference) {
 						reportReferences(eObject, e, pad + 1);
@@ -439,8 +435,6 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 	
 
 	private void reportEObjectRDFnode(EObject eObject, int pad) {
-		final int subPad = pad + 1;
-
 		String p = "\n";
 		for (int i = 0; i < pad; i++) {
 			p = p + "\t";

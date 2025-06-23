@@ -153,7 +153,7 @@ public class RDFGraphResourceUpdate {
 		assert oldValue != null : "old value must exist";
 		assert newValue != null : "new value must exist";
 
-		RDFGraphResourceImpl graphResource = RDFGraphResourceImpl.getRDFGraphResourceFor(onEObject);
+		RDFGraphResourceImpl graphResource = (RDFGraphResourceImpl) onEObject.eResource();
 		Statement newStatement = createStatement(onEObject, eAttribute, newValue);
 		Statement oldStatement = createStatement(onEObject, eAttribute, oldValue);
 

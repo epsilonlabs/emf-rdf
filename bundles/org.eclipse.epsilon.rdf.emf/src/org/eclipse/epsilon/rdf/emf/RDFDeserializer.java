@@ -27,7 +27,6 @@ import java.util.function.Supplier;
 
 import org.apache.jena.datatypes.xsd.XSDDateTime;
 import org.apache.jena.ontology.OntModel;
-import org.apache.jena.rdf.model.Alt;
 import org.apache.jena.rdf.model.AnonId;
 import org.apache.jena.rdf.model.Bag;
 import org.apache.jena.rdf.model.Literal;
@@ -172,7 +171,7 @@ public class RDFDeserializer {
 	protected Object deserializeValue(RDFNode node, EStructuralFeature sf) {
 		 Object value = node.visitWith(new RDFVisitor() {
 			 
-			private Collection createCollectionOfMultiValues (ExtendedIterator<RDFNode> i) {
+			private Collection<?> createCollectionOfMultiValues (ExtendedIterator<RDFNode> i) {
 				List<Object> values = new ArrayList<>();
 				i.forEach(n -> {
 					values.add(deserializeValue(n,sf));

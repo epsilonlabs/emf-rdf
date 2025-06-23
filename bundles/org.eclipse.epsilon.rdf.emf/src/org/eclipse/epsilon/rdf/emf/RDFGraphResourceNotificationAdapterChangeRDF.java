@@ -61,14 +61,11 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		// eAttribute's values are the objects						// RDF object (node/literal)
 		Object oldValue = notification.getOldValue();
 		Object newValue = notification.getNewValue();
-		boolean isOrdered = eAttributeChanged.isOrdered(); // If this is set then there is Order to the values.
-		boolean isMany = eAttributeChanged.isOrdered();
 		int position = notification.getPosition();
 		
-		RDFGraphResourceImpl graphResource = RDFGraphResourceImpl.getRDFGraphResourceFor(onEObject);
+		RDFGraphResourceImpl graphResource = (RDFGraphResourceImpl) onEObject.eResource();
 		RDFGraphResourceUpdate rdfUpdater = graphResource.getRDFGraphUpdater();
-		
-		 List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);		
+		List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
 
 		// Decode the notification event type
 		switch (notification.getEventType()) {
