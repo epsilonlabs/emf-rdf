@@ -552,41 +552,32 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	private void removeFromList(Object values, RDFList container, EObject onEObject, EAttribute eAttribute) {
-		if(values instanceof List<?>) {
-			List<?> valueList = (List<?>) values;
+		if(values instanceof List<?> valueList) {
 			if (CONSOLE_OUTPUT_ACTIVE) {
-				System.out.println(String.format("list of value to remove: %s", valueList));
+				System.out.println(String.format("list of values to remove: %s", valueList));
 			}
 			for (Object value : valueList) {
-				Literal node = ResourceFactory.createTypedLiteral(value);
-				if (CONSOLE_OUTPUT_ACTIVE) {
-					System.out.println(String.format("removing: %s", node));
-				}
-				
-				if (eAttribute.isUnique()) {
-					while (container.contains(node)) {
-						container = container.remove(node);
-					}
-				} else {
-					container = container.remove(node);
-				}
+				container = removeOneFromList(value, container, eAttribute);
 			}
 		} else {
-			// Assume values is a single value
-			Literal node = ResourceFactory.createTypedLiteral(values);
-			if (CONSOLE_OUTPUT_ACTIVE) {
-				System.out.println(String.format("removing (single value): %s", node));
-			}
-			
-			if (eAttribute.isUnique()) {
-				while (container.contains(node)) {
-					container = container.remove(node);
-				}
-			} else {
-				container = container.remove(node);
-			}
+			container = removeOneFromList(values, container, eAttribute);
 		}
 		checkAndRemoveEmptyList(container, onEObject, eAttribute);
+	}
+
+	private RDFList removeOneFromList(Object value, RDFList container, EAttribute eAttribute) {
+		Literal node = ResourceFactory.createTypedLiteral(value);
+		if (CONSOLE_OUTPUT_ACTIVE) {
+			System.out.println(String.format("removing: %s", node));
+		}
+		if (eAttribute.isUnique()) {
+			while (container.contains(node)) {
+				container = container.remove(node);
+			}
+		} else {
+			container = container.remove(node);
+		}
+		return container;
 	}
 	
 	private void checkAndRemoveEmptyList(RDFList container, EObject onEObject, EAttribute eAttribute) {
