@@ -44,7 +44,7 @@ import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl.MultiValueAttributeMode;
 
 public class RDFGraphResourceUpdate {
 	
-	static final boolean CONSOLE_OUTPUT_ACTIVE = true;
+	static final boolean CONSOLE_OUTPUT_ACTIVE = false;
 	
 	private boolean preferListsForMultiValues = false;
 	private RDFDeserializer deserializer;
