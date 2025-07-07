@@ -28,14 +28,18 @@ import java.util.function.Supplier;
 import org.apache.jena.datatypes.xsd.XSDDateTime;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.AnonId;
+import org.apache.jena.rdf.model.Bag;
 import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.RDFVisitor;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Seq;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EAttribute;
@@ -55,6 +59,7 @@ import com.google.common.collect.Multimap;
  * Maps RDF nodes to EClasses and EObjects.
  */
 public class RDFDeserializer {
+	private static final boolean NOTIFICATION_TRACE = false;
 
 	private final Supplier<Registry> packageRegistry;
 
@@ -162,34 +167,37 @@ public class RDFDeserializer {
 		}
 	}
 
-	protected Object deserializeValue(RDFNode node, EStructuralFeature sf) {	
+	protected Object deserializeValue(RDFNode node, EStructuralFeature sf) {
 		 Object value = node.visitWith(new RDFVisitor() {
+			 
+			private Collection<?> createCollectionOfMultiValues (ExtendedIterator<RDFNode> i) {
+				List<Object> values = new ArrayList<>();
+				i.forEach(n -> {
+					Object newValue = deserializeValue(n,sf);
+					if (newValue != null) {
+						values.add(newValue);
+					}
+				});
+				return values;
+			}
+			 
 			@Override
 			public Object visitBlank(Resource r, AnonId id) {
 				if (r.hasProperty(RDF.type, RDF.List)) {
-					List<Object> values = new ArrayList<>();
-					Object deserializedFirst = deserializeValue(r.getProperty(RDF.first).getObject(), sf);
-					if (deserializedFirst != null) {
-						values.add(deserializedFirst);
-					}
-
-					// TODO: check if Jena has a better API for collections.
-					//
-					// This is inefficient at the moment, as it's O(n^2) instead
-					// of O(n) as it should be.
-					RDFNode restNode = r.getProperty(RDF.rest).getObject();
-					if (!RDF.nil.equals(restNode)) {
-						Object convertedRest = deserializeValue(restNode, sf);
-						if (convertedRest instanceof Collection<?> c) {
-							values.addAll(c);
-						} else if (convertedRest != null) {
-							values.add(convertedRest);
-						}
-					}
-					return values;
+					RDFList list = r.as(RDFList.class);
+					return createCollectionOfMultiValues(list.iterator());
 				}
 
-				// TODO add support for containers
+				if (r.hasProperty(RDF.type, RDF.Bag)) {
+					Bag bag = r.as(Bag.class);
+					return createCollectionOfMultiValues(bag.iterator());
+				}
+
+				if (r.hasProperty(RDF.type, RDF.Seq)) {
+					Seq seq = r.as(Seq.class);
+					return createCollectionOfMultiValues(seq.iterator());
+				}
+
 				return null;
 			}
 
@@ -289,9 +297,12 @@ public class RDFDeserializer {
 		for (EClass eClass: eClasses) {
 			EObject eob = deserializeObjectAttributes(node, eClass);
 
+			if (NOTIFICATION_TRACE) {
+				// Produce a console trace for debugging and development
+				eob.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace());
+			}
 			eob.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF());
-			// eob.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace());  // Produce a console trace for debugging and development
-			
+
 			eobToResource.put(eob, node);
 			resourceToEob.put(node, eob);
 		}

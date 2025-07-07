@@ -21,7 +21,7 @@
       eLongObject="2"
       eShort="1"
       eShortObject="2"
-      eDate="2001-12-30T00:00:00.000+0000">
+      eDate="2001-12-30T00:00:00.000+0800">
     <names>firstName</names>
     <names>secondName</names>
     <eBooleans>true</eBooleans>
@@ -56,7 +56,7 @@
     <eShorts>2</eShorts>
     <eShortObjects>1</eShortObjects>
     <eShortObjects>2</eShortObjects>
-    <eDates>2001-12-30T00:00:00.000+0000</eDates>
+    <eDates>2001-12-30T00:00:00.000+0800</eDates>
     <eDates>2001-12-29T01:00:00.000+0000</eDates>
   </entities>
 </Model>

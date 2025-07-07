@@ -15,6 +15,7 @@ package org.eclipse.epsilon.rdf.emf.config;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl.MultiValueAttributeMode;
 import org.eclipse.epsilon.rdf.validation.RDFValidation.ValidationMode;
 
 public class RDFResourceConfiguration {
@@ -22,7 +23,16 @@ public class RDFResourceConfiguration {
 	private Set<String> dataModels = new HashSet<>();
 	private Set<String> schemaModels = new HashSet<>();
 	private String validationMode = ValidationMode.NONE.getId();
-	
+	private String multiValueAttributeMode = MultiValueAttributeMode.CONTAINER.getId();
+
+	public String getMultiValueAttributeMode() {
+		return multiValueAttributeMode;
+	}
+
+	public void setMultiValueAttributeMode(String multiValueAttributeMode) {
+		this.multiValueAttributeMode = multiValueAttributeMode;
+	}
+
 	public Set<String> getDataModels() {
 		return dataModels;
 	}
@@ -53,7 +63,13 @@ public class RDFResourceConfiguration {
 	
 	@Override
 	public String toString() {
-		return "RDFResourceConfiguration [dataModels=" + dataModels + ", schemaModels=" + schemaModels + ", validationMode=" + validationMode + "]";
+		return "RDFResourceConfiguration" +
+				" [ " +
+				"dataModels=" + dataModels + 
+				", schemaModels=" + schemaModels +
+				", validationMode=" + validationMode + 
+				", multiValueAttributeMode=" + multiValueAttributeMode +
+				" ]";
 	}
 
 

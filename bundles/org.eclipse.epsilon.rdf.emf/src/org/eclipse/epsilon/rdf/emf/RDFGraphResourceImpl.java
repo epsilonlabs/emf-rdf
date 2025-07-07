@@ -52,13 +52,38 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 
 	private RDFResourceConfiguration config;
 	private RDFDeserializer deserializer;
-
+	private RDFGraphResourceUpdate rdfGraphUpdater;
+	
 	private Dataset dataModelSet;
 	private Dataset schemaModelSet;
 
 	private Model rdfSchemaModel;
 	private Model rdfDataModel;
 	private OntModel rdfOntModel;
+
+	public static enum MultiValueAttributeMode {
+		LIST("List"), CONTAINER("Container");
+
+		private final String id;
+
+		public String getId() {
+			return id;
+		}
+
+		MultiValueAttributeMode(String value) {
+			this.id = value;
+		}
+
+		public static MultiValueAttributeMode fromValue(String value) {
+			for (MultiValueAttributeMode mode : values()) {
+				if (mode.id.equalsIgnoreCase(value)) {
+					return mode;
+				}
+			}
+			return null; // or throw an exception if not found
+		}
+	};
+	private MultiValueAttributeMode multiValueAttributeMode = MultiValueAttributeMode.CONTAINER;
 	
 	public static final ValidationMode VALIDATION_SELECTION_DEFAULT = ValidationMode.NONE;
 	protected ValidationMode validationMode = VALIDATION_SELECTION_DEFAULT;
@@ -83,6 +108,8 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		loadRDFModels();
 
 		validationMode = config.getRawValidationMode();
+		
+		multiValueAttributeMode = MultiValueAttributeMode.fromValue(this.config.getMultiValueAttributeMode());
 
 		deserializer = new RDFDeserializer(() -> this.getResourceSet().getPackageRegistry());
 		deserializer.deserialize(rdfOntModel);
@@ -91,6 +118,12 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 				getContents().add(eob);
 			}
 		}
+		
+		rdfGraphUpdater = new RDFGraphResourceUpdate(deserializer, this, multiValueAttributeMode);
+	}
+	
+	public RDFGraphResourceUpdate getRDFGraphUpdater() {
+		return rdfGraphUpdater;
 	}
 	
 	// Save the Graph resource
@@ -213,7 +246,15 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	public Model getNamedModel(Resource model) {
 		return dataModelSet.getNamedModel(model);
 	}
+	
+	public Model getFirstNamedModel() {
+		return dataModelSet.getNamedModel(getResourcesForAllNamedModels().get(0));
+	}
 
+	public Resource getFirstNamedModelResource() {
+		return getResourcesForAllNamedModels().get(0);
+	}
+	
 	public List<Model> getNamedModels(List<Resource> namedModelURIs) {
 		List<Model> namedModels = new ArrayList<Model>();
 		for (Resource model : namedModelURIs) {

@@ -20,7 +20,6 @@ import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.util.EContentAdapter;
-import org.eclipse.emf.ecore.util.EcoreEList;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 
 // Try to keep the logic flow in here the same as the RDFGraphResourceNotificationAdapterChangeRDF
@@ -75,36 +74,34 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		// eAttribute's is value 									// RDF object (node/literal)
 
 		boolean isOrdered = eAttributeChanged.isOrdered(); // If this is set then there is Order to the values.
+		boolean isUnique = eAttributeChanged.isUnique();
+		boolean isMany = eAttributeChanged.isMany();
+		
 		Object oldValue = notification.getOldValue();
 		Object newValue = notification.getNewValue();
 
-		processTrace.append(String.format("\n EAttribute - "));	
-		
+		processTrace.append(String.format(
+			"\n EAttribute (ordered is %s, unique is %s, many is %s)- ",
+			isOrdered, isUnique, isMany));
+
 		// Decode the notification event type
 		switch (notification.getEventType()) {
 		case Notification.ADD:
 			processTrace.append("ADD");
-			notImplmentedWarning(notification, isOrdered);
-			if(isOrdered) {
-				
-			} else {
-				
-			}
+			reportEObjectIdentity(onEObject);
+			reportEAttributeFeatureChange(eAttributeChanged, oldValue, newValue);
 			break;
 		case Notification.ADD_MANY:
 			processTrace.append("ADD_MANY");
-			notImplmentedWarning(notification, isOrdered);
-			if(isOrdered) {
-				
+			if(eAttributeChanged.isMany() && null != onEObject) {
+				reportEObjectIdentity(onEObject);
+				reportEAttributeFeatureChange(eAttributeChanged, oldValue, newValue);
 			} else {
 				
 			}
 			break;
 		case Notification.SET:
-			processTrace.append("SET");					
-			if(isOrdered) {
-				notImplmentedWarning(notification, isOrdered);
-			}
+			processTrace.append("SET");
 			reportEObjectIdentity(onEObject);
 			reportEAttributeFeatureChange(eAttributeChanged, oldValue, newValue);
 			if (null == oldValue) {
@@ -129,24 +126,17 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 			break;
 		case Notification.REMOVE:
 			processTrace.append("REMOVE");
-			notImplmentedWarning(notification, isOrdered);
-			if(isOrdered) {
-				
-			} else {
-				
-			}
+			reportEObjectIdentity(onEObject);
+			reportEAttributeFeatureChange(eAttributeChanged, oldValue, newValue);
 			break;
 		case Notification.REMOVE_MANY:
-			processTrace.append("REMOVE_MANY");
-			notImplmentedWarning(notification, isOrdered);
-			if(isOrdered) {
-				
-			} else {
-				
-			}
+			processTrace.append("REMOVE_MANY");			
+			reportEObjectIdentity(onEObject);
+			reportEAttributeFeatureChange(eAttributeChanged, oldValue, newValue);
 			break;
 		case Notification.UNSET:
-			processTrace.append("UNSET");	
+			processTrace.append("UNSET");
+			if(eAttributeChanged.isMany()) { processTrace.append(" isMany() true"); } else { processTrace.append(" is Many false"); }
 			if(isOrdered) {
 				notImplmentedWarning(notification, isOrdered);
 			}
@@ -160,7 +150,6 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 
 	
 	private void eReferenceFeatureNotification(EReference feature, Notification notification) {		
-		EObject onEObject = (EObject) notification.getNotifier(); 	// RDF node
 		EReference eReferenceChanged = feature; 					// RDF property
 		// eAttribute's values are the objects						// RDF object (node/literal)
 		Object oldValue = notification.getOldValue();
@@ -241,15 +230,11 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 	}
 	
 	private void eObjectFeatureNotification(EObject feature, Notification notification) {
-		EObject onEObject = (EObject) notification.getNotifier(); 	// RDF node
-		EObject eObjectChanged = feature; 		// RDF property
 		// eAttribute's values are the objects						// RDF object (node/literal)
 		Object oldValue = notification.getOldValue();
 		Object newValue = notification.getNewValue();
-		
 		boolean isOrdered = false; // If this is set then there is Order to the values.
-		int orderPosition = -1; // This is not notification.getPosition()
-				
+
 		// Decode the notification event type
 		switch (notification.getEventType()) {
 		case Notification.ADD:
@@ -324,7 +309,8 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 	}
 	
 	private void notImplmentedWarning (Notification notification, boolean isOrdered) {
-		String feature = notification.getFeature().getClass().toString();
+		String feature = notification.getFeature().getClass().getSimpleName();
+		
 		String operation = "";
 		switch (notification.getEventType()) {
 		case Notification.ADD:
@@ -354,7 +340,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		} else {
 			order = "unordered";
 		}
-		System.out.println(String.format(" [!] %s %s (%s) not implmented", feature, operation, order));
+		processTrace.append(String.format("\n [!] %s %s (%s) not implmented", feature, operation, order));
 	}
 
 	private Resource identifyEObjectsRDFnode(EObject eObject) {
@@ -372,6 +358,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 	
 	// REPORTING code
 
+	@SuppressWarnings("unchecked")
 	private void reportReferences(EObject eObject, EReference reference, int pad) {
 		String p = "\n";
 		for (int i = 0; i < pad; i++) {
@@ -379,7 +366,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		}
 		final String prefix = p;
 
-		EcoreEList<EObject> listOfreferences = (EcoreEList<EObject>) eObject.eGet(reference);
+		List<EObject> listOfreferences = (List<EObject>) eObject.eGet(reference);
 		if (!listOfreferences.isEmpty()) {
 			listOfreferences.forEach(r -> {
 				processTrace.append(String.format("%s-> {", prefix));
@@ -401,6 +388,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 	}
 	
 
+	@SuppressWarnings("unchecked")
 	private void reportEObject(EObject eObject, boolean followReference, int pad) {
 		String p = "\n";
 		for (int i = 0; i < pad; i++) {
@@ -423,7 +411,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		eObject.eClass().getEAllReferences().forEach(e -> {
 			processTrace.append(String.format("%s\t%s  %s:", prefix, e.getEReferenceType().getName(), e.getName()));
 			try {
-				EcoreEList<EObject> listOfreferences = (EcoreEList<EObject>) eObject.eGet(e);
+				List<EObject> listOfreferences = (List<EObject>) eObject.eGet(e);
 				if (!listOfreferences.isEmpty()) {
 					if (followReference) {
 						reportReferences(eObject, e, pad + 1);
@@ -447,8 +435,6 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 	
 
 	private void reportEObjectRDFnode(EObject eObject, int pad) {
-		final int subPad = pad + 1;
-
 		String p = "\n";
 		for (int i = 0; i < pad; i++) {
 			p = p + "\t";
@@ -482,8 +468,29 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 	}
 	
 	
-	private void reportEAttributeFeatureChange(EAttribute eAttributeChanged, Object oldValue, Object newValue) {
-		processTrace.append(String.format("\n - eAttribute : %s - %s : %s -> %s",
+	private void reportEAttributeFeatureChange(EAttribute eAttributeChanged, Object oldValue, Object newValue) {		
+		String multi = "";
+		if(eAttributeChanged.isMany()) {
+			multi = "many";
+		} else {
+			multi = "not many";
+		}
+		
+		String order = "";
+		if (eAttributeChanged.isOrdered()) {
+			order = "ordered";
+		} else {
+			order = "not ordered";
+		}
+		
+		String unique = "";
+		if (eAttributeChanged.isUnique()) {
+			unique = "unique";
+		} else {
+			unique = "not unique";
+		}
+		
+		processTrace.append(String.format("\n - eAttribute : (%s, %s, %s) %s - %s : %s -> %s", order, unique, multi,
 				eAttributeChanged.getEAttributeType().getName(), eAttributeChanged.getName(), oldValue, newValue));		
 	}
 }
