@@ -34,6 +34,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Seq;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EAttribute;
@@ -43,7 +44,7 @@ import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl.MultiValueAttributeMode;
 
 public class RDFGraphResourceUpdate {
 	
-	static final boolean CONSOLE_OUTPUT_ACTIVE = false;
+	static final boolean CONSOLE_OUTPUT_ACTIVE = true;
 	
 	private boolean preferListsForMultiValues = false;
 	private RDFDeserializer deserializer;
@@ -566,17 +567,24 @@ public class RDFGraphResourceUpdate {
 	}
 
 	private RDFList removeOneFromList(Object value, RDFList container, EAttribute eAttribute) {
-		Literal node = ResourceFactory.createTypedLiteral(value);
-		if (CONSOLE_OUTPUT_ACTIVE) {
-			System.out.println(String.format("removing: %s", node));
-		}
-		if (eAttribute.isUnique()) {
-			while (container.contains(node)) {
-				container = container.remove(node);
+		ExtendedIterator<RDFNode> containerItr = container.iterator();	
+		while (containerItr.hasNext()) {
+			RDFNode rdfNode = containerItr.next();
+			Object deserializedValue = deserializer.deserializeValue(rdfNode, eAttribute);
+			if(value.equals(deserializedValue)) {
+				if (CONSOLE_OUTPUT_ACTIVE) {
+					System.out.println(String.format("removing: %s == %s", value , deserializedValue));
+				}
+				if (eAttribute.isUnique()) {
+					while (container.contains(rdfNode)) {
+						container = container.remove(rdfNode);
+					}
+				} else {
+					container = container.remove(rdfNode);
+				}
+				return container;
 			}
-		} else {
-			container = container.remove(node);
-		}
+		}				
 		return container;
 	}
 	
