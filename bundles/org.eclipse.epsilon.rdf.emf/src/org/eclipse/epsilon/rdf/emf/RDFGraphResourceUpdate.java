@@ -567,7 +567,7 @@ public class RDFGraphResourceUpdate {
 	}
 
 	private RDFList removeOneFromList(Object value, RDFList container, EAttribute eAttribute) {
-		ExtendedIterator<RDFNode> containerItr = container.iterator();	
+		ExtendedIterator<RDFNode> containerItr = container.iterator();
 		while (containerItr.hasNext()) {
 			RDFNode rdfNode = containerItr.next();
 			Object deserializedValue = deserializer.deserializeValue(rdfNode, eAttribute);
@@ -584,7 +584,7 @@ public class RDFGraphResourceUpdate {
 				}
 				return container;
 			}
-		}				
+		}
 		return container;
 	}
 	
