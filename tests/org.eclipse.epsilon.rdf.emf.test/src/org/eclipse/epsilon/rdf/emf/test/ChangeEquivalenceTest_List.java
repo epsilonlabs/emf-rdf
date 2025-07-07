@@ -23,7 +23,7 @@ import org.junit.runners.Parameterized.Parameters;
  */
 @RunWith(Parameterized.class)
 public class ChangeEquivalenceTest_List extends AbstractChangeEquivalenceTest {
-	private final static File TEST_FOLDER = new File("resources", "changeEquivalence_List");
+	private static final File TEST_FOLDER = new File("resources", "changeEquivalence_List");
 
 	@Parameters(name = "{0}")
 	public static Object[] data() {

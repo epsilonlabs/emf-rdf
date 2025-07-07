@@ -100,8 +100,9 @@ public abstract class AbstractChangeEquivalenceTest {
 	
 	@Test 
 	public void loadModelsAndRunEolTest() throws Exception {
-		
-		if(CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("\n ** TEST: %s ** ",eolTestFile.getName()));}
+		if(CONSOLE_OUTPUT_ACTIVE) {
+			System.out.println(String.format("\n ** TEST: %s ** ",eolTestFile.getName()));
+		}
 		
 		restoreRdfFiles(); // Clean up any backup files from failed tests.
 		
@@ -110,7 +111,9 @@ public abstract class AbstractChangeEquivalenceTest {
 		loadModelsWithExtension(eolTestFolder, ".emf", rsMetamodels);
 
 		// Load and change XMI model resource, this is what we want the RDF to match
-		if(CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n == XMI ==");}
+		if(CONSOLE_OUTPUT_ACTIVE) {
+			System.out.println("\n == XMI ==");
+		}
 		ResourceSet rsXMI = new ResourceSetImpl();
 		registerEPackages(rsMetamodels, rsXMI);
 		loadModelsWithExtension(eolTestFolder, ".xmi", rsXMI);
@@ -118,7 +121,9 @@ public abstract class AbstractChangeEquivalenceTest {
 		executeEol(xmiModelResource, eolTestFile);
 		
 		// Load and change RDF model resource, this should match the XMI after save and reload		
-		if(CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n\n == RDF ==");}
+		if(CONSOLE_OUTPUT_ACTIVE) {
+			System.out.println("\n\n == RDF ==");
+		}
 		ResourceSet rsRDF = new ResourceSetImpl();
 		registerEPackages(rsMetamodels, rsRDF);
 		loadModelsWithExtension(eolTestFolder, ".rdfres", rsRDF);
@@ -145,7 +150,6 @@ public abstract class AbstractChangeEquivalenceTest {
 		final IComparisonScope scope = new DefaultComparisonScope(rsXMI, rsRDF, null);
 		final Comparison cmp = compareEngine.compare(scope);
 		assertNoDifferences(eolTestFile, cmp);
-
 	}
 	
 	protected void backupRdfFiles() throws FileNotFoundException, IOException {

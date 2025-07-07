@@ -59,8 +59,7 @@ import com.google.common.collect.Multimap;
  * Maps RDF nodes to EClasses and EObjects.
  */
 public class RDFDeserializer {
-	
-	private final boolean NOTIFICATION_TRACE = false;
+	private static final boolean NOTIFICATION_TRACE = false;
 
 	private final Supplier<Registry> packageRegistry;
 
