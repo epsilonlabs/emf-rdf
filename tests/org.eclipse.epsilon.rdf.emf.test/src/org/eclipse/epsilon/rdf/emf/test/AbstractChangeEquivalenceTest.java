@@ -128,8 +128,9 @@ public abstract class AbstractChangeEquivalenceTest {
 		registerEPackages(rsMetamodels, rsRDF);
 		loadModelsWithExtension(eolTestFolder, ".rdfres", rsRDF);
 		Resource rdfModelResource = rsRDF.getResources().get(0);
-		printModelToConsole(((RDFGraphResourceImpl)rdfModelResource).getFirstNamedModel(), "TTL before change: ");
-		
+		if(CONSOLE_OUTPUT_ACTIVE) {
+			printModelToConsole(((RDFGraphResourceImpl)rdfModelResource).getFirstNamedModel(), "TTL before change: ");
+		}
 		// CHANGE
 		executeEol(rdfModelResource, eolTestFile);
 		
@@ -143,8 +144,9 @@ public abstract class AbstractChangeEquivalenceTest {
 		rdfModelResource = rsRDF.getResources().get(0);
 		
 		restoreRdfFiles(); // We may crash out on the test
-		printModelToConsole(((RDFGraphResourceImpl)rdfModelResource).getFirstNamedModel(), "TTL after change: ");
-		
+		if(CONSOLE_OUTPUT_ACTIVE) {
+			printModelToConsole(((RDFGraphResourceImpl)rdfModelResource).getFirstNamedModel(), "TTL after change: ");
+		}
 		// Compare reloaded RDF and XMI models
 		EMFCompare compareEngine = EMFCompare.builder().build();
 		final IComparisonScope scope = new DefaultComparisonScope(rsXMI, rsRDF, null);
