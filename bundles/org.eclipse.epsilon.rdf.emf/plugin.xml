@@ -8,5 +8,13 @@
             type="rdfres">
       </parser>
    </extension>
+   <extension
+         point="org.eclipse.core.contenttype.contentTypes">
+      <file-association
+            content-type="org.eclipse.emf.ecore.xmi"
+            file-extensions="rdfres"
+            file-names="*">
+      </file-association>
+   </extension>
 
 </plugin>
