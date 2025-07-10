@@ -150,12 +150,25 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 
 	
 	private void eReferenceFeatureNotification(EReference feature, Notification notification) {		
+		EObject onEObject = (EObject) notification.getNotifier(); 	// RDF node
 		EReference eReferenceChanged = feature; 					// RDF property
 		// eAttribute's values are the objects						// RDF object (node/literal)
 		Object oldValue = notification.getOldValue();
 		Object newValue = notification.getNewValue();
 		
 		boolean isOrdered = eReferenceChanged.isOrdered(); // If this is set then there is Order to the values.
+		boolean isUnique = eReferenceChanged.isUnique();
+		boolean isMany = eReferenceChanged.isMany();
+		
+		
+		processTrace.append(String.format(
+				"\n EReference (ordered is %s, unique is %s, many is %s) ",
+				isOrdered, isUnique, isMany));
+		
+		reportEObjectRDFnode(onEObject, i);
+		processTrace.append(String.format(
+				"\n Feature: %s - ",
+				feature.getName()));
 
 		// Decode the notification event type
 		switch (notification.getEventType()) {
@@ -176,7 +189,21 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 			}
 			break;
 		case Notification.SET:		
-			notImplmentedWarning(notification, isOrdered);
+			processTrace.append("SET");
+			//notImplmentedWarning(notification, isOrdered);
+			if (null != oldValue && oldValue instanceof EObject) {	
+				EObject oldValueEob = (EObject) oldValue;
+				processTrace.append("\n EReference oldValue: ");
+				reportEObjectIdentity(oldValueEob);
+				
+			}
+			if (null != newValue && newValue instanceof EObject) {
+				EObject newValueEob = (EObject) newValue;
+				processTrace.append("\n EReference newValue: " );
+				reportEObjectIdentity(newValueEob);
+				
+			}
+			
 			if(isOrdered) {
 
 			} else {
@@ -384,7 +411,8 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 
 	private void reportEObjectIdentity(EObject eObject) {
 		processTrace.append(  String.format("\n - EObject : %s - %s ", eObject.eClass().getName(),
-				EcoreUtil.getIdentification(eObject)));
+				//EcoreUtil.getIdentification(eObject)));
+				EcoreUtil.getURI(eObject)));
 	}
 	
 
