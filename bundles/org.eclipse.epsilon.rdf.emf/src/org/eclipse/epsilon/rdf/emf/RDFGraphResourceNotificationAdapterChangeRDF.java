@@ -22,8 +22,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.util.EContentAdapter;
 
-public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapter {
-
+public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapter {	
 	@Override
 	public void notifyChanged(Notification notification) {
 		Object feature = notification.getFeature();
