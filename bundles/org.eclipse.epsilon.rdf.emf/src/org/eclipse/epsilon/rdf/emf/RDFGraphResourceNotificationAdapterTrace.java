@@ -160,6 +160,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		boolean isUnique = eReferenceChanged.isUnique();
 		boolean isMany = eReferenceChanged.isMany();
 		
+		RDFGraphResourceImpl graphResource = (RDFGraphResourceImpl) onEObject.eResource();
 		
 		processTrace.append(String.format(
 				"\n EReference (ordered is %s, unique is %s, many is %s) ",
@@ -195,12 +196,15 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 				EObject oldValueEob = (EObject) oldValue;
 				processTrace.append("\n EReference oldValue: ");
 				reportEObjectIdentity(oldValueEob);
-				
+				Resource oldRDFnode = graphResource.getRDFResource(oldValueEob);
+				processTrace.append("oldRDFnode:"+oldRDFnode.getURI());
 			}
 			if (null != newValue && newValue instanceof EObject) {
 				EObject newValueEob = (EObject) newValue;
 				processTrace.append("\n EReference newValue: " );
 				reportEObjectIdentity(newValueEob);
+				Resource newRDFnode = graphResource.getRDFResource(newValueEob);
+				processTrace.append("newRDFnode:"+newRDFnode.getURI());
 				
 			}
 			

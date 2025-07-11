@@ -642,6 +642,152 @@ public class RDFGraphResourceUpdate {
 	// References
 	
 	
+	
+	//
+	// Generic EStructural Features
+	
+	private Property getProperty(EStructuralFeature eFeature) {
+		// PREDICATE
+		String nameSpace = eFeature.getEContainingClass().getEPackage().getNsURI();
+		String propertyURI = nameSpace + "#" + eFeature.getName();
+		return ResourceFactory.createProperty(propertyURI);
+	}
+	
+	protected Statement findEquivalentStatement(Model model, EObject eob, EStructuralFeature eFeature, Object oldValue) {
+		Statement stmtToRemove = null;
+		StmtIterator itOldStmt = model.listStatements(
+			rdfGraphResource.getRDFResource(eob), getProperty(eFeature), (RDFNode) null);
+		while (itOldStmt.hasNext() && stmtToRemove == null) {
+			Statement stmt = itOldStmt.next();
+			Object stmtObject = deserializer.deserializeProperty(stmt.getSubject(), eFeature);
+			if (Objects.equals(oldValue, stmtObject)) {
+				stmtToRemove = stmt;
+			}
+		}
+		return stmtToRemove;
+	}
+	
+	private Statement createStatement(EObject eObject, EStructuralFeature eFeature, Object value) {
+		// A statement is formed as "subject–predicate–object"
+
+		// SUBJECT
+		Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
+		// PREDICATE
+		Property property = getProperty(eFeature);
+		// OBJECT
+		
+		// is an RDFNode
+		if (value instanceof RDFNode) {
+			return ResourceFactory.createStatement(rdfNode, property, (RDFNode) value);
+		}
+		
+		// is a Literal value
+		Literal object = null;
+		if (value.getClass().equals(Date.class)) {
+			Calendar c = Calendar.getInstance();
+			c.setTime((Date) value);
+			String date = DateTimeUtils.calendarToXSDDateTimeString(c);
+			object = ResourceFactory.createTypedLiteral(date, XSDDatatype.XSDdateTime);
+		} else {
+			object = ResourceFactory.createTypedLiteral(value);
+		}
+		return ResourceFactory.createStatement(rdfNode, property, object);
+	}
+	
+	
+	
+	//
+	// Single-value Features
+	
+	public void newSingleValueFeatureStatements(List<Resource> namedModelURIs, EObject onEObject, EStructuralFeature eFeature, Object newValue) {
+		assert newValue != null : "new value must exist";
+		Statement newStatement = createStatement(onEObject, eFeature, newValue);
+
+		// We default always to the first named model for a new statement.
+		// In the future, we may use a rule-based system to decide which named model to use.
+		List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);
+		for (Model model : namedModelsToUpdate) {
+			if (!model.contains(newStatement)) {
+				model.add(newStatement);
+			} else {
+				System.err.println(String.format("New statement already exists? : %s", newStatement));
+			}
+		}
+	}
+	
+	public void removeSingleValueFeatureStatements(List<Resource> namedModelURIs, EObject onEObject, EStructuralFeature eFeature, Object oldValue) {
+		// Object type values set a new value "null", remove the statement the deserializer uses the meta-model so we won't have missing attributes
+		assert oldValue != null : "old value must exist";		
+		Statement oldStatement = createStatement(onEObject, eFeature, oldValue);
+
+		// Same as above: try object-to-literal first, then literal-to-object
+		boolean found = false;
+		List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);
+		for (Model model : namedModelsToUpdate) {
+			if (model.contains(oldStatement)) {
+				model.remove(oldStatement);
+				found = true;
+			}
+		}
+		if (!found) {
+			for (Model model : namedModelsToUpdate) {
+				Statement stmtToRemove = findEquivalentStatement(model, onEObject, eFeature, oldValue);
+				if (stmtToRemove != null) {
+					model.remove(stmtToRemove);
+					found = true;
+				}
+			}
+		}
+		if (!found) {
+			/*
+			 * Couldn't find old statement through either object-to-literal or literal-to-object conversion
+			 */
+			System.err.println(String.format("Old statement not found during single removal: %s" , oldStatement));
+		}
+	}
+	
+	public void updateSingleValueFeatureStatements(List<Resource> namedModelURIs, EObject onEObject, EStructuralFeature eFeature, Object newValue, Object oldValue) {
+		assert oldValue != null : "old value must exist";
+		assert newValue != null : "new value must exist";
+
+		RDFGraphResourceImpl graphResource = (RDFGraphResourceImpl) onEObject.eResource();
+		Statement newStatement = createStatement(onEObject, eFeature, newValue);
+		Statement oldStatement = createStatement(onEObject, eFeature, oldValue);
+
+		boolean found = false;
+		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
+		for (Model model : namedModelsToUpdate) {
+			if (model.contains(oldStatement)) {
+				model.remove(oldStatement);
+				model.add(newStatement);
+				found = true;
+			}
+		}
+
+		if (!found) {
+			/*
+			 * Could not find directly via object-to-literal conversion: try using the
+			 * deserialiser (literal-to-object) and comparing instead.
+			 */
+			for (Model model : namedModelsToUpdate) {
+				Statement stmtToRemove = findEquivalentStatement(model, onEObject, eFeature, oldValue);
+				if (stmtToRemove != null) {
+					model.remove(stmtToRemove);
+					model.add(newStatement);
+					found = true;
+				}
+			}
+		}
+
+		if (!found) {
+			/*
+			 * Couldn't find old statement through either object-to-literal or literal-to-object conversion
+			 */
+			System.err.println(String.format("Old statement not found during single update: %s" , oldStatement));
+		}
+	}
+	
+	
 	//
 	// Reporting (these could return formatted strings for logging or console use)
 

@@ -40,7 +40,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		}
 
 		if (feature instanceof EReference) {
-			//eReferenceFeatureNotification((EReference) feature, notification);
+			eReferenceFeatureNotification((EReference) feature, notification);
 			return;
 		}
 
@@ -132,6 +132,70 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		}
 	}
 		
+
+	private void eReferenceFeatureNotification(EReference feature, Notification notification) {
+
+		EObject onEObject = (EObject) notification.getNotifier(); // RDF node
+		EReference eReferenceChanged = (EReference) feature; // RDF property
+		// eAttribute's values are the objects // RDF object (node/literal)
+		Object oldValue = notification.getOldValue();
+		Object newValue = notification.getNewValue();
+		int position = notification.getPosition();
+
+		RDFGraphResourceImpl graphResource = (RDFGraphResourceImpl) onEObject.eResource();
+		RDFGraphResourceUpdate rdfUpdater = graphResource.getRDFGraphUpdater();
+		List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
+
+		// Decode the notification event type
+		switch (notification.getEventType()) {
+
+		case Notification.SET:
+			// Single values, don't need to worry about order
+			if (null == oldValue) {
+				// Create new statement
+				if (null == newValue) {
+					// No old value and no new value - nothing to do
+					break;
+				} else {
+					// Create new statement for value
+					namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
+					if (namedModelURIs.isEmpty()) {
+						// No named RDF models contain the object yet - fall back on the first one
+						namedModelURIs = graphResource.getResourcesForAllNamedModels();
+						if (!namedModelURIs.isEmpty()) {
+							Resource first = namedModelURIs.get(0);
+							namedModelURIs.clear();
+							namedModelURIs.add(first);
+						}
+					}
+					Resource newValueRdfNode = graphResource.getRDFResource((EObject)newValue);
+					rdfUpdater.newSingleValueFeatureStatements(namedModelURIs, onEObject, eReferenceChanged,
+							newValueRdfNode);
+				}
+			} else {
+				// Update existing statement
+				if (null == newValue) {
+					// Update existing statement to null
+					namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
+					rdfUpdater.removeSingleValueFeatureStatements(namedModelURIs, onEObject, eReferenceChanged,
+							notification.getOldValue());
+				} else {
+					// Update existing statement value
+					namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
+					Resource newValueRdfNode = graphResource.getRDFResource((EObject)newValue);
+					Resource oldValueRdfNode = graphResource.getRDFResource((EObject)oldValue);
+					rdfUpdater.updateSingleValueFeatureStatements(namedModelURIs, onEObject, eReferenceChanged,
+							newValueRdfNode, oldValueRdfNode);
+				}
+			}
+			break;
+
+		default:
+			break;
+		}
+
+	}
+
 }
 
 	
