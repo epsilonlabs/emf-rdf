@@ -649,9 +649,21 @@ public class RDFGraphResourceUpdate {
 	
 	
 	//
-	// Generic EStructural Features
+	// Generic Statement methods for EStructural Features
 	
-	private Property getProperty(EStructuralFeature eStructuralFeature) {
+	private Literal createLiteral(Object value) {
+		Literal object = null;
+		if (value.getClass().equals(Date.class)) {
+			Calendar c = Calendar.getInstance();
+			c.setTime((Date) value);
+			String date = DateTimeUtils.calendarToXSDDateTimeString(c);
+			return ResourceFactory.createTypedLiteral(date, XSDDatatype.XSDdateTime);
+		} else {
+			return ResourceFactory.createTypedLiteral(value);
+		}		
+	}
+	
+	private Property createProperty(EStructuralFeature eStructuralFeature) {
 		// PREDICATE
 		String nameSpace = eStructuralFeature.getEContainingClass().getEPackage().getNsURI();
 		String propertyURI = nameSpace + "#" + eStructuralFeature.getName();
@@ -661,7 +673,7 @@ public class RDFGraphResourceUpdate {
 	protected Statement findEquivalentStatement(Model model, EObject eob, EStructuralFeature eStructuralFeature, Object oldValue) {
 		Statement stmtToRemove = null;
 		StmtIterator itOldStmt = model.listStatements(
-			rdfGraphResource.getRDFResource(eob), getProperty(eStructuralFeature), (RDFNode) null);
+			rdfGraphResource.getRDFResource(eob), createProperty(eStructuralFeature), (RDFNode) null);
 		while (itOldStmt.hasNext() && stmtToRemove == null) {
 			Statement stmt = itOldStmt.next();
 			Object stmtObject = deserializer.deserializeProperty(stmt.getSubject(), eStructuralFeature);
@@ -678,28 +690,35 @@ public class RDFGraphResourceUpdate {
 		// SUBJECT
 		Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
 		// PREDICATE
-		Property property = getProperty(eStructuralFeature);
+		Property property = createProperty(eStructuralFeature);
 		// OBJECT
-		
-		// is an RDFNode
 		if (value instanceof RDFNode) {
 			return ResourceFactory.createStatement(rdfNode, property, (RDFNode) value);
-		}
-		
-		// is a Literal value
-		Literal object = null;
-		if (value.getClass().equals(Date.class)) {
-			Calendar c = Calendar.getInstance();
-			c.setTime((Date) value);
-			String date = DateTimeUtils.calendarToXSDDateTimeString(c);
-			object = ResourceFactory.createTypedLiteral(date, XSDDatatype.XSDdateTime);
 		} else {
-			object = ResourceFactory.createTypedLiteral(value);
+			return ResourceFactory.createStatement(rdfNode, property, createLiteral(value));
 		}
-		return ResourceFactory.createStatement(rdfNode, property, object);
 	}
 	
-	
+	private Resource getResourceObjectFor(EObject eObject, EStructuralFeature eStructuralFeature, Model model) {
+		// SUBJECT
+		Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
+		// PREDICATE
+		Property property = createProperty(eStructuralFeature);
+		// OBJECT
+		if(model.contains(rdfNode, property)) {	
+			Resource stmtObject = model.getProperty(rdfNode, property).getObject().asResource();
+			if (CONSOLE_OUTPUT_ACTIVE) {
+				System.out.println(" Returning stmtObject : " + stmtObject);
+			}
+			return stmtObject;
+		} else {
+			System.out.println(String.format(" %s RDF Node missing property %s : ", rdfNode, property));
+			if (CONSOLE_OUTPUT_ACTIVE) {
+				model.getResource(rdfNode.getId()).listProperties().forEach(s -> System.out.println("  - " + s));
+			}
+			return null;
+		}
+	}
 	
 	//
 	// Single-value Features
@@ -791,6 +810,135 @@ public class RDFGraphResourceUpdate {
 			System.err.println(String.format("Old statement not found during single update: %s" , oldStatement));
 		}
 	}
+	
+	
+	
+	//
+	// Multi-value Features
+	
+	private void checkAndRemoveEmptyContainers(Container container, EObject onEObject, EStructuralFeature eStructuralFeature) {
+		Model model = container.asResource().getModel();
+		if (model.containsResource(container)) {
+			if (0 == container.size()) {
+				if (CONSOLE_OUTPUT_ACTIVE) {
+					System.out.println("\n Removing empty container: container");
+				}
+				container.removeAll(RDF.type);
+				Resource subjectNode = rdfGraphResource.getRDFResource(onEObject);
+				Property property = createProperty(eStructuralFeature);
+				model.remove(subjectNode, property, container);
+			}
+		}
+	}
+	
+	private void removeFromContainer(Object values, Container container, EObject onEObject, EStructuralFeature eStructuralFeature) {
+		if (CONSOLE_OUTPUT_ACTIVE) {
+			reportContainer("Before remove", container);
+		}
+		
+		EStructuralFeature sf = eStructuralFeature.eContainingFeature();
+		if(values instanceof EList<?>) { 
+			EList<?> valuesList = (EList<?>) values;
+			valuesList.iterator().forEachRemaining(value -> 
+				searchContainerAndRemoveValue(value, container, sf));
+		} else {
+			searchContainerAndRemoveValue(values, container, sf);
+		}
+		
+		if (CONSOLE_OUTPUT_ACTIVE) {
+			reportContainer("After remove", container);
+		}
+		
+		// Check if container is empty (size 0), remove the blank node if true
+		checkAndRemoveEmptyContainers(container, onEObject, eStructuralFeature);
+	}
+	
+	private void removeFromSeq(Object value, Container container, EObject onEObject, EStructuralFeature eStructuralFeature) {
+		removeFromContainer(value, container, onEObject, eStructuralFeature);
+	}
+	
+	private void removeFromBag(Object value, Container container, EObject onEObject, EStructuralFeature eStructuralFeature) {
+		removeFromContainer(value, container, onEObject, eStructuralFeature);
+	}
+	
+	
+	
+	private void checkAndRemoveEmptyList(RDFList container, EObject onEObject, EStructuralFeature eStructuralFeature) {
+		Model model = container.getModel();
+		if(container.isEmpty()) {
+			Resource object = getResourceObjectFor(onEObject, eStructuralFeature, model);
+			Statement stmtToRemove = createStatement(onEObject, eStructuralFeature, object);
+			model.remove(stmtToRemove);
+		}
+	}
+	
+	private RDFList removeOneFromList(Object value, RDFList container, EStructuralFeature eStructuralFeature) {
+		ExtendedIterator<RDFNode> containerItr = container.iterator();
+		while (containerItr.hasNext()) {
+			RDFNode rdfNode = containerItr.next();
+			Object deserializedValue = deserializer.deserializeValue(rdfNode, eStructuralFeature);
+			if(value.equals(deserializedValue)) {
+				if (CONSOLE_OUTPUT_ACTIVE) {
+					System.out.println(String.format("removing: %s == %s", value , deserializedValue));
+				}
+				if (eStructuralFeature.isUnique()) {
+					while (container.contains(rdfNode)) {
+						container = container.remove(rdfNode);
+					}
+				} else {
+					container = container.remove(rdfNode);
+				}
+				return container;
+			}
+		}
+		return container;
+	}
+	
+	private void removeFromList(Object values, RDFList container, EObject onEObject, EStructuralFeature eStructuralFeature) {
+		if(values instanceof List<?> valueList) {
+			if (CONSOLE_OUTPUT_ACTIVE) {
+				System.out.println(String.format("list of values to remove: %s", valueList));
+			}
+			for (Object value : valueList) {
+				container = removeOneFromList(value, container, eStructuralFeature);
+			}
+		} else {
+			container = removeOneFromList(values, container, eStructuralFeature);
+		}
+		checkAndRemoveEmptyList(container, onEObject, eStructuralFeature);
+	}
+	
+	public void removeMultiEStructuralFeature (List<Resource> namedModelURIs, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue, Object oldValue) {
+		Resource onEObjectNode = rdfGraphResource.getRDFResource(onEObject);
+		if (onEObjectNode.hasProperty(createProperty(eStructuralFeature))) {
+			// Exists on a model some where...
+			List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);
+			for (Model model : namedModelsToUpdate) {
+				// Try and the container from each model to be updated
+				Resource objectResource = getResourceObjectFor(onEObject, eStructuralFeature, model);
+				if ( (objectResource.hasProperty(RDF.rest) && objectResource.hasProperty(RDF.first)) 
+						|| objectResource.hasProperty(RDF.type, RDF.List) ) {
+					RDFList list = objectResource.as(RDFList.class);
+					list.setStrict(true);
+					removeFromList(oldValue, list, onEObject, eStructuralFeature);
+				} else if (objectResource.hasProperty(RDF.type, RDF.Bag)) {
+					Bag bag = model.getBag(objectResource);
+					removeFromBag(oldValue, bag, onEObject, eStructuralFeature);
+				} else if (objectResource.hasProperty(RDF.type, RDF.Seq)) {
+					Seq seq = model.getSeq(objectResource);
+					removeFromSeq(oldValue, seq, onEObject, eStructuralFeature);
+				} else {
+					// no operation
+					
+					// An empty list would land here as it is an RDF.nil
+				}
+			}
+		} else {
+			System.err.println("Trying to remove a none existing RDFnode for a multivalue attribute");
+		}
+	}
+	
+	
 	
 	
 	//

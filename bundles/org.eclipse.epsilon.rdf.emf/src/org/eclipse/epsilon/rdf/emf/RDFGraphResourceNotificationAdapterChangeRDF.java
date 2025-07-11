@@ -114,11 +114,11 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 			}
 			break;
 		case Notification.REMOVE:
-			rdfUpdater.removeMultiValueAttribute(namedModelURIs, onEObject, eAttributeChanged, 
+			rdfUpdater.removeMultiEStructuralFeature(namedModelURIs, onEObject, eAttributeChanged, 
 					newValue, oldValue);
 			break;
 		case Notification.REMOVE_MANY:
-			rdfUpdater.removeMultiValueAttribute(namedModelURIs, onEObject, eAttributeChanged, 
+			rdfUpdater.removeMultiEStructuralFeature(namedModelURIs, onEObject, eAttributeChanged, 
 					newValue, oldValue);
 			break;
 		case Notification.UNSET:
