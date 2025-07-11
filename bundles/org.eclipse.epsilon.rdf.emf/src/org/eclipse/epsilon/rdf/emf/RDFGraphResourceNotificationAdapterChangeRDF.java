@@ -95,7 +95,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 							namedModelURIs.add(first);
 						}
 					}
-					rdfUpdater.newSingleValueAttributeStatements(namedModelURIs, onEObject,
+					rdfUpdater.newSingleValueEStructuralFeatureStatements(namedModelURIs, onEObject,
 						eAttributeChanged, newValue);
 				}
 			} else {
@@ -103,12 +103,12 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 				if (null == newValue) {
 					// Update existing statement to null
 					namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
-					rdfUpdater.removeSingleValueAttributeStatements(namedModelURIs, onEObject,
+					rdfUpdater.removeSingleValueEStructuralFeatureStatements(namedModelURIs, onEObject,
 							eAttributeChanged, notification.getOldValue());
 				} else {
 					// Update existing statement value
 					namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
-					rdfUpdater.updateSingleValueAttributeStatements(namedModelURIs, onEObject,
+					rdfUpdater.updateSingleValueEStructuralFeatureStatements(namedModelURIs, onEObject,
 							eAttributeChanged, newValue, oldValue);
 				}
 			}
@@ -124,7 +124,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		case Notification.UNSET:
 			// Single values, don't need to worry about order
 			namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
-			rdfUpdater.removeSingleValueAttributeStatements(namedModelURIs, 
+			rdfUpdater.removeSingleValueEStructuralFeatureStatements(namedModelURIs, 
 					onEObject, eAttributeChanged, notification.getOldValue());
 			break;
 		default:
@@ -169,7 +169,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 						}
 					}
 					Resource newValueRdfNode = graphResource.getRDFResource((EObject)newValue);
-					rdfUpdater.newSingleValueFeatureStatements(namedModelURIs, onEObject, eReferenceChanged,
+					rdfUpdater.newSingleValueEStructuralFeatureStatements(namedModelURIs, onEObject, eReferenceChanged,
 							newValueRdfNode);
 				}
 			} else {
@@ -177,14 +177,14 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 				if (null == newValue) {
 					// Update existing statement to null
 					namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
-					rdfUpdater.removeSingleValueFeatureStatements(namedModelURIs, onEObject, eReferenceChanged,
+					rdfUpdater.removeSingleValueEStructuralFeatureStatements(namedModelURIs, onEObject, eReferenceChanged,
 							notification.getOldValue());
 				} else {
 					// Update existing statement value
 					namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
 					Resource newValueRdfNode = graphResource.getRDFResource((EObject)newValue);
 					Resource oldValueRdfNode = graphResource.getRDFResource((EObject)oldValue);
-					rdfUpdater.updateSingleValueFeatureStatements(namedModelURIs, onEObject, eReferenceChanged,
+					rdfUpdater.updateSingleValueEStructuralFeatureStatements(namedModelURIs, onEObject, eReferenceChanged,
 							newValueRdfNode, oldValueRdfNode);
 				}
 			}
