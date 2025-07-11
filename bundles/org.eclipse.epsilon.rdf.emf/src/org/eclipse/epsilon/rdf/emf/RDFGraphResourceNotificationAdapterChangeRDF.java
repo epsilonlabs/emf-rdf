@@ -20,6 +20,7 @@ import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EContentAdapter;
 
 public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapter {	
@@ -35,12 +36,12 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		Class<? extends Object> featureClass = feature.getClass();
 
 		if (feature instanceof EAttribute) {
-			eAttributeFeatureNotification((EAttribute) feature, notification);
+			eStructuralFeatureNotification((EAttribute) feature, notification);
 			return;
 		}
 
 		if (feature instanceof EReference) {
-			eReferenceFeatureNotification((EReference) feature, notification);
+			eStructuralFeatureNotification((EReference) feature, notification);
 			return;
 		}
 
@@ -131,8 +132,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 			break;
 		}
 	}
-		
-
+	
 	private void eReferenceFeatureNotification(EReference feature, Notification notification) {
 
 		EObject onEObject = (EObject) notification.getNotifier(); // RDF node
@@ -194,6 +194,85 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 			break;
 		}
 
+	}
+	
+	private void eStructuralFeatureNotification(EStructuralFeature eStructuralFeature, Notification notification) {		
+		
+		EObject onEObject = (EObject) notification.getNotifier(); 	// RDF node
+		EStructuralFeature changedFeature = eStructuralFeature; 	// RDF property
+		// eAttribute's values are the objects						// RDF object (node/literal)
+		Object oldValue = notification.getOldValue();
+		Object newValue = notification.getNewValue();
+		int position = notification.getPosition();
+		
+		RDFGraphResourceImpl graphResource = (RDFGraphResourceImpl) onEObject.eResource();
+		RDFGraphResourceUpdate rdfUpdater = graphResource.getRDFGraphUpdater();
+		List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
+
+		// Decode the notification event type
+		switch (notification.getEventType()) {
+		case Notification.ADD:
+			// Watch out for none-multi value attributes being added through here
+			rdfUpdater.addMultiValueEStructuralFeature(namedModelURIs, onEObject, changedFeature, 
+					newValue, oldValue, position);
+			break;
+		case Notification.ADD_MANY:
+			rdfUpdater.addMultiValueEStructuralFeature(namedModelURIs, onEObject, changedFeature, 
+					newValue, oldValue, position);
+			break;
+		case Notification.SET:
+			// Single values, don't need to worry about order
+			if (null == oldValue) {
+				// Create new statement
+				if (null == newValue) {
+					// No old value and no new value - nothing to do
+				} else {
+					// Create new statement for value					
+					namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
+					if (namedModelURIs.isEmpty()) {
+						// No named RDF models contain the object yet - fall back on the first one
+						namedModelURIs = graphResource.getResourcesForAllNamedModels();
+						if (!namedModelURIs.isEmpty()) {
+							Resource first = namedModelURIs.get(0);
+							namedModelURIs.clear();
+							namedModelURIs.add(first);
+						}
+					}
+					rdfUpdater.newSingleValueEStructuralFeatureStatements(namedModelURIs, onEObject,
+						changedFeature, newValue);
+				}
+			} else {
+				// Update existing statement
+				if (null == newValue) {
+					// Update existing statement to null
+					namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
+					rdfUpdater.removeSingleValueEStructuralFeatureStatements(namedModelURIs, onEObject,
+							changedFeature, notification.getOldValue());
+				} else {
+					// Update existing statement value
+					namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
+					rdfUpdater.updateSingleValueEStructuralFeatureStatements(namedModelURIs, onEObject,
+							changedFeature, newValue, oldValue);
+				}
+			}
+			break;
+		case Notification.REMOVE:
+			rdfUpdater.removeMultiEStructuralFeature(namedModelURIs, onEObject, changedFeature, 
+					newValue, oldValue);
+			break;
+		case Notification.REMOVE_MANY:
+			rdfUpdater.removeMultiEStructuralFeature(namedModelURIs, onEObject, changedFeature, 
+					newValue, oldValue);
+			break;
+		case Notification.UNSET:
+			// Single values, don't need to worry about order
+			namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
+			rdfUpdater.removeSingleValueEStructuralFeatureStatements(namedModelURIs, 
+					onEObject, changedFeature, notification.getOldValue());
+			break;
+		default:
+			break;
+		}
 	}
 
 }
