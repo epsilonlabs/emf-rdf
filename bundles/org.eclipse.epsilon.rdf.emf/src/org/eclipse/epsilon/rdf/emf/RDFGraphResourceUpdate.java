@@ -37,7 +37,6 @@ import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl.MultiValueAttributeMode;
@@ -118,7 +117,7 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 	
-	private Statement findEquivalentStatement(Model model, EObject eob, EStructuralFeature eStructuralFeature, Object oldValue) {
+	private Statement findEquivalentStatement(Model model, EObject eob, EStructuralFeature eStructuralFeature, Object oldValue) {		
 		Statement stmtToRemove = null;
 		StmtIterator itOldStmt = model.listStatements(
 			rdfGraphResource.getRDFResource(eob), createProperty(eStructuralFeature), (RDFNode) null);
@@ -518,8 +517,12 @@ public class RDFGraphResourceUpdate {
 		Statement newStatement = createStatement(onEObject, eStructuralFeature, newValue);
 		Statement oldStatement = createStatement(onEObject, eStructuralFeature, oldValue);
 
-		boolean found = false;
 		List<Model> namedModelsToUpdate = graphResource.getNamedModels(namedModelURIs);
+		
+		boolean found = false;
+		/*
+		 * First check for an old statement based on what we think the statement should be 
+		 */
 		for (Model model : namedModelsToUpdate) {
 			if (model.contains(oldStatement)) {
 				model.remove(oldStatement);
@@ -545,9 +548,25 @@ public class RDFGraphResourceUpdate {
 
 		if (!found) {
 			/*
+			 * There is a case when the EAttribute has a default value define and there are
+			 * no statements in the RDF to match.
+			 */
+			if (oldValue.equals(eStructuralFeature.getDefaultValue())) {
+				{
+					System.out.println(String.format(
+							"Old statement not found, but the oldvalue matches the models default value, so there might not be a statement.\nAdding a statement to the first model. default value %s - old value %s ",
+							eStructuralFeature.getDefaultValue(), oldValue));					
+					namedModelsToUpdate.get(0).add(newStatement);
+					found = true;
+				}
+			}
+		}
+
+		if (!found) {
+			/*
 			 * Couldn't find old statement through either object-to-literal or literal-to-object conversion
 			 */
-			System.err.println(String.format("Old statement not found during single update: %s" , oldStatement));
+			System.err.println(String.format("Old statement not found during single update: %s" , oldStatement));			
 		}
 	}
 	
