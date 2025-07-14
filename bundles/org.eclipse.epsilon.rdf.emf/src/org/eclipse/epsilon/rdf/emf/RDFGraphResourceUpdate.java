@@ -134,16 +134,29 @@ public class RDFGraphResourceUpdate {
 	private Statement createStatement(EObject eObject, EStructuralFeature eStructuralFeature, Object value) {
 		// A statement is formed as "subject–predicate–object"
 
+		// Is the value an EObject? -- Statement should be a reference to something, statement object should be an RDF node
+		if (value instanceof EObject) {
+			Resource valueRDFNode = rdfGraphResource.getRDFResource((EObject) value);
+			if (null != valueRDFNode) {
+//				System.out.println("This value is has an RDF node: " + valueRDFNode);
+				value = valueRDFNode;
+			} else {
+				// need to create an RDF node for a new EObject
+				System.err.println("Creating a statement for an EObject that does not have an RDF node: " + value);
+			}
+		}
+		
 		// SUBJECT
 		Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
 		// PREDICATE
 		Property property = createProperty(eStructuralFeature);
 		// OBJECT
 		if (value instanceof RDFNode) {
-			return ResourceFactory.createStatement(rdfNode, property, (RDFNode) value);
+			return ResourceFactory.createStatement(rdfNode, property, (RDFNode) value); // Reference
 		} else {
-			return ResourceFactory.createStatement(rdfNode, property, createLiteral(value));
+			return ResourceFactory.createStatement(rdfNode, property, createLiteral(value)); // Literal value (we could add an option here to make a statement with a "String" value
 		}
+		
 	}
 	
 	private Statement getStatementFor(EObject subject, EStructuralFeature eStructuralFeature, Model model) {
