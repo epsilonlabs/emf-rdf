@@ -41,10 +41,10 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 			featureNotification(feature, notification);
 		} else {
 			// Notification is not for a feature
-			processTrace.append(String.format("\n - Not a Feature notification"));
+			processTrace.append(String.format("\n - Not a Feature notification \n - %s ", notification));
 		}
 
-		System.out.println(processTrace + "");
+		System.out.println(processTrace + "\n\n");
 	}
 
 	private void featureNotification (Object feature, Notification notification){		
@@ -65,7 +65,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 			return;
 		}
 		
-		processTrace.append(String.format(" [!] - Feature class not handled: %s", featureClass.getName()));
+		processTrace.append(String.format(" [!] - Feature class not handled:\n%s", featureClass.getName()));
 		return;
 	}
 	
