@@ -1,0 +1,9 @@
+import "../TestOperations.eol";
+
+Task.all.get(0).effort.person.get(0).name.println(" TASK 0 : ");
+Task.all.get(0).effort.get(0).person = Person.all.get(1);
+Task.all.get(0).effort.person.get(0).name.println(" TASK 0 : ");
+	
+	
+
+
