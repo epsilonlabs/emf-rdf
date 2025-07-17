@@ -26,6 +26,7 @@ import org.apache.jena.rdf.model.Bag;
 import org.apache.jena.rdf.model.Container;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
@@ -43,7 +44,7 @@ import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl.MultiValueAttributeMode;
 
 public class RDFGraphResourceUpdate {
 	
-	static final boolean CONSOLE_OUTPUT_ACTIVE = true;
+	static final boolean CONSOLE_OUTPUT_ACTIVE = false;
 	
 	private boolean preferListsForMultiValues = false;
 	private RDFDeserializer deserializer;
@@ -126,20 +127,42 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 	
-	private Statement findEquivalentStatement(Model model, EObject eob, EStructuralFeature eStructuralFeature, Object oldValue) {		
-		Statement stmtToRemove = null;
-		StmtIterator itOldStmt = model.listStatements(
-			rdfGraphResource.getRDFResource(eob), createProperty(eStructuralFeature), (RDFNode) null);
-		while (itOldStmt.hasNext() && stmtToRemove == null) {
-			Statement stmt = itOldStmt.next();
-			Object stmtObject = deserializer.deserializeProperty(stmt.getSubject(), eStructuralFeature);
-			if (Objects.equals(oldValue, stmtObject)) {
-				stmtToRemove = stmt;
-			}
+	private Statement findEquivalentStatement(Model model, EObject eob, EStructuralFeature eStructuralFeature, Object value) {		
+		// Returns a statement for a value from similar model statements (Subject-Property) and the deserialized value matches
+		List<Statement> matchedStatementList = new ArrayList<Statement>();
+		
+		// SUBJECT
+		Resource rdfNode = rdfGraphResource.getRDFResource(eob);
+		// PREDICATE
+		Property property = createProperty(eStructuralFeature);
+		// OBJECT
+		RDFNode object = (RDFNode) null;
+		
+		List<Statement> modelStatementList = model.listStatements(rdfNode, property, object).toList();
+		for (Statement modelStatement : modelStatementList) {
+			Object deserialisedValue = deserializer.deserializeProperty(modelStatement.getSubject(), eStructuralFeature);
+			if (Objects.equals(value, deserialisedValue)) {
+				matchedStatementList.add(modelStatement);
+			}			
 		}
-		return stmtToRemove;
+		
+		if(matchedStatementList.isEmpty()) {
+			return null;
+		}
+		
+		// Warn if there is more than one statement matching
+		if(matchedStatementList.size()>1) {
+			StringBuilder statementList = new StringBuilder();
+			for (Statement statement : modelStatementList) {
+				statementList.append(String.format("\n - %s", statement));
+			}
+			System.err.println(
+					String.format("Find equivalent statements method returned more than 1 statement. %s\n"
+							,statementList));
+		}
+		return matchedStatementList.get(0); // Only return the first statement found
 	}
-	
+
 	private Statement createStatement(EObject eObject, EStructuralFeature eStructuralFeature, Object value) {
 		// A statement is formed as "subject–predicate–object"
 
@@ -153,15 +176,7 @@ public class RDFGraphResourceUpdate {
 		return ResourceFactory.createStatement(rdfNode, property, object);
 		
 	}
-	
-	private Statement getStatementFor(EObject subject, EStructuralFeature eStructuralFeature, Model model) {
-		// SUBJECT
-		Resource rdfNode = rdfGraphResource.getRDFResource(subject);
-		// PREDICATE
-		Property property = createProperty(eStructuralFeature);
-		return model.getProperty(rdfNode, property);
-	}
-	
+
 	//
 	// Containers statement operations
 	
@@ -512,9 +527,9 @@ public class RDFGraphResourceUpdate {
 		// Object type values set a new value "null", remove the statement the
 		// deserializer uses the meta-model so we won't have missing attributes
 		assert oldValue != null : "old value must exist";
-		Statement oldStatement = createStatement(onEObject, eStructuralFeature, oldValue);
 
-		// try object-to-literal 	
+		// try object-to-literal
+		Statement oldStatement = createStatement(onEObject, eStructuralFeature, oldValue);
 		if (model.contains(oldStatement)) {
 			model.remove(oldStatement);
 			return;
