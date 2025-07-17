@@ -514,23 +514,20 @@ public class RDFGraphResourceUpdate {
 		assert oldValue != null : "old value must exist";
 		Statement oldStatement = createStatement(onEObject, eStructuralFeature, oldValue);
 
-		// Same as above: try object-to-literal first, then literal-to-object	
-
+		// try object-to-literal 	
 		if (model.contains(oldStatement)) {
 			model.remove(oldStatement);
 			return;
 		}
 		
+		// try literal-to-object
 		Statement stmtToRemove = findEquivalentStatement(model, onEObject, eStructuralFeature, oldValue);
 		if (stmtToRemove != null) {
 			model.remove(stmtToRemove);
 			return;
 		}
 		
-		/*
-		 * There is a case when the EAttribute has a default value define and there are
-		 * no statements in the RDF to match.
-		 */
+		// EAttribute has a default value no statements in the RDF to match
 		if (oldValue.equals(eStructuralFeature.getDefaultValue())) {
 			{
 				System.out.println(String.format(
@@ -539,10 +536,9 @@ public class RDFGraphResourceUpdate {
 			}
 		}
 
-		/*
-		 * Couldn't find old statement through either object-to-literal or
-		 * literal-to-object conversion
-		 */
+		// Couldn't find old statement through either object-to-literal or
+		// literal-to-object conversion, and there is no default value
+		 
 		System.err.println(String.format("Old statement not found during single removal: %s", oldStatement));
 		return;
 	}
@@ -557,12 +553,14 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	public void updateSingleValueEStructuralFeatureStatements(Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue, Object oldValue) {
+		// Remove any existing statements and add a new one
 		removeSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, oldValue);
 		newSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, newValue);
 	}
 	
 	//
 	// Multi-value Feature operations
+	
 	public void removeMultiEStructuralFeature (List<Resource> namedModelURIs, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue, Object oldValue) { 
 		List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);
 		for (Model model : namedModelsToUpdate) {
@@ -592,8 +590,7 @@ public class RDFGraphResourceUpdate {
 				Seq seq = model.getSeq(objectResource);
 				removeFromSeq(oldValue, seq, onEObject, eStructuralFeature);
 			} else {
-				// First value is a single value
-				// single multi value isn't a list/bag/sequence
+				// The first item is might look like a single value EAttribute
 				if(objectResource.isLiteral()) {
 					System.err.println("Multi-value objectResource.isLiteral()? objectResource: " + objectResource );
 					return;
@@ -646,12 +643,12 @@ public class RDFGraphResourceUpdate {
 				Seq seq = model.getSeq(objectResource);
 				addToSequence(newValue, seq, position);
 			} else {
+				// The first item is might look like a single value EAttribute
 				if(objectResource.isLiteral()) {
 					System.err.println("Multi-value objectResource.isLiteral()? objectResource: " + objectResource );
 					return;
 				}
 				if(objectResource.isResource()) {
-					// The first item is a single value
 					System.out.println("\nADD objectResource: " + objectResource);
 					System.out.println("ADD objectResource is RDF.type: " + objectResource.getProperty(RDF.type));
 					newSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, newValue);
