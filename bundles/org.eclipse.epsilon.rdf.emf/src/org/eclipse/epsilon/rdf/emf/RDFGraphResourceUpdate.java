@@ -563,43 +563,47 @@ public class RDFGraphResourceUpdate {
 	
 	//
 	// Multi-value Feature operations
+	public void removeMultiEStructuralFeature (List<Resource> namedModelURIs, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue, Object oldValue) { 
+		List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);
+		for (Model model : namedModelsToUpdate) {
+			removeMultiEStructuralFeature(model, onEObject, eStructuralFeature, newValue, oldValue);
+		}
+	}
 	
-	public void removeMultiEStructuralFeature (List<Resource> namedModelURIs, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue, Object oldValue) {
+	public void removeMultiEStructuralFeature (Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue, Object oldValue) {
 		Resource onEObjectNode = rdfGraphResource.getRDFResource(onEObject);
 		if (onEObjectNode.hasProperty(createProperty(eStructuralFeature))) {
 			// Exists on a model some where...
-			List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);
-			for (Model model : namedModelsToUpdate) {
-				// Try and the container from each model to be updated
-				Resource objectResource = getResourceObjectFor(onEObject, eStructuralFeature, model);
-				if ( (objectResource.hasProperty(RDF.rest) && objectResource.hasProperty(RDF.first)) 
-						|| objectResource.hasProperty(RDF.type, RDF.List) ) {
-					RDFList list = objectResource.as(RDFList.class);
-					list.setStrict(true);
-					removeFromList(oldValue, list, onEObject, eStructuralFeature);
-				} else if (objectResource.equals(RDF.nil)) {
-					// Empty list
-					System.err.println("Removing from Empty list");				
-				} else if (objectResource.hasProperty(RDF.type, RDF.Bag)) {
-					Bag bag = model.getBag(objectResource);
-					removeFromBag(oldValue, bag, onEObject, eStructuralFeature);
-				} else if (objectResource.hasProperty(RDF.type, RDF.Seq)) {
-					Seq seq = model.getSeq(objectResource);
-					removeFromSeq(oldValue, seq, onEObject, eStructuralFeature);
-				} else {
-					// First value is a single value
-					// single multi value isn't a list/bag/sequence
-					if(objectResource.isLiteral()) {
-						System.err.println("Multi-value objectResource.isLiteral()? objectResource: " + objectResource );
-						return;
-					}
+			
+			// Try and the container from each model to be updated
+			Resource objectResource = getResourceObjectFor(onEObject, eStructuralFeature, model);
+			if ( (objectResource.hasProperty(RDF.rest) && objectResource.hasProperty(RDF.first)) 
+					|| objectResource.hasProperty(RDF.type, RDF.List) ) {
+				RDFList list = objectResource.as(RDFList.class);
+				list.setStrict(true);
+				removeFromList(oldValue, list, onEObject, eStructuralFeature);
+			} else if (objectResource.equals(RDF.nil)) {
+				// Empty list
+				System.err.println("Removing from Empty list");				
+			} else if (objectResource.hasProperty(RDF.type, RDF.Bag)) {
+				Bag bag = model.getBag(objectResource);
+				removeFromBag(oldValue, bag, onEObject, eStructuralFeature);
+			} else if (objectResource.hasProperty(RDF.type, RDF.Seq)) {
+				Seq seq = model.getSeq(objectResource);
+				removeFromSeq(oldValue, seq, onEObject, eStructuralFeature);
+			} else {
+				// First value is a single value
+				// single multi value isn't a list/bag/sequence
+				if(objectResource.isLiteral()) {
+					System.err.println("Multi-value objectResource.isLiteral()? objectResource: " + objectResource );
+					return;
+				}
 
-					if(objectResource.isResource()) {
-						System.out.println("\nREMOVE objectResource: " + objectResource);
-						System.out.println("REMOVE objectResource is RDF.type: " 
-								+ objectResource.getProperty(RDF.type));
-						removeSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, oldValue);
-					}
+				if(objectResource.isResource()) {
+					System.out.println("\nREMOVE objectResource: " + objectResource);
+					System.out.println("REMOVE objectResource is RDF.type: " 
+							+ objectResource.getProperty(RDF.type));
+					removeSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, oldValue);
 				}
 			}
 		} else {
@@ -607,48 +611,51 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 	
-	public void addMultiValueEStructuralFeature (List<Resource> namedModelURIs, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue, Object oldValue, int position) {
-		// sequence (ordered), bag (unordered)
-		
+	public void addMultiValueEStructuralFeature (List<Resource> namedModelURIs, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue, Object oldValue, int position) { 
 		List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);
-		Resource onEObjectNode = rdfGraphResource.getRDFResource(onEObject);
+		for (Model model : namedModelsToUpdate) {
+			addMultiValueEStructuralFeature(model, onEObject, eStructuralFeature, newValue, oldValue, position);
+		}
+	}
+	
+	public void addMultiValueEStructuralFeature (Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue, Object oldValue, int position) {
+		// sequence (ordered), bag (unordered), list (ordered/unordered)
 		
+		Resource onEObjectNode = rdfGraphResource.getRDFResource(onEObject);
+				
 		// Work out if we are adding a NEW multi-value attribute with no existing RDF node.
 		if(onEObjectNode.hasProperty(createProperty(eStructuralFeature))) {
 			// Exists on a model some where...
-			for (Model model : namedModelsToUpdate) {
-				Resource objectResource = getResourceObjectFor(onEObject, eStructuralFeature, model);
-				// If we have one of these types, then we are updating an existing statement on a model
-				if ( (objectResource.hasProperty(RDF.rest) && objectResource.hasProperty(RDF.first)) 
-							|| objectResource.hasProperty(RDF.type, RDF.List)) {
-					// Lists can be ordered or unique, both or none.
-					RDFList list = model.getList(objectResource);
-					addToList(newValue, list, position, eStructuralFeature, onEObject);
-				} else if (objectResource.equals(RDF.nil)) {
-					// List - Empty lists may be represented with an RDF.nil value
-					Statement stmt = createStatement(onEObject, eStructuralFeature, objectResource);
-					model.remove(stmt);
-					newList(model, onEObject, eStructuralFeature, newValue);
-				} else if (objectResource.hasProperty(RDF.type, RDF.Bag)) {
-					Bag bag = model.getBag(objectResource);
-					addToBag(newValue, bag);
-				} else if (objectResource.hasProperty(RDF.type, RDF.Seq)) {
-					Seq seq = model.getSeq(objectResource);
-					addToSequence(newValue, seq, position);
-				} else {
-					
-					if(objectResource.isLiteral()) {
-						System.err.println("Multi-value objectResource.isLiteral()? objectResource: " + objectResource );
-						return;
-					}
-					
-					if(objectResource.isResource()) {
-						// The first item is a single value
-						System.out.println("\nADD objectResource: " + objectResource);
-						System.out.println("ADD objectResource is RDF.type: " + objectResource.getProperty(RDF.type));
-						newSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, newValue);
-						return;
-					}
+			
+			Resource objectResource = getResourceObjectFor(onEObject, eStructuralFeature, model);
+			// If we have one of these types, then we are updating an existing statement on a model
+			if ( (objectResource.hasProperty(RDF.rest) && objectResource.hasProperty(RDF.first)) 
+						|| objectResource.hasProperty(RDF.type, RDF.List)) {
+				// Lists can be ordered or unique, both or none.
+				RDFList list = model.getList(objectResource);
+				addToList(newValue, list, position, eStructuralFeature, onEObject);
+			} else if (objectResource.equals(RDF.nil)) {
+				// List - Empty lists may be represented with an RDF.nil value
+				Statement stmt = createStatement(onEObject, eStructuralFeature, objectResource);
+				model.remove(stmt);
+				newList(model, onEObject, eStructuralFeature, newValue);
+			} else if (objectResource.hasProperty(RDF.type, RDF.Bag)) {
+				Bag bag = model.getBag(objectResource);
+				addToBag(newValue, bag);
+			} else if (objectResource.hasProperty(RDF.type, RDF.Seq)) {
+				Seq seq = model.getSeq(objectResource);
+				addToSequence(newValue, seq, position);
+			} else {
+				if(objectResource.isLiteral()) {
+					System.err.println("Multi-value objectResource.isLiteral()? objectResource: " + objectResource );
+					return;
+				}
+				if(objectResource.isResource()) {
+					// The first item is a single value
+					System.out.println("\nADD objectResource: " + objectResource);
+					System.out.println("ADD objectResource is RDF.type: " + objectResource.getProperty(RDF.type));
+					newSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, newValue);
+					return;
 				}
 			}
 			return;
@@ -656,18 +663,16 @@ public class RDFGraphResourceUpdate {
 			// Does not exist anywhere so we need a NEW RDF representation			
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n No existing container, making a new one");}
 			
-			for (Model model : namedModelsToUpdate) {
-				if (preferListsForMultiValues) {
-					newList(model, onEObject, eStructuralFeature, newValue);
+			if (preferListsForMultiValues) {
+				newList(model, onEObject, eStructuralFeature, newValue);
+			} else {
+				if (eStructuralFeature.isOrdered()) {
+					// Sequence
+					addToSequence(newValue, newSequence(model, onEObject, eStructuralFeature), 0);
 				} else {
-					if (eStructuralFeature.isOrdered()) {
-						// Sequence
-						addToSequence(newValue, newSequence(model, onEObject, eStructuralFeature), 0);
-					} else {
-						// Bag
-						addToBag(newValue, newBag(model, onEObject, eStructuralFeature));
-					}
-				}
+					// Bag
+					addToBag(newValue, newBag(model, onEObject, eStructuralFeature));
+				}				
 			}
 			return;
 		}
