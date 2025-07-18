@@ -85,7 +85,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 			return null; // or throw an exception if not found
 		}
 	};
-	private MultiValueAttributeMode multiValueAttributeMode = MultiValueAttributeMode.CONTAINER;
+	private MultiValueAttributeMode multiValueAttributeMode = MultiValueAttributeMode.LIST;
 	
 	public static final ValidationMode VALIDATION_SELECTION_DEFAULT = ValidationMode.NONE;
 	protected ValidationMode validationMode = VALIDATION_SELECTION_DEFAULT;
