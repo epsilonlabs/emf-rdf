@@ -508,7 +508,6 @@ public class RDFGraphResourceUpdate {
 	
 	public void newSingleValueEStructuralFeatureStatements(List<Resource> namedModelURIs, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue) {
 		assert newValue != null : "new value must exist";
-		Statement newStatement = createStatement(onEObject, eStructuralFeature, newValue);
 
 		// We default always to the first named model for a new statement.
 		// In the future, we may use a rule-based system to decide which named model to use.
