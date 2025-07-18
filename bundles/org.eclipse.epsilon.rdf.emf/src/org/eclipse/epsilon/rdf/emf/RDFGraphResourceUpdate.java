@@ -170,9 +170,13 @@ public class RDFGraphResourceUpdate {
 		Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
 		// PREDICATE
 		Property property = createProperty(eStructuralFeature);
-		// OBJECT		
-		RDFNode object = createValueRDFNode(value, (rdfGraphResource.getFirstNamedModelResource()).getModel());
-		
+		// OBJECT
+		RDFNode object;
+		if(value instanceof Resource) {
+			object = (Resource) value;
+		} else {
+			object = createValueRDFNode(value, (rdfGraphResource.getFirstNamedModelResource()).getModel());
+		}
 		return ResourceFactory.createStatement(rdfNode, property, object);
 		
 	}
