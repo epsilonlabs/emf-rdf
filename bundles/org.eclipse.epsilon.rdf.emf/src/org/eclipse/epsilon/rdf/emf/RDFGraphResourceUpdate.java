@@ -357,7 +357,10 @@ public class RDFGraphResourceUpdate {
 		return container;
 	}
 	
-	private void removeFromList(Object values, RDFList container, EObject onEObject, EStructuralFeature eStructuralFeature) {
+	private void removeFromList(Object values, RDFList container, EObject onEObject, EStructuralFeature eStructuralFeature, Model model) {
+		
+		
+		RDFList originalContainer = container;
 		if(values instanceof List<?> valueList) {
 			if (CONSOLE_OUTPUT_ACTIVE) {
 				System.out.println(String.format("list of values to remove: %s", valueList));
@@ -368,6 +371,16 @@ public class RDFGraphResourceUpdate {
 		} else {
 			container = removeOneFromList(values, container, eStructuralFeature);
 		}
+		
+		
+		// Removing the head of a list will return a new list, statements need correcting
+		if(!container.equals(originalContainer)) {
+			//System.err.println("Got a different container back: " + container.asNode() + " != " + originalContainer.asNode() );
+			newSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, container);
+			removeSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, originalContainer);
+		}
+		
+
 		checkAndRemoveEmptyList(container, onEObject, eStructuralFeature);
 	}
 	
@@ -596,10 +609,12 @@ public class RDFGraphResourceUpdate {
 			// Try and the container from each model to be updated
 			Resource objectResource = getResourceObjectFor(onEObject, eStructuralFeature, model);
 			if ( (objectResource.hasProperty(RDF.rest) && objectResource.hasProperty(RDF.first)) 
-					|| objectResource.hasProperty(RDF.type, RDF.List) ) {
-				RDFList list = objectResource.as(RDFList.class);
+					|| objectResource.hasProperty(RDF.type, RDF.List) ) {				
+				//RDFList list = objectResource.as(RDFList.class);
+				RDFList list = model.getList(objectResource);
 				list.setStrict(true);
-				removeFromList(oldValue, list, onEObject, eStructuralFeature);
+				removeFromList(oldValue, list, onEObject, eStructuralFeature, model);
+				//reportRDFList("main", model.getList(objectResource));
 			} else if (objectResource.equals(RDF.nil)) {
 				// Empty list
 				System.err.println("Removing from Empty list");				
