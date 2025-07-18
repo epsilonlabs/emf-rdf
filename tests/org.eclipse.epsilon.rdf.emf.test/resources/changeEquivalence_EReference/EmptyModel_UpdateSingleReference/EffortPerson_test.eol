@@ -1,9 +1,12 @@
 import "../TestOperations.eol";
 
-Task.all.get(0).effort.person.get(0).name.println(" TASK 0 : ");
-Task.all.get(0).effort.get(0).person = Person.all.get(1);
-Task.all.get(0).effort.person.get(0).name.println(" TASK 0 : ");
-	
-	
+var e = Task.all.get(0).effort;
+e.person.get(0).name.println("TASK 0 person was : ");
+
+e.get(0).person = Person.all.get(1);
+e.person.get(0).name.println(" TASK 0 person now :");
+
+
+
 
 

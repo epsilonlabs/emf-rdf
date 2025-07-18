@@ -22,15 +22,15 @@ import org.junit.runners.Parameterized.Parameters;
  * Parameterized tests for change equivalence with RDF collections (bags and sequences).
  */
 @RunWith(Parameterized.class)
-public class ChangeEquivalenceTest_SingleReference extends AbstractChangeEquivalenceTest {
-	private static final File TEST_FOLDER = new File("resources", "changeEquivalence_SingleEReference");
+public class ChangeEquivalenceTest_EReference extends AbstractChangeEquivalenceTest {
+	private static final File TEST_FOLDER = new File("resources", "changeEquivalence_EReference");
 
 	@Parameters(name = "{0}")
 	public static Object[] data() {
 		return AbstractChangeEquivalenceTest.findEOLScriptsWithin(TEST_FOLDER).toArray();
 	}
 
-	public ChangeEquivalenceTest_SingleReference(File eolTestFile) {
-		super(eolTestFile);
+	public ChangeEquivalenceTest_EReference(File eolTestFile) {
+		super(eolTestFile, false);
 	}
 }

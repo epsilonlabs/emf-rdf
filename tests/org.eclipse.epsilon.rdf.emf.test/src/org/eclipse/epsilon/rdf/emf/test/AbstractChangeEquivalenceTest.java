@@ -62,14 +62,19 @@ import org.junit.Test;
  */
 public abstract class AbstractChangeEquivalenceTest {
 	
-	static final boolean CONSOLE_OUTPUT_ACTIVE = true;
+	static boolean CONSOLE_OUTPUT_ACTIVE = false;
 	
 	protected final File eolTestFile;
 	protected final File eolTestFolder;
 	
 	public AbstractChangeEquivalenceTest(File eolTestFile) {
+		 this(eolTestFile, false);
+	}
+	
+	public AbstractChangeEquivalenceTest(File eolTestFile, boolean outputToConsole) {
 		this.eolTestFile = eolTestFile;
 		this.eolTestFolder = eolTestFile.getParentFile();
+		CONSOLE_OUTPUT_ACTIVE = outputToConsole;
 	}
 
 	public static List<File> findEOLScriptsWithin(File baseFolder) {
