@@ -505,8 +505,9 @@ public class RDFGraphResourceUpdate {
 			EStructuralFeature eStructuralFeature, Object newValue) {
 		assert newValue != null : "new value must exist";
 		Statement newStatement = createStatement(onEObject, eStructuralFeature, newValue);
+		Statement existingStatements = findEquivalentStatement(model, onEObject, eStructuralFeature, newValue);
 
-		if (!model.contains(newStatement)) {
+		if (!model.contains(newStatement) && null == existingStatements) {
 			model.add(newStatement);
 		} else {
 			System.err.println(String.format("New statement already exists? : %s", newStatement));
@@ -642,7 +643,7 @@ public class RDFGraphResourceUpdate {
 			Resource objectResource = getResourceObjectFor(onEObject, eStructuralFeature, model);
 			// If we have one of these types, then we are updating an existing statement on a model
 			if ( (objectResource.hasProperty(RDF.rest) && objectResource.hasProperty(RDF.first)) 
-						|| objectResource.hasProperty(RDF.type, RDF.List)) {
+						|| objectResource.hasProperty(RDF.type, RDF.List) ) {
 				// Lists can be ordered or unique, both or none.
 				RDFList list = model.getList(objectResource);
 				addToList(newValue, list, position, eStructuralFeature, onEObject);
