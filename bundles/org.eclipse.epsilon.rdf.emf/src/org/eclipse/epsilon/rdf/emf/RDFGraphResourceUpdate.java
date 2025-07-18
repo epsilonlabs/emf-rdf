@@ -721,5 +721,12 @@ public class RDFGraphResourceUpdate {
 			}
 		}
 	}
+	
+	private static void printModelToConsole(Model model, String label) {
+		System.out.println(String.format("\n %s \n", label));
+		OutputStream console = System.out;
+		model.write(console, "ttl");
+		System.out.println("");
+	}
 
 }
