@@ -12,6 +12,7 @@
  ********************************************************************************/
 package org.eclipse.epsilon.rdf.emf;
 
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -26,7 +27,6 @@ import org.apache.jena.rdf.model.Bag;
 import org.apache.jena.rdf.model.Container;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
@@ -34,11 +34,11 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Seq;
 import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl.MultiValueAttributeMode;
 
@@ -335,26 +335,41 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 	
-	private RDFList removeOneFromList(Object value, RDFList container, EStructuralFeature eStructuralFeature) {
-		ExtendedIterator<RDFNode> containerItr = container.iterator();
-		while (containerItr.hasNext()) {
-			RDFNode rdfNode = containerItr.next();
-			Object deserializedValue = deserializer.deserializeValue(rdfNode, eStructuralFeature);
-			if(value.equals(deserializedValue)) {
-				if (CONSOLE_OUTPUT_ACTIVE) {
-					System.out.println(String.format("removing: %s == %s", value , deserializedValue));
+	private RDFList removeOneFromList(Object value, RDFList container, EStructuralFeature eStructuralFeature) {				
+		if(value instanceof EObject && eStructuralFeature instanceof EReference) {		
+			// References
+			RDFNode valueRDFNode = rdfGraphResource.getRDFResource((EObject)value);
+			if (eStructuralFeature.isUnique()) {
+				while (container.contains(valueRDFNode)) {
+					container = container.remove(valueRDFNode);					
 				}
-				if (eStructuralFeature.isUnique()) {
-					while (container.contains(rdfNode)) {
+			} else {
+				container = container.remove(valueRDFNode);
+			}
+			return container;
+		} else {	
+			// Attributes (Literal values)
+			ExtendedIterator<RDFNode> containerItr = container.iterator();
+			while (containerItr.hasNext()) {
+				RDFNode rdfNode = containerItr.next();
+				Object deserializedValue = deserializer.deserializeValue(rdfNode, eStructuralFeature);
+				if(value.equals(deserializedValue)) {
+					if (CONSOLE_OUTPUT_ACTIVE) {
+						System.out.println(String.format("removing: %s == %s", value , deserializedValue));
+					}
+					if (eStructuralFeature.isUnique()) {
+						while (container.contains(rdfNode)) {
+							container = container.remove(rdfNode);
+						}
+					} else {
 						container = container.remove(rdfNode);
 					}
-				} else {
-					container = container.remove(rdfNode);
+					return container;
 				}
-				return container;
 			}
+			return container;
 		}
-		return container;
+		
 	}
 	
 	private void removeFromList(Object values, RDFList container, EObject onEObject, EStructuralFeature eStructuralFeature, Model model) {
@@ -634,6 +649,9 @@ public class RDFGraphResourceUpdate {
 					System.out.println("\nREMOVE objectResource: " + objectResource);
 					System.out.println("REMOVE objectResource is RDF.type: " 
 							+ objectResource.getProperty(RDF.type));
+					System.out.println("REMOVE oldValue Class: " 
+							+ oldValue.getClass());
+					
 					removeSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, oldValue);
 				}
 			}
