@@ -362,7 +362,7 @@ public class RDFGraphResourceUpdate {
 		}	
 	}
 	
-	private RDFList removeOneFromList(Object value, RDFList container, EStructuralFeature eStructuralFeature) {
+	private void removeOneFromList(Object value, RDFList container, EStructuralFeature eStructuralFeature) {
 		if(value instanceof EObject && eStructuralFeature instanceof EReference) {		
 			// References
 			RDFNode valueRDFNode = rdfGraphResource.getRDFResource((EObject)value);
@@ -373,7 +373,7 @@ public class RDFGraphResourceUpdate {
 			} else {
 				headsafeRemove(container, valueRDFNode);
 			}
-			return container;
+			return;
 		} else {	
 			// Attributes (Literal values)
 			ExtendedIterator<RDFNode> containerItr = container.iterator();
@@ -391,10 +391,10 @@ public class RDFGraphResourceUpdate {
 					} else {
 						headsafeRemove(container, rdfNode);
 					}
-					return container;
+					return;
 				}
 			}
-			return container;
+			return;
 		}
 		
 	}
@@ -406,10 +406,10 @@ public class RDFGraphResourceUpdate {
 				System.out.println(String.format("list of values to remove: %s", valueList));
 			}
 			for (Object value : valueList) {
-				container = removeOneFromList(value, container, eStructuralFeature);
+				removeOneFromList(value, container, eStructuralFeature);
 			}
 		} else {
-			container = removeOneFromList(values, container, eStructuralFeature);
+			removeOneFromList(values, container, eStructuralFeature);
 		}
 
 		// Removing the head of a list will return a new list, statements need correcting
