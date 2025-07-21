@@ -228,7 +228,7 @@ public class RDFGraphResourceUpdate {
 			}
 		}
 	}
-	
+
 	private void removeFromContainer(Object values, Container container, EObject onEObject, EStructuralFeature eStructuralFeature) {
 		if (CONSOLE_OUTPUT_ACTIVE) {
 			reportContainer("Before remove", container);
@@ -373,8 +373,6 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	private void removeFromList(Object values, RDFList container, EObject onEObject, EStructuralFeature eStructuralFeature, Model model) {
-		
-		
 		RDFList originalContainer = container;
 		if(values instanceof List<?> valueList) {
 			if (CONSOLE_OUTPUT_ACTIVE) {
@@ -386,15 +384,11 @@ public class RDFGraphResourceUpdate {
 		} else {
 			container = removeOneFromList(values, container, eStructuralFeature);
 		}
-		
-		
+	
 		// Removing the head of a list will return a new list, statements need correcting
 		if(!container.equals(originalContainer)) {
-			//System.err.println("Got a different container back: " + container.asNode() + " != " + originalContainer.asNode() );
-			newSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, container);
-			removeSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, originalContainer);
+			System.err.println("Got a different container back: " + container.asNode() + " != " + originalContainer.asNode() );			
 		}
-		
 
 		checkAndRemoveEmptyList(container, onEObject, eStructuralFeature);
 	}
