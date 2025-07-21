@@ -396,7 +396,6 @@ public class RDFGraphResourceUpdate {
 			}
 			return;
 		}
-		
 	}
 	
 	private void removeFromList(Object values, RDFList container, EObject onEObject, EStructuralFeature eStructuralFeature, Model model) {
@@ -517,11 +516,8 @@ public class RDFGraphResourceUpdate {
 	private RDFList createRDFListOnModel (Object values, Model model) {
 		List<RDFNode> rdfNodes = new ArrayList<RDFNode>();
 		if(values instanceof List<?> valuesList) {
-			
-			//valuesList.forEach(v -> rdfNodes.add(ResourceFactory.createTypedLiteral(v))); // TODO createTypedLiteral or RDFNode
 			valuesList.forEach(v -> rdfNodes.add(createValueRDFNode(v, model)));
 		} else {
-			//rdfNodes.add(ResourceFactory.createTypedLiteral(values));  // TODO createTypedLiteral or RDFNode
 			rdfNodes.add(createValueRDFNode(values, model));
 		}
 		
@@ -645,11 +641,9 @@ public class RDFGraphResourceUpdate {
 			Resource objectResource = getResourceObjectFor(onEObject, eStructuralFeature, model);
 			if ( (objectResource.hasProperty(RDF.rest) && objectResource.hasProperty(RDF.first)) 
 					|| objectResource.hasProperty(RDF.type, RDF.List) ) {				
-				//RDFList list = objectResource.as(RDFList.class);
 				RDFList list = model.getList(objectResource);
 				list.setStrict(true);
 				removeFromList(oldValue, list, onEObject, eStructuralFeature, model);
-				//reportRDFList("main", model.getList(objectResource));
 			} else if (objectResource.equals(RDF.nil)) {
 				// Empty list
 				System.err.println("Removing from Empty list");				
