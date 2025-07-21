@@ -358,7 +358,6 @@ public class RDFGraphResourceUpdate {
 			} else {
 				container.removeList();
 			}
-			container.listProperties().forEach(s->System.out.println(" - "+s));
 		}	
 	}
 	
