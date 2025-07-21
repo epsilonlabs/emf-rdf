@@ -660,12 +660,7 @@ public class RDFGraphResourceUpdate {
 				}
 
 				if(objectResource.isResource()) {
-					System.out.println("\nREMOVE objectResource: " + objectResource);
-					System.out.println("REMOVE objectResource is RDF.type: " 
-							+ objectResource.getProperty(RDF.type));
-					System.out.println("REMOVE oldValue Class: " 
-							+ oldValue.getClass());
-					
+					if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("REMOVE single statement Multi-Value objectResource: " + objectResource);}				
 					removeSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, oldValue);
 				}
 			}
@@ -709,15 +704,18 @@ public class RDFGraphResourceUpdate {
 				Seq seq = model.getSeq(objectResource);
 				addToSequence(newValue, seq, position);
 			} else {
-				// The first item is might look like a single value EAttribute
+				//TODO investigate what is happening in here...
+				
+				// The first item is might look like a single value EAttribute, need to convert to a list/bag/sequence
 				if(objectResource.isLiteral()) {
 					System.err.println("Multi-value objectResource.isLiteral()? objectResource: " + objectResource );
 					return;
 				}
 				if(objectResource.isResource()) {
-					System.out.println("\nADD objectResource: " + objectResource);
-					System.out.println("ADD objectResource is RDF.type: " + objectResource.getProperty(RDF.type));
+					if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\nADD single value Multi-Value objectResource: " + objectResource);}
+					System.err.println("\nADD single value Multi-Value objectResource: " + objectResource);
 					newSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, newValue);
+					printModelToConsole(model, "Added to model? ");
 					return;
 				}
 			}
