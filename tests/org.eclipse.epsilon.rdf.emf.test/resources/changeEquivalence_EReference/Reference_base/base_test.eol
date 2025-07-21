@@ -14,6 +14,7 @@ for (p in Project.all) {
 		e.id.println("    * Effort (id):  ");
 		e.person.id.println("    * Effort - person (id):  ");
 		e.percentage.println( "    * Effort - percentage % ");
+		}	
 	}
 }
 
