@@ -335,7 +335,24 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 	
-	private RDFList removeOneFromList(Object value, RDFList container, EStructuralFeature eStructuralFeature) {				
+	private void headsafeRemove(RDFList container, RDFNode rdfNode) {
+		// Fixes the blank node for the list when value is removed from the head
+		RDFList newContainer;
+		newContainer = container.remove(rdfNode);
+		if (!newContainer.equals(container)) {
+			container.addProperty(RDF.first, RDF.nil);
+			container.addProperty(RDF.rest, RDF.nil);
+			if (!newContainer.isEmpty()) {
+				container.setHead(newContainer.getHead());
+				newContainer.removeList();
+			} else {
+				container.removeList();
+			}
+			container.listProperties().forEach(s->System.out.println(" - "+s));
+		}	
+	}
+	
+	private RDFList removeOneFromList(Object value, RDFList container, EStructuralFeature eStructuralFeature) {
 		if(value instanceof EObject && eStructuralFeature instanceof EReference) {		
 			// References
 			RDFNode valueRDFNode = rdfGraphResource.getRDFResource((EObject)value);
