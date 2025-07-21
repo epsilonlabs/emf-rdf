@@ -367,11 +367,11 @@ public class RDFGraphResourceUpdate {
 			// References
 			RDFNode valueRDFNode = rdfGraphResource.getRDFResource((EObject)value);
 			if (eStructuralFeature.isUnique()) {
-				while (container.contains(valueRDFNode)) {
-					container = container.remove(valueRDFNode);					
+				while (container.isValid() && container.contains(valueRDFNode)) {
+					headsafeRemove(container, valueRDFNode);
 				}
 			} else {
-				container = container.remove(valueRDFNode);
+				headsafeRemove(container, valueRDFNode);
 			}
 			return container;
 		} else {	
@@ -385,11 +385,11 @@ public class RDFGraphResourceUpdate {
 						System.out.println(String.format("removing: %s == %s", value , deserializedValue));
 					}
 					if (eStructuralFeature.isUnique()) {
-						while (container.contains(rdfNode)) {
-							container = container.remove(rdfNode);
+						while (container.isValid() && container.contains(rdfNode)) {
+							headsafeRemove(container, rdfNode);
 						}
 					} else {
-						container = container.remove(rdfNode);
+						headsafeRemove(container, rdfNode);
 					}
 					return container;
 				}
