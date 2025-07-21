@@ -330,14 +330,14 @@ public class RDFGraphResourceUpdate {
 		Model model = container.getModel();
 
 		if(!container.isValid()) {
-			System.err.println("Removing invalid (empty) container:" + container.asResource());
+			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("Removing invalid (empty) container:" + container.asResource());}
 			Statement stmtToRemove = createStatement(onEObject, eStructuralFeature, container.asResource());
 			model.remove(stmtToRemove);
 			return;
 		}
 		
 		if(container.isEmpty()) {
-			System.err.println("Removing empty container:" + container.asResource());
+			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("Removing empty container:" + container.asResource());}
 			container.removeList();
 			Statement stmtToRemove = createStatement(onEObject, eStructuralFeature, container.asResource());
 			model.remove(stmtToRemove);
