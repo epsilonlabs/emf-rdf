@@ -327,11 +327,21 @@ public class RDFGraphResourceUpdate {
 	// List statement operations	
 	
 	private void checkAndRemoveEmptyList(RDFList container, EObject onEObject, EStructuralFeature eStructuralFeature) {
-		Model model = container.getModel();
-		if(container.isEmpty()) {
-			Resource object = getResourceObjectFor(onEObject, eStructuralFeature, model);
-			Statement stmtToRemove = createStatement(onEObject, eStructuralFeature, object);
+		Model model = container.getModel();	
+
+		if(!container.isValid()) {
+			System.err.println("Removing invalid (empty) container:" + container.asResource());
+			Statement stmtToRemove = createStatement(onEObject, eStructuralFeature, container.asResource());
 			model.remove(stmtToRemove);
+			return;
+		}
+		
+		if(container.isEmpty()) {
+			System.err.println("Removing empty container:" + container.asResource());
+			container.removeList();
+			Statement stmtToRemove = createStatement(onEObject, eStructuralFeature, container.asResource());
+			model.remove(stmtToRemove);
+			return;
 		}
 	}
 	
@@ -401,7 +411,7 @@ public class RDFGraphResourceUpdate {
 		} else {
 			container = removeOneFromList(values, container, eStructuralFeature);
 		}
-	
+
 		// Removing the head of a list will return a new list, statements need correcting
 		if(!container.equals(originalContainer)) {
 			System.err.println("Got a different container back: " + container.asNode() + " != " + originalContainer.asNode() );			
