@@ -327,7 +327,7 @@ public class RDFGraphResourceUpdate {
 	// List statement operations	
 	
 	private void checkAndRemoveEmptyList(RDFList container, EObject onEObject, EStructuralFeature eStructuralFeature) {
-		Model model = container.getModel();	
+		Model model = container.getModel();
 
 		if(!container.isValid()) {
 			System.err.println("Removing invalid (empty) container:" + container.asResource());
