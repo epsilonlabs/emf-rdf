@@ -82,7 +82,12 @@ public class RDFGraphResourceUpdate {
 		}		
 	}
 	
-	private RDFNode createValueRDFNode(Object value, Model model) {		
+	private RDFNode createValueRDFNode(Object value, Model model) {
+
+		if(value instanceof Resource) {
+			return (RDFNode) value;
+		}
+		
 		if(value instanceof EObject) {
 			// get from the model or make one
 			Resource valueResource = rdfGraphResource.getRDFResource((EObject)value);
