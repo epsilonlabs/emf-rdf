@@ -350,7 +350,7 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 	
-	private void headsafeRemove(RDFList container, RDFNode rdfNode) {
+	private void headSafeRemove(RDFList container, RDFNode rdfNode) {
 		// Fixes the blank node for the list when value is removed from the head
 		RDFList newContainer;
 		newContainer = container.remove(rdfNode);
@@ -372,10 +372,10 @@ public class RDFGraphResourceUpdate {
 			RDFNode valueRDFNode = rdfGraphResource.getRDFResource((EObject)value);
 			if (eStructuralFeature.isUnique()) {
 				while (container.isValid() && container.contains(valueRDFNode)) {
-					headsafeRemove(container, valueRDFNode);
+					headSafeRemove(container, valueRDFNode);
 				}
 			} else {
-				headsafeRemove(container, valueRDFNode);
+				headSafeRemove(container, valueRDFNode);
 			}
 			return;
 		} else {	
@@ -390,10 +390,10 @@ public class RDFGraphResourceUpdate {
 					}
 					if (eStructuralFeature.isUnique()) {
 						while (container.isValid() && container.contains(rdfNode)) {
-							headsafeRemove(container, rdfNode);
+							headSafeRemove(container, rdfNode);
 						}
 					} else {
-						headsafeRemove(container, rdfNode);
+						headSafeRemove(container, rdfNode);
 					}
 					return;
 				}
