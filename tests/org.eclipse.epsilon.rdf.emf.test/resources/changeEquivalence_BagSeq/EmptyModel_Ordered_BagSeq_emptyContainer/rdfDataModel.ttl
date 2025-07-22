@@ -5,12 +5,12 @@ PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX simple: <http://eclipse.org/epsilon/rdf/changeEquivalence#>
 PREFIX xsd:    <http://www.w3.org/2001/XMLSchema#>
 
-<http://example/org/firstEntity>
-        rdf:type                   simple:Entity;
-        simple:label               "EmptyModelEntity";
-        simple:names               [ rdf:type  rdf:Seq ] .
-
 <http://example/org/theModel>
         rdf:type         simple:Model;
         simple:entities  <http://example/org/firstEntity>;
         simple:label     "EmptyModel" .
+
+<http://example/org/firstEntity>
+        rdf:type                   simple:Entity;
+        simple:label               "EmptyModelEntity";
+        simple:names               [ rdf:type  rdf:Seq ] .
