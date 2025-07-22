@@ -597,11 +597,13 @@ public class RDFGraphResourceUpdate {
 		
 		// EAttribute has a default value no statements in the RDF to match
 		if (oldValue.equals(eStructuralFeature.getDefaultValue())) {
-			{
+			if (CONSOLE_OUTPUT_ACTIVE) {
 				System.out.println(String.format(
-						"Old statement not found, but the oldvalue matches the models default value, so there might not be a statement.\nAdding a statement to the first model. default value %s - old value %s ",
+						"Old statement not found, but the oldvalue matches the models default value, so there might not be a statement."
+						+ "\n Remove - default value %s - old value %s ",
 						eStructuralFeature.getDefaultValue(), oldValue));					
 			}
+			return;
 		}
 
 		// Couldn't find old statement through either object-to-literal or
@@ -659,14 +661,13 @@ public class RDFGraphResourceUpdate {
 				removeFromSeq(oldValue, seq, onEObject, eStructuralFeature);
 			} else {
 				// The first item is might look like a single value EAttribute
+				removeSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, oldValue);
 				if(objectResource.isLiteral()) {
 					System.err.println("Multi-value objectResource.isLiteral()? objectResource: " + objectResource );
 					return;
 				}
-
 				if(objectResource.isResource()) {
 					if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("REMOVE single statement Multi-Value objectResource: " + objectResource);}				
-					removeSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, oldValue);
 				}
 			}
 		} else {
