@@ -265,6 +265,7 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	private void addToSequence(Object values, Seq container, int position) {
+		Model model = container.getModel();
 		if (CONSOLE_OUTPUT_ACTIVE) {
 			reportContainer("Before add to container ", container);
 		}
@@ -276,11 +277,11 @@ public class RDFGraphResourceUpdate {
 				if (CONSOLE_OUTPUT_ACTIVE) {
 					System.out.println(String.format("inserting: %s %s", position, v));
 				}
-				container.add(position, v);
+				container.add(position, createValueRDFNode(v, model));
 			}
 		} else {
 			// Assume values is a single value
-			container.add(++position, values);
+			container.add(++position, createValueRDFNode(values, model));
 		}
 
 		if (CONSOLE_OUTPUT_ACTIVE) {
