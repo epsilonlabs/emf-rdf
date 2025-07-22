@@ -692,8 +692,8 @@ public class RDFGraphResourceUpdate {
 			
 			Resource objectResource = getResourceObjectFor(onEObject, eStructuralFeature, model);
 			// If we have one of these types, then we are updating an existing statement on a model
-			if ( (objectResource.hasProperty(RDF.rest) && objectResource.hasProperty(RDF.first)) 
-						|| objectResource.hasProperty(RDF.type, RDF.List) ) {
+			if ( objectResource.hasProperty(RDF.type, RDF.List)
+					|| (objectResource.hasProperty(RDF.rest) && objectResource.hasProperty(RDF.first))) {
 				// Lists can be ordered or unique, both or none.
 				RDFList list = model.getList(objectResource);
 				addToList(newValue, list, position, eStructuralFeature, onEObject);
@@ -709,37 +709,32 @@ public class RDFGraphResourceUpdate {
 				Seq seq = model.getSeq(objectResource);
 				addToSequence(newValue, seq, position);
 			} else {
-				//TODO investigate what is happening in here...
-				
-				// The first item is might look like a single value EAttribute, need to convert to a list/bag/sequence
-				if(objectResource.isLiteral()) {
-					System.err.println("Multi-value objectResource.isLiteral()? objectResource: " + objectResource );
-					return;
+				// There is a statement for the first value, with no container structure
+				Object firstValue = objectResource;
+				if (preferListsForMultiValues) {
+					// List
+					RDFList list = newList(model, onEObject, eStructuralFeature, firstValue);
+					addToList(newValue, list, position, eStructuralFeature, onEObject);
+				} else {
+					if (eStructuralFeature.isOrdered()) {
+						// Sequence					
+						Seq sequence = newSequence(model, onEObject, eStructuralFeature);
+						addToSequence(firstValue, sequence , 0);
+						addToSequence(newValue, sequence, position);
+					} else {
+						// Bag
+						Bag bag = newBag(model, onEObject, eStructuralFeature);
+						addToBag(firstValue, bag);
+						addToBag(newValue, bag);
+					}				
 				}
-				if(objectResource.isResource()) {
-					if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\nADD single value Multi-Value objectResource: " + objectResource);}
-					System.err.println("\nADD single value Multi-Value objectResource: " + objectResource);
-					newSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, newValue);
-					printModelToConsole(model, "Added to model? ");
-					return;
-				}
+				removeSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, firstValue);
 			}
 			return;
 		} else {
-			// Does not exist anywhere so we need a NEW RDF representation			
-			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n No existing container, making a new one");}
-			
-			if (preferListsForMultiValues) {
-				newList(model, onEObject, eStructuralFeature, newValue);
-			} else {
-				if (eStructuralFeature.isOrdered()) {
-					// Sequence
-					addToSequence(newValue, newSequence(model, onEObject, eStructuralFeature), 0);
-				} else {
-					// Bag
-					addToBag(newValue, newBag(model, onEObject, eStructuralFeature));
-				}				
-			}
+			// Does not exist anywhere so we need a NEW RDF representation
+			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n No existing container, first value is a statement");}
+			newSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, newValue);
 			return;
 		}
 	}
