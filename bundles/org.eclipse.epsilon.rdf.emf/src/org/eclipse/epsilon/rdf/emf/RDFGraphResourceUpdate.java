@@ -351,7 +351,7 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 	
-	private void headSafeRemove(RDFList container, RDFNode rdfNode) {
+	private void headSafeRemoveFromList(RDFList container, RDFNode rdfNode) {
 		// Fixes the blank node for the list when value is removed from the head
 		RDFList newContainer;
 		newContainer = container.remove(rdfNode);
@@ -367,17 +367,22 @@ public class RDFGraphResourceUpdate {
 		}	
 	}
 	
-	private void removeOneFromList(Object value, RDFList container, EStructuralFeature eStructuralFeature) {
+	private void removeOneValueFromListHandleUnique(RDFList container, EStructuralFeature eStructuralFeature,
+			RDFNode valueRDFNode) {
+		if (eStructuralFeature.isUnique()) {
+			while (container.isValid() && container.contains(valueRDFNode)) {
+				headSafeRemoveFromList(container, valueRDFNode);
+			}
+		} else {
+			headSafeRemoveFromList(container, valueRDFNode);
+		}
+	}
+	
+	private void removeOneValueFromList(Object value, RDFList container, EStructuralFeature eStructuralFeature) {
 		if(value instanceof EObject && eStructuralFeature instanceof EReference) {		
 			// References
 			RDFNode valueRDFNode = rdfGraphResource.getRDFResource((EObject)value);
-			if (eStructuralFeature.isUnique()) {
-				while (container.isValid() && container.contains(valueRDFNode)) {
-					headSafeRemove(container, valueRDFNode);
-				}
-			} else {
-				headSafeRemove(container, valueRDFNode);
-			}
+			removeOneValueFromListHandleUnique(container, eStructuralFeature, valueRDFNode);
 			return;
 		} else {	
 			// Attributes (Literal values)
@@ -389,13 +394,7 @@ public class RDFGraphResourceUpdate {
 					if (CONSOLE_OUTPUT_ACTIVE) {
 						System.out.println(String.format("removing: %s == %s", value , deserializedValue));
 					}
-					if (eStructuralFeature.isUnique()) {
-						while (container.isValid() && container.contains(rdfNode)) {
-							headSafeRemove(container, rdfNode);
-						}
-					} else {
-						headSafeRemove(container, rdfNode);
-					}
+					removeOneValueFromListHandleUnique(container, eStructuralFeature, rdfNode);
 					return;
 				}
 			}
@@ -410,10 +409,10 @@ public class RDFGraphResourceUpdate {
 				System.out.println(String.format("list of values to remove: %s", valueList));
 			}
 			for (Object value : valueList) {
-				removeOneFromList(value, container, eStructuralFeature);
+				removeOneValueFromList(value, container, eStructuralFeature);
 			}
 		} else {
-			removeOneFromList(values, container, eStructuralFeature);
+			removeOneValueFromList(values, container, eStructuralFeature);
 		}
 
 		// Removing the head of a list will return a new list, statements need correcting
