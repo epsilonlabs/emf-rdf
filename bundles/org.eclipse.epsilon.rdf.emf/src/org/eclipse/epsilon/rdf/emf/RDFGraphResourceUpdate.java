@@ -662,6 +662,8 @@ public class RDFGraphResourceUpdate {
 			} else {
 				// The first item is might look like a single value EAttribute
 				removeSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, oldValue);
+				
+				//TODO Remove the if statements below for literal and resource checking on multi-value remove
 				if(objectResource.isLiteral()) {
 					System.err.println("Multi-value objectResource.isLiteral()? objectResource: " + objectResource );
 					return;
