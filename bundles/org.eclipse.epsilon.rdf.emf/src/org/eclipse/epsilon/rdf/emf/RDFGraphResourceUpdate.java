@@ -53,7 +53,7 @@ public class RDFGraphResourceUpdate {
 	public RDFGraphResourceUpdate(RDFDeserializer deserializer, RDFGraphResourceImpl rdfGraphResource, MultiValueAttributeMode multiValueMode) {
 		this.deserializer = deserializer;
 		this.rdfGraphResource = rdfGraphResource;
-		this.preferListsForMultiValues = MultiValueAttributeMode.LIST == multiValueMode;
+		this.preferListsForMultiValues = multiValueMode.equals(MultiValueAttributeMode.LIST);
 	}
 
 	//
