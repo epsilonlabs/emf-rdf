@@ -85,13 +85,18 @@ public class RDFGraphResourceUpdate {
 	private RDFNode createValueRDFNode(Object value, Model model) {
 
 		if(value instanceof Resource) {
-			return (RDFNode) value;
+			return (Resource) value;
+		}
+		
+		if (value instanceof Literal) {
+			return (Literal) value;
 		}
 		
 		if(value instanceof EObject) {
-			// get from the model or make one
+			// get Resource for EObject from the model or make one
 			Resource valueResource = rdfGraphResource.getRDFResource((EObject)value);
 			if(null == valueResource) {
+				// TODO create RDF statements for new EObjects
 				Resource newResource = ResourceFactory.createResource();
 				System.err.println("Created a new Resource node: " + newResource);
 				return newResource;
@@ -171,14 +176,8 @@ public class RDFGraphResourceUpdate {
 		// PREDICATE
 		Property property = createProperty(eStructuralFeature);
 		// OBJECT
-		RDFNode object;
-		if(value instanceof Resource) {
-			object = (Resource) value;
-		} else {
-			object = createValueRDFNode(value, (rdfGraphResource.getFirstNamedModelResource()).getModel());
-		}
+		RDFNode object = createValueRDFNode(value, (rdfGraphResource.getFirstNamedModelResource()).getModel());
 		return ResourceFactory.createStatement(rdfNode, property, object);
-		
 	}
 
 	//
