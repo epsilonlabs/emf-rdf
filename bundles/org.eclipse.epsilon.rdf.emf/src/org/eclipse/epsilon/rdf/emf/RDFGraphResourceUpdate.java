@@ -501,13 +501,8 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	private RDFList newList(Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object values) {		
-		// SUBJECT
-		Resource subjectNode = rdfGraphResource.getRDFResource(onEObject);
-		// PREDICATE
-		Property property = createProperty(eStructuralFeature);
-		// OBJECT
 		RDFList objectNode = createRDFListOnModel(values, model);
-		model.add(subjectNode, property, objectNode);
+		model.add(createStatement(onEObject, eStructuralFeature, objectNode));
 		return objectNode;
 	}
 	
