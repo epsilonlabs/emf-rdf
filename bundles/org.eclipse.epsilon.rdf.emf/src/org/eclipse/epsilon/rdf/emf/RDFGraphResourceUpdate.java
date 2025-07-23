@@ -126,9 +126,7 @@ public class RDFGraphResourceUpdate {
 		if(model.contains(rdfNode, property)) {	
 			return model.getProperty(rdfNode, property).getObject();
 		} else {
-			if (CONSOLE_OUTPUT_ACTIVE) {
-				System.out.println(String.format(" %s RDF Node missing property %s : ", rdfNode, property));
-			}
+			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format(" %s RDF Node missing property %s : ", rdfNode, property));}
 			return null;
 		}
 	}
@@ -205,9 +203,7 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	private void searchContainerAndRemoveValue(Object value, Container container, EStructuralFeature sf) {
-		if (CONSOLE_OUTPUT_ACTIVE) {
-			System.out.println("Remove from container: " + value);
-		}
+		if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("Remove from container: " + value);}
 
 		List<Statement> containerPropertyStatements = container.listProperties().toList();
 		Iterator<Statement> cpsItr = containerPropertyStatements.iterator();
@@ -235,9 +231,7 @@ public class RDFGraphResourceUpdate {
 	}
 
 	private void removeFromContainer(Object values, Container container, EObject onEObject, EStructuralFeature eStructuralFeature) {
-		if (CONSOLE_OUTPUT_ACTIVE) {
-			reportContainer("Before remove", container);
-		}
+		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("Before remove", container);}
 		
 		EStructuralFeature sf = eStructuralFeature.eContainingFeature();
 		if(values instanceof EList<?>) { 
@@ -248,9 +242,7 @@ public class RDFGraphResourceUpdate {
 			searchContainerAndRemoveValue(values, container, sf);
 		}
 		
-		if (CONSOLE_OUTPUT_ACTIVE) {
-			reportContainer("After remove", container);
-		}
+		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("After remove", container);}
 		
 		// Check if container is empty (size 0), remove the blank node if true
 		checkAndRemoveEmptyContainers(container, onEObject, eStructuralFeature);
@@ -266,9 +258,7 @@ public class RDFGraphResourceUpdate {
 	
 	private void addToSequence(Object values, Seq container, int position) {
 		Model model = container.getModel();
-		if (CONSOLE_OUTPUT_ACTIVE) {
-			reportContainer("Before add to container ", container);
-		}
+		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("Before add to container ", container);}
 
 		if(values instanceof List) {			
 			List<?> list = (List<?>) values;
@@ -284,15 +274,11 @@ public class RDFGraphResourceUpdate {
 			container.add(++position, createValueRDFNode(values, model));
 		}
 
-		if (CONSOLE_OUTPUT_ACTIVE) {
-			reportContainer("After add to container ", container);
-		}
+		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("After add to container ", container);}
 	}
 
 	private void addToBag(Object values, Bag container) {
-		if (CONSOLE_OUTPUT_ACTIVE) {
-			reportContainer("Before add to container ", container);
-		}
+		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("Before add to container ", container);}
 
 		if(values instanceof Collection) {
 			Collection<?> list = (Collection<?>) values;
@@ -302,9 +288,7 @@ public class RDFGraphResourceUpdate {
 			container.add(values);
 		}
 
-		if (CONSOLE_OUTPUT_ACTIVE) {
-			reportContainer("After add to container ", container);
-		}
+		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("After add to container ", container);}
 	}
 	
 	private Seq newSequence(Model model, EObject onEObject, EStructuralFeature eStructuralFeature) {
@@ -415,9 +399,7 @@ public class RDFGraphResourceUpdate {
 	private void removeFromList(Object values, RDFList container, EObject onEObject, EStructuralFeature eStructuralFeature, Model model) {
 		RDFList originalContainer = container;
 		if(values instanceof List<?> valueList) {
-			if (CONSOLE_OUTPUT_ACTIVE) {
-				System.out.println(String.format("list of values to remove: %s", valueList));
-			}
+			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("list of values to remove: %s", valueList));}
 			for (Object value : valueList) {
 				removeOneValueFromList(value, container, eStructuralFeature);
 			}
@@ -501,9 +483,7 @@ public class RDFGraphResourceUpdate {
 				++i;
 			}
 			
-			if (CONSOLE_OUTPUT_ACTIVE) {
-				System.out.println("[Insert at node] " + insertAtNode);
-			}
+			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("Insert at node: " + insertAtNode);}
 			
 			// Get the tail end of the current container list after the node we insert at.
 			RDFList oldTail = insertAtNode.getProperty(RDF.rest).getList();
@@ -514,9 +494,7 @@ public class RDFGraphResourceUpdate {
 			// Append the new values to the current container values
 			container.concatenate(newList);
 
-			if (CONSOLE_OUTPUT_ACTIVE) {
-				System.out.println("[OLD Tail] " + oldTail);
-			}
+			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("Old Tail: " + oldTail);}
 
 			// Append the tail end of values we saved above from the original container lists
 			container.concatenate(oldTail);
