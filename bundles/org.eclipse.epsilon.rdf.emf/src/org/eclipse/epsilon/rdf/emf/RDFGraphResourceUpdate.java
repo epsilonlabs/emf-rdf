@@ -45,6 +45,7 @@ import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl.MultiValueAttributeMode;
 public class RDFGraphResourceUpdate {
 	
 	static final boolean CONSOLE_OUTPUT_ACTIVE = false;
+	static private boolean SINGLE_MULTIVALUES_AS_STATEMENT = true;
 	
 	private boolean preferListsForMultiValues = false;
 	private RDFDeserializer deserializer;
@@ -185,16 +186,21 @@ public class RDFGraphResourceUpdate {
 	
 	private void checkAndRemoveEmptyContainers(Container container, EObject onEObject, EStructuralFeature eStructuralFeature) {
 		Model model = container.asResource().getModel();
-		if (model.containsResource(container)) {
-			if (0 == container.size()) {
-				if (CONSOLE_OUTPUT_ACTIVE) {
-					System.out.println("\n Removing empty container: container");
-				}
-				container.removeAll(RDF.type);
-				Resource subjectNode = rdfGraphResource.getRDFResource(onEObject);
-				Property property = createProperty(eStructuralFeature);
-				model.remove(subjectNode, property, container);
-			}
+
+		if (1 == container.size() && SINGLE_MULTIVALUES_AS_STATEMENT) {
+			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n Removing container with 1 item replacing with statement: " + container);}
+			RDFNode firstValue = container.iterator().next();
+			container.removeProperties();
+			model.remove(createStatement(onEObject, eStructuralFeature, container));
+			model.add(createStatement(onEObject, eStructuralFeature, firstValue));
+			return;
+		}
+		
+		if (0 == container.size()) {
+			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n Removing empty container: " + container);}
+			container.removeProperties();
+			model.remove(createStatement(onEObject, eStructuralFeature, container));
+			return;
 		}
 	}
 	
@@ -336,11 +342,21 @@ public class RDFGraphResourceUpdate {
 			return;
 		}
 		
+		if(1 == container.size() && SINGLE_MULTIVALUES_AS_STATEMENT) {
+			// TODO convert list with 1 item to single statement
+			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("Removing container with 1 item and making a statement:" + container.asResource());}
+			RDFNode firstValue = container.iterator().next();
+			container.removeList();
+			model.remove(createStatement(onEObject, eStructuralFeature, container.asResource()));
+			model.add(createStatement(onEObject, eStructuralFeature, firstValue));
+			return;
+		}
+		
+		
 		if(container.isEmpty()) {
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("Removing empty container:" + container.asResource());}
 			container.removeList();
-			Statement stmtToRemove = createStatement(onEObject, eStructuralFeature, container.asResource());
-			model.remove(stmtToRemove);
+			model.remove (createStatement(onEObject, eStructuralFeature, container.asResource()));
 			return;
 		}
 	}
