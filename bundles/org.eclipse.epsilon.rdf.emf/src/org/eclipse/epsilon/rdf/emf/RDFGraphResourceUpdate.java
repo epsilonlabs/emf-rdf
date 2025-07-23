@@ -170,15 +170,14 @@ public class RDFGraphResourceUpdate {
 		return matchedStatementList.get(0); // Only return the first statement found
 	}
 
-	private Statement createStatement(EObject eObject, EStructuralFeature eStructuralFeature, Object value) {
+	private Statement createStatement(EObject eObject, EStructuralFeature eStructuralFeature, Object value, Model model) {
 		// A statement is formed as "subject–predicate–object"
-
 		// SUBJECT
 		Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
 		// PREDICATE
 		Property property = createProperty(eStructuralFeature);
 		// OBJECT
-		RDFNode object = createValueRDFNode(value, (rdfGraphResource.getFirstNamedModelResource()).getModel());
+		RDFNode object = createValueRDFNode(value, model);
 		return ResourceFactory.createStatement(rdfNode, property, object);
 	}
 
@@ -192,15 +191,15 @@ public class RDFGraphResourceUpdate {
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n Removing container with 1 item replacing with statement: " + container);}
 			RDFNode firstValue = container.iterator().next();
 			container.removeProperties();
-			model.remove(createStatement(onEObject, eStructuralFeature, container));
-			model.add(createStatement(onEObject, eStructuralFeature, firstValue));
+			model.remove(createStatement(onEObject, eStructuralFeature, container, model));
+			model.add(createStatement(onEObject, eStructuralFeature, firstValue, model));
 			return;
 		}
 		
 		if (0 == container.size()) {
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n Removing empty container: " + container);}
 			container.removeProperties();
-			model.remove(createStatement(onEObject, eStructuralFeature, container));
+			model.remove(createStatement(onEObject, eStructuralFeature, container, model));
 			return;
 		}
 	}
@@ -296,13 +295,13 @@ public class RDFGraphResourceUpdate {
 	
 	private Seq newSequence(Model model, EObject onEObject, EStructuralFeature eStructuralFeature) {
 		Seq objectNode = model.createSeq();
-		model.add(createStatement(onEObject, eStructuralFeature, objectNode));
+		model.add(createStatement(onEObject, eStructuralFeature, objectNode, model));
 		return objectNode;
 	}
 	
 	private Bag newBag(Model model, EObject onEObject, EStructuralFeature eStructuralFeature) {
 		Bag objectNode = model.createBag();
-		model.add(createStatement(onEObject, eStructuralFeature, objectNode));
+		model.add(createStatement(onEObject, eStructuralFeature, objectNode, model));
 		return objectNode;
 	}
 	
@@ -314,7 +313,7 @@ public class RDFGraphResourceUpdate {
 
 		if(!container.isValid()) {
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("Removing invalid (empty) container:" + container.asResource());}
-			Statement stmtToRemove = createStatement(onEObject, eStructuralFeature, container.asResource());
+			Statement stmtToRemove = createStatement(onEObject, eStructuralFeature, container.asResource(), model);
 			model.remove(stmtToRemove);
 			return;
 		}
@@ -324,8 +323,8 @@ public class RDFGraphResourceUpdate {
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("Removing container with 1 item and making a statement:" + container.asResource());}
 			RDFNode firstValue = container.iterator().next();
 			container.removeList();
-			model.remove(createStatement(onEObject, eStructuralFeature, container.asResource()));
-			model.add(createStatement(onEObject, eStructuralFeature, firstValue));
+			model.remove(createStatement(onEObject, eStructuralFeature, container.asResource(), model));
+			model.add(createStatement(onEObject, eStructuralFeature, firstValue, model));
 			return;
 		}
 		
@@ -333,7 +332,7 @@ public class RDFGraphResourceUpdate {
 		if(container.isEmpty()) {
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("Removing empty container:" + container.asResource());}
 			container.removeList();
-			model.remove (createStatement(onEObject, eStructuralFeature, container.asResource()));
+			model.remove (createStatement(onEObject, eStructuralFeature, container.asResource(), model));
 			return;
 		}
 	}
@@ -440,8 +439,8 @@ public class RDFGraphResourceUpdate {
 			}
 
 			if (0 == position) {
-				model.remove(createStatement(onEObject, eStructuralFeature, container));
-				model.add(createStatement(onEObject, eStructuralFeature, newList));
+				model.remove(createStatement(onEObject, eStructuralFeature, container, model));
+				model.add(createStatement(onEObject, eStructuralFeature, newList, model));
 				newList.concatenate(container);				
 				return;
 			}
@@ -502,7 +501,7 @@ public class RDFGraphResourceUpdate {
 	
 	private RDFList newList(Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object values) {		
 		RDFList objectNode = createRDFListOnModel(values, model);
-		model.add(createStatement(onEObject, eStructuralFeature, objectNode));
+		model.add(createStatement(onEObject, eStructuralFeature, objectNode, model));
 		return objectNode;
 	}
 	
@@ -523,7 +522,7 @@ public class RDFGraphResourceUpdate {
 	public void newSingleValueEStructuralFeatureStatements(Model model, EObject onEObject,
 			EStructuralFeature eStructuralFeature, Object newValue) {
 		assert newValue != null : "new value must exist";
-		Statement newStatement = createStatement(onEObject, eStructuralFeature, newValue);
+		Statement newStatement = createStatement(onEObject, eStructuralFeature, newValue, model);
 		Statement existingStatements = findEquivalentStatement(model, onEObject, eStructuralFeature, newValue);
 
 		if (!model.contains(newStatement) && null == existingStatements) {
@@ -549,7 +548,7 @@ public class RDFGraphResourceUpdate {
 		assert oldValue != null : "old value must exist";
 
 		// try object-to-literal
-		Statement oldStatement = createStatement(onEObject, eStructuralFeature, oldValue);
+		Statement oldStatement = createStatement(onEObject, eStructuralFeature, oldValue, model);
 		if (model.contains(oldStatement)) {
 			model.remove(oldStatement);
 			return;
@@ -687,7 +686,7 @@ public class RDFGraphResourceUpdate {
 					addToList(newValue, list, position, eStructuralFeature, onEObject);
 				} else if (objectResource.equals(RDF.nil)) {
 					// List - Empty lists may be represented with an RDF.nil value
-					Statement stmt = createStatement(onEObject, eStructuralFeature, objectResource);
+					Statement stmt = createStatement(onEObject, eStructuralFeature, objectResource, model);
 					model.remove(stmt);
 					newList(model, onEObject, eStructuralFeature, newValue);
 				} else if (objectResource.hasProperty(RDF.type, RDF.Bag)) {
