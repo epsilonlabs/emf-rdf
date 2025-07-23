@@ -295,22 +295,12 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	private Seq newSequence(Model model, EObject onEObject, EStructuralFeature eStructuralFeature) {
-		// SUBJECT
-		Resource subjectNode = rdfGraphResource.getRDFResource(onEObject);
-		// PREDICATE
-		Property property = createProperty(eStructuralFeature);
-		// OBJECT
 		Seq objectNode = model.createSeq();
-		model.add(subjectNode,property,objectNode);
+		model.add(createStatement(onEObject, eStructuralFeature, objectNode));
 		return objectNode;
 	}
 	
 	private Bag newBag(Model model, EObject onEObject, EStructuralFeature eStructuralFeature) {
-		// SUBJECT
-		Resource subjectNode = rdfGraphResource.getRDFResource(onEObject);
-		// PREDICATE
-		Property property = createProperty(eStructuralFeature);
-		// OBJECT
 		Bag objectNode = model.createBag();
 		model.add(subjectNode, property, objectNode);
 		return objectNode;
