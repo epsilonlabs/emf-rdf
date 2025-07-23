@@ -123,7 +123,10 @@ public class RDFGraphResourceUpdate {
 		// PREDICATE
 		Property property = createProperty(eStructuralFeature);
 		// OBJECT
-		if(model.contains(rdfNode, property)) {	
+		if(model.contains(rdfNode, property)) {
+			// TODO what happens when there are multiple statements? Are there any?
+			if (model.listObjectsOfProperty(rdfNode, property).toList().size()>1) {System.err.println("getObjectRDFNode() there is more than one object");}
+			
 			return model.getProperty(rdfNode, property).getObject();
 		} else {
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format(" %s RDF Node missing property %s : ", rdfNode, property));}
