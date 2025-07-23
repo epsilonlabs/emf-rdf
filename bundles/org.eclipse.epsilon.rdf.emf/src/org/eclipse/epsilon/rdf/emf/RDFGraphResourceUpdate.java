@@ -440,18 +440,9 @@ public class RDFGraphResourceUpdate {
 			}
 
 			if (0 == position) {
-				// Make a new list and append the old List
-				// SUBJECT
-				Resource subjectNode = rdfGraphResource.getRDFResource(onEObject);
-				// PREDICATE
-				Property property = createProperty(eStructuralFeature);
-				// OLD OBJECT - remove list statement
-				model.remove(subjectNode,property,container);
-				// NEW OBJECT - add new list statement
-				RDFList objectNode = newList;
-				model.add(subjectNode, property, objectNode);
-
-				objectNode.concatenate(container);
+				model.remove(createStatement(onEObject, eStructuralFeature, container));
+				model.add(createStatement(onEObject, eStructuralFeature, newList));
+				newList.concatenate(container);				
 				return;
 			}
 			
