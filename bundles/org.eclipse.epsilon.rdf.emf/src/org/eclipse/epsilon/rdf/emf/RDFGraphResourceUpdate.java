@@ -302,7 +302,7 @@ public class RDFGraphResourceUpdate {
 	
 	private Bag newBag(Model model, EObject onEObject, EStructuralFeature eStructuralFeature) {
 		Bag objectNode = model.createBag();
-		model.add(subjectNode, property, objectNode);
+		model.add(createStatement(onEObject, eStructuralFeature, objectNode));
 		return objectNode;
 	}
 	
