@@ -206,6 +206,27 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 
 	}
 	
+	private String eventTypeToString(int eventType) {
+		// Decode the notification event type
+		switch (eventType) {
+		case Notification.ADD:
+			return "ADD";
+		case Notification.ADD_MANY:
+			return "ADD_MANY";
+		case Notification.SET:
+			return "SET";
+		case Notification.REMOVE:
+			return "REMOVE";
+		case Notification.REMOVE_MANY:
+			return "REMOVE_MANY";
+		case Notification.UNSET:
+			return "UNSET";
+		default:
+			return "N/A";
+		}
+		
+	}
+	
 	// REPORTING code
 
 	private void reportEStructuralFeatureChange(EStructuralFeature eStructuralFeature, Object oldValue, Object newValue) {		
@@ -242,13 +263,18 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 			EReference eReferenceChanged = (EReference) eStructuralFeature;
 			// If things blow up here, then something other than EObjects can be referenced...
 			EObject oldValueEob = (EObject) oldValue;
+			int oldValueHash = 0;
 			EObject newValueEob = (EObject) newValue;
+			int newValueHash = 0;
 			
+			if(null != oldValueEob) { oldValueHash = oldValueEob.hashCode() ;}
 			
-			processTrace.append(String.format("\n - EReference changed: (%s, %s, %s)\n\t%s - %s \n\twas: %s\n\tnow: %s"
+			if(null != newValueEob) { newValueHash = newValueEob.hashCode() ;}
+			processTrace.append(String.format("\n - EReference changed: (%s, %s, %s)\n\t%s - %s \n\twas: (#%s) %s\n\tnow: (#%s) %s"
 					, order, unique, multi,
-					eReferenceChanged.getEReferenceType().getName(), eReferenceChanged.getName()
-					, getEObjectLocation(oldValueEob), getEObjectLocation((newValueEob))));
+					eReferenceChanged.getEReferenceType().getName(), eReferenceChanged.getName(),
+					oldValueHash, getEObjectLocation(oldValueEob),  
+					newValueHash, getEObjectLocation((newValueEob))));
 			return;
 		}
 		
@@ -288,7 +314,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 	}
 
 	private void reportEObjectIdentity(EObject eObject) {
-		processTrace.append(  String.format("\n - EObject : %s - %s ", eObject.eClass().getName(),
+		processTrace.append(  String.format("\n - EObject : (#%s) %s - %s ",eObject.hashCode() , eObject.eClass().getName(),
 				//EcoreUtil.getIdentification(eObject)));
 				EcoreUtil.getURI(eObject)));
 	}
