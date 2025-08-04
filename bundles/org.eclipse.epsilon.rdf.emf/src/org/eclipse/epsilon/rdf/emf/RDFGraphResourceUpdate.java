@@ -417,71 +417,36 @@ public class RDFGraphResourceUpdate {
 			reportRDFList("Before add to container ", container);
 		}
 		Model model = container.getModel();
-
 		RDFList newList = createRDFListOnModel(values, model);
 
 		// Un-ordered lists should be handed with these two methods
 		if (container.isEmpty()) {
-			// This should never happen, empty is handled elsewhere
+			// This should never happen: empty is handled elsewhere
 			container.concatenate(newList);
 		} else if (!eStructuralFeature.isOrdered()) {
 			container.concatenate(newList);
-		} else {
-			// Ordered lists that are not empty will be handled with the methods below.
-			if (container.size() == position) {
-				// Append new list to existing list on model
-				container.concatenate(newList);
-				return;
-			}
-
-			if (0 == position) {
-				model.remove(createStatement(model, onEObject, eStructuralFeature, container));
-				model.add(createStatement(model, onEObject, eStructuralFeature, newList));
-				newList.concatenate(container);
-				return;
-			}
-			
-			// Split the existing list and insert the new list
-			
-			// EMF/Epsilon will complain if you try to add at a position beyond the size of the list
-			int listIndex = 0;
-			if (position > 0) {
-				// TODO this is not needed - reconsider the access to RDF.rest after the loop (for oldTail)
-				listIndex = position - 1;
-			}
-
-			if (CONSOLE_OUTPUT_ACTIVE) {
-				System.out.println(String.format("\n [ORDERED insert] headNode: %s -- listIndex: %s -- posNode %s \n",
-					container.getHead(), listIndex, container.get(listIndex)));
-			}
-			
-			// Run down the list via RDF.rest to the node at the index position
-			int i = 0;
-			Resource insertAtNode = container;
-			while (i < listIndex) {
-				insertAtNode = insertAtNode.getProperty(RDF.rest).getResource();
-				++i;
-			}
-			
-			if (CONSOLE_OUTPUT_ACTIVE) {
-				System.out.println("Insert at node: " + insertAtNode);
-			}
-			
-			// Get the tail end of the current container list after the node we insert at.
-			RDFList oldTail = insertAtNode.getProperty(RDF.rest).getList();
-			
-			// Cut off the tail end of the current container list
-			insertAtNode.getProperty(RDF.rest).changeObject(RDF.nil);
-			
-			// Append the new values to the current container values
+		} else if (container.size() == position) {
+			// Append new list to existing list on model
 			container.concatenate(newList);
-
-			if (CONSOLE_OUTPUT_ACTIVE) {
-				System.out.println("Old Tail: " + oldTail);
+		} else if (0 == position) {
+			// Add new list at the beginning of existing list
+			model.remove(createStatement(model, onEObject, eStructuralFeature, container));
+			model.add(createStatement(model, onEObject, eStructuralFeature, newList));
+			newList.concatenate(container);
+		} else {
+			// Splice new list into the middle of the list:
+			// we find the splice point by looping head/tail
+			// over the list
+			RDFList head = container;
+			RDFList tail = head.getTail();
+			for (int i = 1; i < position; i++) {
+				head = tail;
+				tail = head.getTail();
 			}
 
-			// Append the tail end of values we saved above from the original container lists
-			container.concatenate(oldTail);
+			// Updated list is head -- newList -- tail
+			newList.concatenate(tail);
+			head.setTail(newList);
 		}
 	}
 
