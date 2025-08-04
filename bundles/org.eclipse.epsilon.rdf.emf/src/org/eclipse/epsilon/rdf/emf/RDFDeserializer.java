@@ -51,7 +51,6 @@ import org.eclipse.emf.ecore.EPackage.Registry;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcorePackage;
-import org.eclipse.emf.ecore.util.EcoreUtil;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -298,11 +297,6 @@ public class RDFDeserializer {
 			eobToResource.put(eob, node);
 			resourceToEob.put(node, eob);
 		}
-	}
-		
-	public String whichEOB (EObject eob) {		
-		String eobLocation= String.format("%s.%s.%s",EcoreUtil.getURI(eob),eob.eClass().getName(),eob.eClass().getClassifierID());
-		return eobLocation;
 	}
 
 }

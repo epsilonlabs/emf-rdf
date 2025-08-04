@@ -62,7 +62,7 @@ import org.junit.Test;
  */
 public abstract class AbstractChangeEquivalenceTest {
 	
-	static boolean CONSOLE_OUTPUT_ACTIVE = false;
+	private final boolean isConsoleOutputActive;
 	
 	protected final File eolTestFile;
 	protected final File eolTestFolder;
@@ -74,7 +74,7 @@ public abstract class AbstractChangeEquivalenceTest {
 	public AbstractChangeEquivalenceTest(File eolTestFile, boolean outputToConsole) {
 		this.eolTestFile = eolTestFile;
 		this.eolTestFolder = eolTestFile.getParentFile();
-		CONSOLE_OUTPUT_ACTIVE = outputToConsole;
+		isConsoleOutputActive = outputToConsole;
 	}
 
 	public static List<File> findEOLScriptsWithin(File baseFolder) {
@@ -105,7 +105,7 @@ public abstract class AbstractChangeEquivalenceTest {
 	
 	@Test 
 	public void loadModelsAndRunEolTest() throws Exception {
-		if(CONSOLE_OUTPUT_ACTIVE) {
+		if(isConsoleOutputActive) {
 			System.out.println(String.format("\n ** TEST: %s ** ",eolTestFile.getName()));
 		}
 		
@@ -116,7 +116,7 @@ public abstract class AbstractChangeEquivalenceTest {
 		loadModelsWithExtension(eolTestFolder, ".emf", rsMetamodels);
 
 		// Load and change XMI model resource, this is what we want the RDF to match
-		if(CONSOLE_OUTPUT_ACTIVE) {
+		if(isConsoleOutputActive) {
 			System.out.println("\n == XMI ==");
 		}
 		ResourceSet rsXMI = new ResourceSetImpl();
@@ -126,14 +126,14 @@ public abstract class AbstractChangeEquivalenceTest {
 		executeEol(xmiModelResource, eolTestFile);
 		
 		// Load and change RDF model resource, this should match the XMI after save and reload		
-		if(CONSOLE_OUTPUT_ACTIVE) {
+		if(isConsoleOutputActive) {
 			System.out.println("\n\n == RDF ==");
 		}
 		ResourceSet rsRDF = new ResourceSetImpl();
 		registerEPackages(rsMetamodels, rsRDF);
 		loadModelsWithExtension(eolTestFolder, ".rdfres", rsRDF);
 		Resource rdfModelResource = rsRDF.getResources().get(0);
-		if(CONSOLE_OUTPUT_ACTIVE) {
+		if(isConsoleOutputActive) {
 			printModelToConsole(((RDFGraphResourceImpl)rdfModelResource).getFirstNamedModel(), "TTL before change: ");
 		}
 		// CHANGE
@@ -149,7 +149,7 @@ public abstract class AbstractChangeEquivalenceTest {
 		rdfModelResource = rsRDF.getResources().get(0);
 		
 		restoreRdfFiles(); // We may crash out on the test
-		if(CONSOLE_OUTPUT_ACTIVE) {
+		if(isConsoleOutputActive) {
 			printModelToConsole(((RDFGraphResourceImpl)rdfModelResource).getFirstNamedModel(), "TTL after change: ");
 		}
 		// Compare reloaded RDF and XMI models
@@ -220,7 +220,7 @@ public abstract class AbstractChangeEquivalenceTest {
 		module.parse(eolCode);
 		
 		module.getContext().getFrameStack().put(
-				Variable.createReadOnlyVariable("consoleOutput", CONSOLE_OUTPUT_ACTIVE)
+				Variable.createReadOnlyVariable("consoleOutput", isConsoleOutputActive)
 			);
 		
 		module.getContext().getModelRepository().addModel(model);
