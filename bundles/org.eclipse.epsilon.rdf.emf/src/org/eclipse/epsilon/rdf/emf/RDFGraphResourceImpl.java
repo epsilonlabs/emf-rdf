@@ -49,7 +49,9 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 
 public class RDFGraphResourceImpl extends ResourceImpl {
-
+	
+	private static final boolean NOTIFICATION_TRACE = true;
+	
 	private RDFResourceConfiguration config;
 	private RDFDeserializer deserializer;
 	private RDFGraphResourceUpdate rdfGraphUpdater;
@@ -83,7 +85,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 			return null; // or throw an exception if not found
 		}
 	};
-	private MultiValueAttributeMode multiValueAttributeMode = MultiValueAttributeMode.CONTAINER;
+	private MultiValueAttributeMode multiValueAttributeMode = MultiValueAttributeMode.LIST;
 	
 	public static final ValidationMode VALIDATION_SELECTION_DEFAULT = ValidationMode.NONE;
 	protected ValidationMode validationMode = VALIDATION_SELECTION_DEFAULT;
@@ -119,6 +121,12 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 			}
 		}
 		
+		// Apply eAdapters for notifications of changes, and setup the Graph Resource updater
+		if (NOTIFICATION_TRACE) {
+			// Produce a console trace for debugging and development
+			this.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace());
+		}
+		this.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF());
 		rdfGraphUpdater = new RDFGraphResourceUpdate(deserializer, this, multiValueAttributeMode);
 	}
 	

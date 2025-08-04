@@ -59,8 +59,6 @@ import com.google.common.collect.Multimap;
  * Maps RDF nodes to EClasses and EObjects.
  */
 public class RDFDeserializer {
-	private static final boolean NOTIFICATION_TRACE = false;
-
 	private final Supplier<Registry> packageRegistry;
 
 	private final Map<EObject, Resource> eobToResource = new IdentityHashMap<>();
@@ -117,7 +115,6 @@ public class RDFDeserializer {
 
 			deserializeProperty(node, eob, sf);
 		}
-
 		return eob;
 	}
 
@@ -296,12 +293,6 @@ public class RDFDeserializer {
 		Set<EClass> eClasses = findMostSpecificEClasses(node);
 		for (EClass eClass: eClasses) {
 			EObject eob = deserializeObjectAttributes(node, eClass);
-
-			if (NOTIFICATION_TRACE) {
-				// Produce a console trace for debugging and development
-				eob.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace());
-			}
-			eob.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF());
 
 			eobToResource.put(eob, node);
 			resourceToEob.put(node, eob);
