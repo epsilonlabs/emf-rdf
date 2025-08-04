@@ -3,7 +3,7 @@ import "../TestOperations.eol";
 for (p in Project.all) {
 
 	"\n-Start-\n".println();
-	var implementationTask = p.tasks.select(i|i.title == "Implementation").first();
+	var implementationTask = p.tasks.selectOne(i|i.title == "Implementation");
 	var efforts = implementationTask.effort;
 	
 	implementationTask.title.println();
