@@ -12,7 +12,6 @@
  ********************************************************************************/
 package org.eclipse.epsilon.rdf.emf;
 
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -34,7 +33,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Seq;
 import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
@@ -44,8 +42,8 @@ import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl.MultiValueAttributeMode;
 
 public class RDFGraphResourceUpdate {
 	
-	static final boolean CONSOLE_OUTPUT_ACTIVE = false;
-	static private boolean SINGLE_MULTIVALUES_AS_STATEMENT = true;
+	private static final boolean CONSOLE_OUTPUT_ACTIVE = false;
+	private static final boolean SINGLE_MULTIVALUES_AS_STATEMENT = true;
 	
 	private boolean preferListsForMultiValues = false;
 	private RDFDeserializer deserializer;
@@ -66,13 +64,12 @@ public class RDFGraphResourceUpdate {
 	
 	public void removeModelElement() {
 		
-	}	
+	}
 	
 	//
 	// Generic Statement methods for EStructural Features
 	
 	private Literal createLiteral(Object value) {
-		Literal object = null;
 		if (value.getClass().equals(Date.class)) {
 			Calendar c = Calendar.getInstance();
 			c.setTime((Date) value);
@@ -80,15 +77,13 @@ public class RDFGraphResourceUpdate {
 			return ResourceFactory.createTypedLiteral(date, XSDDatatype.XSDdateTime);
 		} else {
 			return ResourceFactory.createTypedLiteral(value);
-		}		
+		}
 	}
 	
 	private RDFNode createValueRDFNode(Object value, Model model) {
-
 		if(value instanceof Resource) {
 			return (Resource) value;
 		}
-		
 		if (value instanceof Literal) {
 			return (Literal) value;
 		}
@@ -102,8 +97,8 @@ public class RDFGraphResourceUpdate {
 				System.err.println("Created a new Resource node: " + newResource);
 				return newResource;
 			} else {
-				return valueResource;				
-			}						
+				return valueResource;
+			}
 		} else {
 			// Literal values
 			return createLiteral(value);
@@ -125,18 +120,23 @@ public class RDFGraphResourceUpdate {
 		// OBJECT
 		if(model.contains(rdfNode, property)) {
 			// TODO what happens when there are multiple statements? Are there any?
-			if (model.listObjectsOfProperty(rdfNode, property).toList().size()>1) {System.err.println("getObjectRDFNode() there is more than one object");}
-			
-			return model.getProperty(rdfNode, property).getObject();
+			List<RDFNode> propertyObjects = model.listObjectsOfProperty(rdfNode, property).toList();
+			if (propertyObjects.size() > 1) {
+				System.err.println(String.format(
+					"getObjectRDFNode(): there is more than one object for property %s in node %s", property, rdfNode));
+			}
+			return propertyObjects.get(0);
 		} else {
-			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format(" %s RDF Node missing property %s : ", rdfNode, property));}
+			if (CONSOLE_OUTPUT_ACTIVE) {
+				System.out.println(String.format(" %s RDF Node missing property %s : ", rdfNode, property));
+			}
 			return null;
 		}
 	}
 	
 	private Statement findEquivalentStatement(Model model, EObject eob, EStructuralFeature eStructuralFeature, Object value) {		
 		// Returns a statement for a value from similar model statements (Subject-Property) and the deserialized value matches
-		List<Statement> matchedStatementList = new ArrayList<Statement>();
+		List<Statement> matchedStatementList = new ArrayList<>();
 		
 		// SUBJECT
 		Resource rdfNode = rdfGraphResource.getRDFResource(eob);
@@ -150,27 +150,26 @@ public class RDFGraphResourceUpdate {
 			Object deserialisedValue = deserializer.deserializeProperty(modelStatement.getSubject(), eStructuralFeature);
 			if (Objects.equals(value, deserialisedValue)) {
 				matchedStatementList.add(modelStatement);
-			}			
+			}
 		}
 		
-		if(matchedStatementList.isEmpty()) {
+		if (matchedStatementList.isEmpty()) {
 			return null;
 		}
 		
 		// Warn if there is more than one statement matching
-		if(matchedStatementList.size()>1) {
+		if (matchedStatementList.size() > 1) {
 			StringBuilder statementList = new StringBuilder();
 			for (Statement statement : modelStatementList) {
 				statementList.append(String.format("\n - %s", statement));
 			}
-			System.err.println(
-					String.format("Find equivalent statements method returned more than 1 statement. %s\n"
-							,statementList));
+			System.err.println(String.format(
+				"Find equivalent statements method returned more than 1 statement. %s\n", statementList));
 		}
 		return matchedStatementList.get(0); // Only return the first statement found
 	}
 
-	private Statement createStatement(EObject eObject, EStructuralFeature eStructuralFeature, Object value, Model model) {
+	private Statement createStatement(Model model, EObject eObject, EStructuralFeature eStructuralFeature, Object value) {
 		// A statement is formed as "subject–predicate–object"
 		// SUBJECT
 		Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
@@ -188,18 +187,22 @@ public class RDFGraphResourceUpdate {
 		Model model = container.asResource().getModel();
 
 		if (1 == container.size() && SINGLE_MULTIVALUES_AS_STATEMENT) {
-			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n Removing container with 1 item replacing with statement: " + container);}
+			if (CONSOLE_OUTPUT_ACTIVE) {
+				System.out.println("\n Removing container with 1 item replacing with statement: " + container);
+			}
 			RDFNode firstValue = container.iterator().next();
 			container.removeProperties();
-			model.remove(createStatement(onEObject, eStructuralFeature, container, model));
-			model.add(createStatement(onEObject, eStructuralFeature, firstValue, model));
+			model.remove(createStatement(model, onEObject, eStructuralFeature, container));
+			model.add(createStatement(model, onEObject, eStructuralFeature, firstValue));
 			return;
 		}
 		
 		if (0 == container.size()) {
-			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n Removing empty container: " + container);}
+			if (CONSOLE_OUTPUT_ACTIVE) {
+				System.out.println("\n Removing empty container: " + container);
+			}
 			container.removeProperties();
-			model.remove(createStatement(onEObject, eStructuralFeature, container, model));
+			model.remove(createStatement(model, onEObject, eStructuralFeature, container));
 			return;
 		}
 	}
@@ -295,13 +298,13 @@ public class RDFGraphResourceUpdate {
 	
 	private Seq newSequence(Model model, EObject onEObject, EStructuralFeature eStructuralFeature) {
 		Seq objectNode = model.createSeq();
-		model.add(createStatement(onEObject, eStructuralFeature, objectNode, model));
+		model.add(createStatement(model, onEObject, eStructuralFeature, objectNode));
 		return objectNode;
 	}
 	
 	private Bag newBag(Model model, EObject onEObject, EStructuralFeature eStructuralFeature) {
 		Bag objectNode = model.createBag();
-		model.add(createStatement(onEObject, eStructuralFeature, objectNode, model));
+		model.add(createStatement(model, onEObject, eStructuralFeature, objectNode));
 		return objectNode;
 	}
 	
@@ -311,33 +314,33 @@ public class RDFGraphResourceUpdate {
 	private void checkAndRemoveEmptyList(RDFList container, EObject onEObject, EStructuralFeature eStructuralFeature) {
 		Model model = container.getModel();
 
-		if(!container.isValid()) {
+		if (!container.isValid()) {
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("Removing invalid (empty) container:" + container.asResource());}
-			Statement stmtToRemove = createStatement(onEObject, eStructuralFeature, container.asResource(), model);
+			Statement stmtToRemove = createStatement(model, onEObject, eStructuralFeature, container.asResource());
 			model.remove(stmtToRemove);
 			return;
 		}
 		
-		if(1 == container.size() && SINGLE_MULTIVALUES_AS_STATEMENT) {
+		if (1 == container.size() && SINGLE_MULTIVALUES_AS_STATEMENT) {
 			// TODO convert list with 1 item to single statement
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("Removing container with 1 item and making a statement:" + container.asResource());}
 			RDFNode firstValue = container.iterator().next();
 			container.removeList();
-			model.remove(createStatement(onEObject, eStructuralFeature, container.asResource(), model));
-			model.add(createStatement(onEObject, eStructuralFeature, firstValue, model));
+			model.remove(createStatement(model, onEObject, eStructuralFeature, container.asResource()));
+			model.add(createStatement(model, onEObject, eStructuralFeature, firstValue));
 			return;
 		}
 		
-		
-		if(container.isEmpty()) {
+		if (container.isEmpty()) {
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("Removing empty container:" + container.asResource());}
 			container.removeList();
-			model.remove (createStatement(onEObject, eStructuralFeature, container.asResource(), model));
+			model.remove (createStatement(model, onEObject, eStructuralFeature, container.asResource()));
 			return;
 		}
 	}
 	
 	private void headSafeRemoveFromList(RDFList container, RDFNode rdfNode) {
+		// TODO consider creating an RDFList wrapper class to abstract away these complexities (e.g. JenaList)
 		// Fixes the blank node for the list when value is removed from the head
 		RDFList newContainer;
 		newContainer = container.remove(rdfNode);
@@ -350,11 +353,12 @@ public class RDFGraphResourceUpdate {
 			} else {
 				container.removeList();
 			}
-		}	
+		}
 	}
 	
 	private void removeOneValueFromListHandleUnique(RDFList container, EStructuralFeature eStructuralFeature,
 			RDFNode valueRDFNode) {
+		// TODO Antonio to try setting to the new list after removal
 		if (eStructuralFeature.isUnique()) {
 			while (container.isValid() && container.contains(valueRDFNode)) {
 				headSafeRemoveFromList(container, valueRDFNode);
@@ -369,10 +373,9 @@ public class RDFGraphResourceUpdate {
 			// References
 			RDFNode valueRDFNode = rdfGraphResource.getRDFResource((EObject)value);
 			removeOneValueFromListHandleUnique(container, eStructuralFeature, valueRDFNode);
-			return;
 		} else {	
 			// Attributes (Literal values)
-			ExtendedIterator<RDFNode> containerItr = container.iterator();
+			Iterator<RDFNode> containerItr = container.iterator();
 			while (containerItr.hasNext()) {
 				RDFNode rdfNode = containerItr.next();
 				Object deserializedValue = deserializer.deserializeValue(rdfNode, eStructuralFeature);
@@ -381,15 +384,13 @@ public class RDFGraphResourceUpdate {
 						System.out.println(String.format("removing: %s == %s", value , deserializedValue));
 					}
 					removeOneValueFromListHandleUnique(container, eStructuralFeature, rdfNode);
-					return;
+					break;
 				}
 			}
-			return;
 		}
 	}
 	
 	private void removeFromList(Object values, RDFList container, EObject onEObject, EStructuralFeature eStructuralFeature, Model model) {
-		RDFList originalContainer = container;
 		if(values instanceof List<?> valueList) {
 			if (CONSOLE_OUTPUT_ACTIVE) {System.out.println(String.format("list of values to remove: %s", valueList));}
 			for (Object value : valueList) {
@@ -398,12 +399,6 @@ public class RDFGraphResourceUpdate {
 		} else {
 			removeOneValueFromList(values, container, eStructuralFeature);
 		}
-
-		// Removing the head of a list will return a new list, statements need correcting
-		if(!container.equals(originalContainer)) {
-			System.err.println("Got a different container back: " + container.asNode() + " != " + originalContainer.asNode() );			
-		}
-
 		checkAndRemoveEmptyList(container, onEObject, eStructuralFeature);
 	}
 	
@@ -423,13 +418,12 @@ public class RDFGraphResourceUpdate {
 			// This should never happen, empty is handled elsewhere
 			container.concatenate(newList);
 			return;
-		} 
-
+		}
 		if (!eStructuralFeature.isOrdered()) {
 			container.concatenate(newList);
 			return;
-		} 
-		
+		}
+
 		// Ordered lists that are not empty will be handled with the methods below.
 		if(eStructuralFeature.isOrdered()) {
 			if (container.size() == position) {
@@ -439,9 +433,9 @@ public class RDFGraphResourceUpdate {
 			}
 
 			if (0 == position) {
-				model.remove(createStatement(onEObject, eStructuralFeature, container, model));
-				model.add(createStatement(onEObject, eStructuralFeature, newList, model));
-				newList.concatenate(container);				
+				model.remove(createStatement(model, onEObject, eStructuralFeature, container));
+				model.add(createStatement(model, onEObject, eStructuralFeature, newList));
+				newList.concatenate(container);
 				return;
 			}
 			
@@ -450,6 +444,7 @@ public class RDFGraphResourceUpdate {
 			// EMF/Epsilon will complain if you try to add at a position beyond the size of the list
 			int listIndex = 0;
 			if (position > 0) {
+				// TODO this is not needed - reconsider the access to RDF.rest after the loop (for oldTail)
 				listIndex = position - 1;
 			}
 
@@ -488,20 +483,19 @@ public class RDFGraphResourceUpdate {
 		if (CONSOLE_OUTPUT_ACTIVE) {reportRDFList("After add to container ", container);}
 	}
 		
-	private RDFList createRDFListOnModel (Object values, Model model) {
-		List<RDFNode> rdfNodes = new ArrayList<RDFNode>();
+	private RDFList createRDFListOnModel(Object values, Model model) {
+		List<RDFNode> rdfNodes = new ArrayList<>();
 		if(values instanceof List<?> valuesList) {
 			valuesList.forEach(v -> rdfNodes.add(createValueRDFNode(v, model)));
 		} else {
 			rdfNodes.add(createValueRDFNode(values, model));
 		}
-		
 		return model.createList(rdfNodes.iterator());
 	}
 	
 	private RDFList newList(Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object values) {		
 		RDFList objectNode = createRDFListOnModel(values, model);
-		model.add(createStatement(onEObject, eStructuralFeature, objectNode, model));
+		model.add(createStatement(model, onEObject, eStructuralFeature, objectNode));
 		return objectNode;
 	}
 	
@@ -522,7 +516,7 @@ public class RDFGraphResourceUpdate {
 	public void newSingleValueEStructuralFeatureStatements(Model model, EObject onEObject,
 			EStructuralFeature eStructuralFeature, Object newValue) {
 		assert newValue != null : "new value must exist";
-		Statement newStatement = createStatement(onEObject, eStructuralFeature, newValue, model);
+		Statement newStatement = createStatement(model, onEObject, eStructuralFeature, newValue);
 		Statement existingStatements = findEquivalentStatement(model, onEObject, eStructuralFeature, newValue);
 
 		if (!model.contains(newStatement) && null == existingStatements) {
@@ -548,7 +542,7 @@ public class RDFGraphResourceUpdate {
 		assert oldValue != null : "old value must exist";
 
 		// try object-to-literal
-		Statement oldStatement = createStatement(onEObject, eStructuralFeature, oldValue, model);
+		Statement oldStatement = createStatement(model, onEObject, eStructuralFeature, oldValue);
 		if (model.contains(oldStatement)) {
 			model.remove(oldStatement);
 			return;
@@ -615,10 +609,7 @@ public class RDFGraphResourceUpdate {
 			if(objectRDFNode.isLiteral()) {
 				// A 1 multi-value exists as a statement with no container
 				removeSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, oldValue);
-				return;
-			}
-			
-			if(objectRDFNode.isResource()) {
+			} else if (objectRDFNode.isResource()) {
 				Resource objectResource = objectRDFNode.asResource();
 				// Try and the container from each model to be updated
 				if ( (objectResource.hasProperty(RDF.rest) && objectResource.hasProperty(RDF.first)) 
@@ -636,10 +627,9 @@ public class RDFGraphResourceUpdate {
 					Seq seq = model.getSeq(objectResource);
 					removeFromSeq(oldValue, seq, onEObject, eStructuralFeature);
 				} else {
-					// The first item is might look like a single value EAttribute
+					// The first item might look like a single value EAttribute
 					removeSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, oldValue);
 				}
-				return;
 			}
 		}
 	}
@@ -662,7 +652,7 @@ public class RDFGraphResourceUpdate {
 			if(newValue instanceof List<?>) {
 				if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n No existing container, multiple values added making container");}
 				createContainerAndAdd(model, onEObject, eStructuralFeature, newValue, position, null);
-			}else {
+			} else {
 				if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n No existing container, first single value is a statement");}
 				newSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, newValue);	
 			}
@@ -674,9 +664,7 @@ public class RDFGraphResourceUpdate {
 				// There is a single value statement for the 1 multi-value
 				if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n No existing container, multiple values added making container");}
 				createContainerAndAdd(model, onEObject, eStructuralFeature, newValue, position, objectRDFNode.asLiteral().getValue());		
-			}
-				
-			if(objectRDFNode.isResource()) {
+			} else if(objectRDFNode.isResource()) {
 				Resource objectResource = objectRDFNode.asResource();
 				// If we have one of these types, then we are updating an existing statement on a model
 				if ( objectResource.hasProperty(RDF.type, RDF.List)
@@ -686,7 +674,7 @@ public class RDFGraphResourceUpdate {
 					addToList(newValue, list, position, eStructuralFeature, onEObject);
 				} else if (objectResource.equals(RDF.nil)) {
 					// List - Empty lists may be represented with an RDF.nil value
-					Statement stmt = createStatement(onEObject, eStructuralFeature, objectResource, model);
+					Statement stmt = createStatement(model, onEObject, eStructuralFeature, objectResource);
 					model.remove(stmt);
 					newList(model, onEObject, eStructuralFeature, newValue);
 				} else if (objectResource.hasProperty(RDF.type, RDF.Bag)) {
@@ -698,9 +686,7 @@ public class RDFGraphResourceUpdate {
 				} else {
 					createContainerAndAdd(model, onEObject, eStructuralFeature, newValue, position, objectResource);
 				}
-				return;
 			}
-			return;
 		}
 	}
 
@@ -717,15 +703,15 @@ public class RDFGraphResourceUpdate {
 			RDFList list = null;
 			if(null != firstValue) {
 				list = newList(model, onEObject, eStructuralFeature, firstValue);
-				addToList(newValue, list, position, eStructuralFeature, onEObject);	
+				addToList(newValue, list, position, eStructuralFeature, onEObject);
 			} else {
-				list = newList(model, onEObject, eStructuralFeature, newValue);	
+				list = newList(model, onEObject, eStructuralFeature, newValue);
 			}
 		} else {
 			if (eStructuralFeature.isOrdered()) {
 				// Sequence
 				Seq sequence = newSequence(model, onEObject, eStructuralFeature);
-				if(null != firstValue) {				
+				if(null != firstValue) {
 					addToSequence(firstValue, sequence , 0);
 				}
 				addToSequence(newValue, sequence, position);
@@ -735,9 +721,9 @@ public class RDFGraphResourceUpdate {
 				if(null != firstValue) {
 					addToBag(firstValue, bag);
 				}
-				addToBag(newValue, bag);				
-			}				
-		}		
+				addToBag(newValue, bag);
+			}
+		}
 	}
 	
 	
@@ -770,13 +756,6 @@ public class RDFGraphResourceUpdate {
 				item = null;
 			}
 		}
-	}
-	
-	private static void printModelToConsole(Model model, String label) {
-		System.out.println(String.format("\n %s \n", label));
-		OutputStream console = System.out;
-		model.write(console, "ttl");
-		System.out.println("");
 	}
 
 }

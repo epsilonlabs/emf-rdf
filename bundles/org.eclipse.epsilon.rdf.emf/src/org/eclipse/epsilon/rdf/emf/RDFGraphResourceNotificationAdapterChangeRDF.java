@@ -17,9 +17,7 @@ import java.util.List;
 
 import org.apache.jena.rdf.model.Resource;
 import org.eclipse.emf.common.notify.Notification;
-import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EContentAdapter;
 
@@ -33,29 +31,14 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 	}
 	
 	private void featureNotification (Object feature, Notification notification){		
-		Class<? extends Object> featureClass = feature.getClass();
-
-		if (feature instanceof EAttribute) {
-			eStructuralFeatureNotification((EAttribute) feature, notification);
-			return;
+		if (feature instanceof EStructuralFeature) {
+			eStructuralFeatureNotification((EStructuralFeature) feature, notification);
+		} else {
+			System.err.printf("unhandled additive change : %s\n", feature.getClass().getName());
 		}
-
-		if (feature instanceof EReference) {
-			eStructuralFeatureNotification((EReference) feature, notification);
-			return;
-		}
-
-		if (feature instanceof EObject) {
-			//eObjectFeatureNotification((EObject) feature, notification);
-			return;
-		}
-
-		System.err.printf("unhandled additive change : %s\n", featureClass.getName());
-		return;
 	}
 
 	private void eStructuralFeatureNotification(EStructuralFeature eStructuralFeature, Notification notification) {		
-		
 		EObject onEObject = (EObject) notification.getNotifier(); 	// RDF node
 		EStructuralFeature changedFeature = eStructuralFeature; 	// RDF property
 		// eAttribute's values are the objects						// RDF object (node/literal)
@@ -69,12 +52,9 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 
 		// Decode the notification event type
 		switch (notification.getEventType()) {
+		case Notification.ADD_MANY:
 		case Notification.ADD:
 			// Watch out for none-multi value attributes being added through here
-			rdfUpdater.addMultiValueEStructuralFeature(namedModelURIs, onEObject, changedFeature, 
-					newValue, oldValue, position);
-			break;
-		case Notification.ADD_MANY:
 			rdfUpdater.addMultiValueEStructuralFeature(namedModelURIs, onEObject, changedFeature, 
 					newValue, oldValue, position);
 			break;
@@ -114,11 +94,8 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 				}
 			}
 			break;
-		case Notification.REMOVE:
-			rdfUpdater.removeMultiEStructuralFeature(namedModelURIs, onEObject, changedFeature, 
-					newValue, oldValue);
-			break;
 		case Notification.REMOVE_MANY:
+		case Notification.REMOVE:
 			rdfUpdater.removeMultiEStructuralFeature(namedModelURIs, onEObject, changedFeature, 
 					newValue, oldValue);
 			break;
