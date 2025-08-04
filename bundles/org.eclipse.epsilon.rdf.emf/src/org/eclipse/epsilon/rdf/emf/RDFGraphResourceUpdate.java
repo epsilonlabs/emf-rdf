@@ -347,46 +347,31 @@ public class RDFGraphResourceUpdate {
 			if (CONSOLE_OUTPUT_ACTIVE) {
 				System.out.println("Removing empty container:" + container.asResource());
 			}
-			container.removeList();
-			model.remove (createStatement(model, onEObject, eStructuralFeature, container.asResource()));
+			model.remove(createStatement(model, onEObject, eStructuralFeature, container.asResource()));
 			return;
 		}
 	}
 	
-	private void headSafeRemoveFromList(RDFList container, RDFNode rdfNode) {
-		// TODO consider creating an RDFList wrapper class to abstract away these complexities (e.g. JenaList)
-		// Fixes the blank node for the list when value is removed from the head
-		RDFList newContainer;
-		newContainer = container.remove(rdfNode);
-		if (!newContainer.equals(container)) {
-			container.addProperty(RDF.first, RDF.nil);
-			container.addProperty(RDF.rest, RDF.nil);
-			if (!newContainer.isEmpty()) {
-				container.setHead(newContainer.getHead());
-				newContainer.removeList();
-			} else {
-				container.removeList();
-			}
-		}
-	}
-	
-	private void removeOneValueFromListHandleUnique(RDFList container, EStructuralFeature eStructuralFeature,
-			RDFNode valueRDFNode) {
-		// TODO Antonio to try setting to the new list after removal
-		if (eStructuralFeature.isUnique()) {
-			while (container.isValid() && container.contains(valueRDFNode)) {
-				headSafeRemoveFromList(container, valueRDFNode);
+	private RDFList removeOneValueFromListHandleUnique(RDFList container, EStructuralFeature sf, RDFNode valueRDFNode) {
+		RDFList newContainer = container;
+
+		if (sf.isUnique()) {
+			while (newContainer.isValid() && newContainer.contains(valueRDFNode)) {
+				newContainer = newContainer.remove(valueRDFNode);
+				System.out.println(newContainer);
 			}
 		} else {
-			headSafeRemoveFromList(container, valueRDFNode);
+			newContainer = container.remove(valueRDFNode);
 		}
+
+		return newContainer;
 	}
 	
-	private void removeOneValueFromList(Object value, RDFList container, EStructuralFeature eStructuralFeature) {
+	private RDFList removeOneValueFromList(Object value, RDFList container, EStructuralFeature eStructuralFeature) {
 		if(value instanceof EObject && eStructuralFeature instanceof EReference) {		
 			// References
 			RDFNode valueRDFNode = rdfGraphResource.getRDFResource((EObject)value);
-			removeOneValueFromListHandleUnique(container, eStructuralFeature, valueRDFNode);
+			return removeOneValueFromListHandleUnique(container, eStructuralFeature, valueRDFNode);
 		} else {	
 			// Attributes (Literal values)
 			Iterator<RDFNode> containerItr = container.iterator();
@@ -397,25 +382,31 @@ public class RDFGraphResourceUpdate {
 					if (CONSOLE_OUTPUT_ACTIVE) {
 						System.out.println(String.format("removing: %s == %s", value , deserializedValue));
 					}
-					removeOneValueFromListHandleUnique(container, eStructuralFeature, rdfNode);
-					break;
+					return removeOneValueFromListHandleUnique(container, eStructuralFeature, rdfNode);
 				}
 			}
 		}
+		return container;
 	}
 	
 	private void removeFromList(Object values, RDFList container, EObject onEObject, EStructuralFeature eStructuralFeature, Model model) {
+		RDFList newContainer = container;
 		if(values instanceof List<?> valueList) {
 			if (CONSOLE_OUTPUT_ACTIVE) {
 				System.out.println(String.format("list of values to remove: %s", valueList));
 			}
 			for (Object value : valueList) {
-				removeOneValueFromList(value, container, eStructuralFeature);
+				newContainer = removeOneValueFromList(value, newContainer, eStructuralFeature);
 			}
 		} else {
-			removeOneValueFromList(values, container, eStructuralFeature);
+			newContainer = removeOneValueFromList(values, newContainer, eStructuralFeature);
 		}
-		checkAndRemoveEmptyList(container, onEObject, eStructuralFeature);
+
+		if (container != newContainer) {
+			model.remove(createStatement(model, onEObject, eStructuralFeature, container.asResource()));
+			model.add(createStatement(model, onEObject, eStructuralFeature, newContainer.asResource()));
+		}
+		checkAndRemoveEmptyList(newContainer, onEObject, eStructuralFeature);
 	}
 	
 	private void addToList(Object values, RDFList container, int position, EStructuralFeature eStructuralFeature, EObject onEObject) {	
