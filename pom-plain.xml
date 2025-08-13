@@ -11,10 +11,10 @@
   <name>EMC RDF Parent</name>
 
   <scm>
-      <connection>scm:git:https://github.com/epsilonlabs/emc-rdf.git</connection>
-      <developerConnection>scm:git:https://github.com/epsilonlabs/emc-rdf.git</developerConnection>
+      <connection>scm:git:https://github.com/epsilonlabs/emf-rdf.git</connection>
+      <developerConnection>scm:git:https://github.com/epsilonlabs/emf-rdf.git</developerConnection>
       <tag>HEAD</tag>
-      <url>https://github.com/epsilonlabs/emc-rdf</url>
+      <url>https://github.com/epsilonlabs/emf-rdf</url>
   </scm>
 
   <licenses>
@@ -263,7 +263,7 @@
     <repository>
       <id>github</id>
       <name>GitHub Packages</name>
-      <url>https://maven.pkg.github.com/epsilonlabs/emc-rdf</url>
+      <url>https://maven.pkg.github.com/epsilonlabs/emf-rdf</url>
     </repository>
   </distributionManagement>
 </project>
