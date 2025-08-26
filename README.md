@@ -26,9 +26,9 @@ The driver requires Epsilon 2.1 or newer: it will not work on Epsilon 1.x due to
 
 Install the features from this update site:
 
-https://epsilonlabs.github.io/emc-rdf/updates/
+https://epsilonlabs.github.io/emf-rdf/updates/
 
-Alternatively, you can download a [zipped version](https://epsilonlabs.github.io/emc-rdf/updates.zip) of the update site.
+Alternatively, you can download a [zipped version](https://epsilonlabs.github.io/emf-rdf/updates.zip) of the update site.
 
 Example projects are available from the [`examples`](./examples) folder of this repository.
 
