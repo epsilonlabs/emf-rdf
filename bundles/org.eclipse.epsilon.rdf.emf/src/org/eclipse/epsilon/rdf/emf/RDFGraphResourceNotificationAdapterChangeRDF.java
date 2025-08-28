@@ -22,6 +22,13 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EContentAdapter;
 
 public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapter {	
+	
+	RDFGraphResourceImpl initialRDFGraphResource;
+	
+	public RDFGraphResourceNotificationAdapterChangeRDF(RDFGraphResourceImpl rdfGraphResource) {
+		this.initialRDFGraphResource = rdfGraphResource;
+	}
+
 	@Override
 	public void notifyChanged(Notification notification) {
 		Object feature = notification.getFeature();
@@ -47,6 +54,11 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		int position = notification.getPosition();
 		
 		RDFGraphResourceImpl graphResource = (RDFGraphResourceImpl) onEObject.eResource();
+		if (null == graphResource) {
+			System.err.println("The Graph resource has been removed, using the initial graph resource instead");
+			graphResource = initialRDFGraphResource;
+		}
+		
 		RDFGraphResourceUpdate rdfUpdater = graphResource.getRDFGraphUpdater();
 		List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
 
