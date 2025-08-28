@@ -35,9 +35,11 @@ import org.apache.jena.rdf.model.Seq;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl.MultiValueAttributeMode;
 
 public class RDFGraphResourceUpdate {
@@ -466,6 +468,100 @@ public class RDFGraphResourceUpdate {
 		return objectNode;
 	}
 	
+	
+	//
+	// Feature operations
+	
+	private boolean containmentCheck (EStructuralFeature eStructuralFeature) {
+		if(eStructuralFeature instanceof EReference) {
+			System.out.println (" -- CONTAINMENT CHECK -- " + ((EReference) eStructuralFeature).isContainment());
+			return ((EReference) eStructuralFeature).isContainment();
+		}
+		return false;
+	}
+	
+	private void containmentBranchRemoval (Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object oldValue) {		
+		if (oldValue instanceof EObject) {
+			EObject oldValueEObject = (EObject) oldValue;
+			System.out.println(" -- EOBJECT -- \n\t- " + EcoreUtil.getIdentification(oldValueEObject));
+			removeAllEObjectStatements(oldValueEObject);
+
+			
+		} else if (oldValue instanceof RDFNode) {
+			// This happens when removing a single statement from within an update notification (recursive)
+			RDFNode oldValueRDFNode = (RDFNode) oldValue;
+			System.out.println(" -- REFERENCED RDFNode -- \n\t- " + oldValueRDFNode);
+		} else {
+			System.out.println(" -- oldValue -- \n\t- " + oldValue);
+		}
+		
+		
+	}
+	
+	private void removeAllEObjectStatements (EObject eObject) {
+		
+		System.out.println("\n * REMOVE ALL STATEMENTS FOR - " + eObject.eClass().getName() + " #" +eObject.hashCode());
+		
+		EList<EObject> contents = eObject.eContents(); // eObjects contained -- recurse the removal of these
+		System.out.println("\n eContents:");
+		contents.forEach(eOb -> {
+			System.out.println("\t Class: " + eOb.eClass().getName() + "  #"+ eOb.hashCode());
+		});
+		
+		if(!contents.isEmpty()) {
+			System.out.println("\n ** Do content removal (recursive)");
+			contents.forEach(eOb -> {
+				removeAllEObjectStatements(eOb);
+			});
+			System.out.println(" ** ");
+		}
+		
+		// Pull the RDF change Notification Adapter off here before removing children -- this EObject's change adapter will fire with no graph resource
+		
+		// for each child call removeAllEObjectStatements
+		
+		EList<EAttribute> attributes = eObject.eClass().getEAllAttributes(); // eAttribute statements to be removed for this EObject
+		System.out.println("\n EAllAttributes:");
+		attributes.forEach(a -> { 
+			
+			// should check if a isMany() 
+			
+			System.out.println("\t - " + a.getName() + " : " + eObject.eGet(a) + " : isMany? " + a.isMany());
+			eObject.eUnset(a); // reverts to the default value if there is one, leaving a statement behind
+			
+			});
+		
+		EList<EReference> references = eObject.eClass().getEAllReferences(); // Any reference statements (none containment & containment)
+		System.out.println("\n EAllReferences:");		
+		references.forEach(r -> {
+			if (r.isMany()) { 
+				// this is a List that will need clearing before removing the statement for the reference
+				System.out.println("\t - " + r.getName() + " (isContainment? " + r.isContainment() + " isMany? " + r.isMany() + ")");
+				Object manyR = eObject.eGet(r);
+				if(manyR instanceof List) {
+					EList<?> listR = (EList<?>) manyR;
+					listR.forEach(R -> {
+						if(R instanceof EObject) {
+							EObject eR = (EObject) R;
+							System.out.println("\t   - " +eR.eClass().getName() + " #" + eR.hashCode());
+						}
+					});
+				} else {
+					// single item in a many (not a list)
+				}
+			} else {
+				System.out.println("\t - " + r.getName() + " (isContainment? " + r.isContainment() + "isMany? " + r.isMany() + ") #" + r.hashCode());
+				eObject.eUnset(r);
+			}
+		});
+		
+		// Remove the RDF TYPE statement for eObject IF there the RDF TYPE statement is the only statement left!
+		
+		System.out.println(" * \n");
+		
+	}
+	
+	
 	//
 	// Single-value Features operations
 	
@@ -508,6 +604,11 @@ public class RDFGraphResourceUpdate {
 		// deserializer uses the meta-model so we won't have missing attributes
 		assert oldValue != null : "old value must exist";
 
+		if (containmentCheck(eStructuralFeature)) {
+			containmentBranchRemoval(model, onEObject, eStructuralFeature, oldValue);
+			// After this remove the reference as normal
+		}
+		
 		// try object-to-literal
 		Statement oldStatement = createStatement(model, onEObject, eStructuralFeature, oldValue);
 		if (model.contains(oldStatement)) {
@@ -568,6 +669,11 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	public void removeMultiEStructuralFeature (Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue, Object oldValue) {
+		
+		if (containmentCheck(eStructuralFeature)) {
+			containmentBranchRemoval(model, onEObject, eStructuralFeature, oldValue);
+		}
+		
 		Resource onEObjectNode = rdfGraphResource.getRDFResource(onEObject);
 		if (!onEObjectNode.hasProperty(createProperty(eStructuralFeature))) {
 			System.err.println("Trying to remove a none existing RDFnode for a multivalue attribute");
