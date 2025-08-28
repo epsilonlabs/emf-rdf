@@ -124,7 +124,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		// Apply eAdapters for notifications of changes, and setup the Graph Resource updater
 		if (NOTIFICATION_TRACE) {
 			// Produce a console trace for debugging and development
-			this.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace());
+			this.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace(this));
 		}
 		this.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF());
 		rdfGraphUpdater = new RDFGraphResourceUpdate(deserializer, this, multiValueAttributeMode);
