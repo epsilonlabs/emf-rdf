@@ -443,7 +443,7 @@ public class RDFGraphResourceUpdate {
 				head = tail;
 				tail = head.getTail();
 			}
-
+			
 			// Updated list is head -- newList -- tail
 			newList.concatenate(tail);
 			head.setTail(newList);
