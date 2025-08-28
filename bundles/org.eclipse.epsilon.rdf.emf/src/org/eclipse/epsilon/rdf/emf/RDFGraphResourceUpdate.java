@@ -540,6 +540,7 @@ public class RDFGraphResourceUpdate {
 		return;
 	}
 	
+	/*
 	public void updateSingleValueEStructuralFeatureStatements(List<Resource> namedModelURIs, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue, Object oldValue) {
 		assert oldValue != null : "old value must exist";
 		assert newValue != null : "new value must exist";
@@ -554,6 +555,7 @@ public class RDFGraphResourceUpdate {
 		removeSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, oldValue);
 		newSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, newValue);
 	}
+	*/
 	
 	//
 	// Multi-value Feature operations
