@@ -298,5 +298,17 @@ public class RDFDeserializer {
 			resourceToEob.put(node, eob);
 		}
 	}
+		
+	
+	public void deregisterEObject (EObject eob ) {
+		// TODO remove an EObject/RDFNode, cache the removed data.
+		
+	}
+	
+
+	public void registerNewEObject(EObject eob, Resource node) {
+		eobToResource.put(eob, node);
+		resourceToEob.put(node, eob);
+	}
 
 }
