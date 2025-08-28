@@ -101,19 +101,14 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 				} else {
 					// Update existing statement value
 					namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
-					// There is no "update", it is removed and added
-					rdfUpdater.newSingleValueEStructuralFeatureStatements(namedModelURIs, onEObject,
-							changedFeature, newValue);
-					
-					//rdfUpdater.updateSingleValueEStructuralFeatureStatements(namedModelURIs, onEObject,
-					//		changedFeature, newValue, oldValue);
+					rdfUpdater.updateSingleValueEStructuralFeatureStatements(namedModelURIs, onEObject,
+							changedFeature, newValue, oldValue);
 				}
 			}
 			break;
 		case Notification.REMOVE_MANY:
 		case Notification.REMOVE:
-			rdfUpdater.removeMultiEStructuralFeature(namedModelURIs, onEObject, changedFeature, 
-					newValue, oldValue);
+			rdfUpdater.removeMultiEStructuralFeature(namedModelURIs, onEObject, changedFeature, oldValue);
 			break;
 		case Notification.UNSET:
 			// Single values, don't need to worry about order
