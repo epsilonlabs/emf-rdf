@@ -35,6 +35,7 @@ import org.apache.jena.rdf.model.Seq;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
@@ -55,17 +56,6 @@ public class RDFGraphResourceUpdate {
 		this.deserializer = deserializer;
 		this.rdfGraphResource = rdfGraphResource;
 		this.preferListsForMultiValues = multiValueMode.equals(MultiValueAttributeMode.LIST);
-	}
-
-	//
-	// Model Elements
-	
-	public void addModelElement() {
-		
-	}
-	
-	public void removeModelElement() {
-		
 	}
 	
 	//
@@ -170,7 +160,7 @@ public class RDFGraphResourceUpdate {
 		}
 		return matchedStatementList.get(0); // Only return the first statement found
 	}
-
+	
 	private Statement createStatement(Model model, EObject eObject, EStructuralFeature eStructuralFeature, Object value) {
 		// A statement is formed as "subject–predicate–object"
 		// SUBJECT
@@ -181,7 +171,7 @@ public class RDFGraphResourceUpdate {
 		RDFNode object = createValueRDFNode(value, model);
 		return ResourceFactory.createStatement(rdfNode, property, object);
 	}
-
+	
 	//
 	// Containers statement operations
 	
@@ -236,7 +226,7 @@ public class RDFGraphResourceUpdate {
 			}
 		}
 	}
-
+	
 	private void removeFromContainer(Object values, Container container, EObject onEObject, EStructuralFeature eStructuralFeature) {
 		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("Before remove", container);}
 		
@@ -420,7 +410,7 @@ public class RDFGraphResourceUpdate {
 		}
 		Model model = container.getModel();
 		RDFList newList = createRDFListOnModel(values, model);
-
+		
 		// Un-ordered lists should be handed with these two methods
 		if (container.isEmpty()) {
 			// This should never happen: empty is handled elsewhere
@@ -451,7 +441,7 @@ public class RDFGraphResourceUpdate {
 			head.setTail(newList);
 		}
 	}
-
+	
 	private RDFList createRDFListOnModel(Object values, Model model) {
 		List<RDFNode> rdfNodes = new ArrayList<>();
 		if(values instanceof List<?> valuesList) {
@@ -567,7 +557,7 @@ public class RDFGraphResourceUpdate {
 	
 	public void newSingleValueEStructuralFeatureStatements(List<Resource> namedModelURIs, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue) {
 		assert newValue != null : "new value must exist";
-
+		
 		// We default always to the first named model for a new statement.
 		// In the future, we may use a rule-based system to decide which named model to use.
 		List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);
@@ -581,13 +571,12 @@ public class RDFGraphResourceUpdate {
 		assert newValue != null : "new value must exist";
 		Statement newStatement = createStatement(model, onEObject, eStructuralFeature, newValue);
 		Statement existingStatements = findEquivalentStatement(model, onEObject, eStructuralFeature, newValue);
-
+	
 		if (!model.contains(newStatement) && null == existingStatements) {
 			model.add(newStatement);
 		} else {
 			System.err.println(String.format("New statement already exists? : %s", newStatement));
 		}
-
 	}
 	
 	public void removeSingleValueEStructuralFeatureStatements(List<Resource> namedModelURIs, EObject onEObject, EStructuralFeature eStructuralFeature, Object oldValue) {
@@ -603,7 +592,7 @@ public class RDFGraphResourceUpdate {
 		// Object type values set a new value "null", remove the statement the
 		// deserializer uses the meta-model so we won't have missing attributes
 		assert oldValue != null : "old value must exist";
-
+		
 		if (containmentCheck(eStructuralFeature)) {
 			containmentBranchRemoval(model, onEObject, eStructuralFeature, oldValue);
 			// After this remove the reference as normal
@@ -633,7 +622,7 @@ public class RDFGraphResourceUpdate {
 			}
 			return;
 		}
-
+		
 		// Couldn't find old statement through either object-to-literal or
 		// literal-to-object conversion, and there is no default value
 		 
@@ -764,10 +753,10 @@ public class RDFGraphResourceUpdate {
 			}
 		}
 	}
-
+	
 	private void createContainerAndAdd(Model model, EObject onEObject, EStructuralFeature eStructuralFeature,
 			Object newValue, int position, Object firstValue) {
-
+		
 		if(null != firstValue) {
 			// There is a statement for the first value, with no container structure
 			removeSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, firstValue);
@@ -801,10 +790,9 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 	
-	
 	//
 	// Reporting (these could return formatted strings for logging or console use)
-
+	
 	private static void reportContainer(String label, Container container) {
 		boolean hasType = container.hasProperty(RDF.type);
 		if (hasType) {
@@ -832,5 +820,5 @@ public class RDFGraphResourceUpdate {
 			}
 		}
 	}
-
+	
 }
