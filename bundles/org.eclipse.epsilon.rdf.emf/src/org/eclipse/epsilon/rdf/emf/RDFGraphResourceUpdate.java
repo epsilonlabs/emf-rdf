@@ -172,6 +172,57 @@ public class RDFGraphResourceUpdate {
 		return ResourceFactory.createStatement(rdfNode, property, object);
 	}
 	
+	private String getEClassNsPrefix (EObject eObject) {
+		String namespaceIRI = null; 
+		// TODO Add switch case here for different methods for creating NsPrefix.
+		namespaceIRI = eObject.eClass().getEPackage().getNsURI(); // Name space based on EPackage prefix		
+		System.out.println("eClass namespace IRI prefix: " + namespaceIRI );
+		return namespaceIRI;
+	}
+	
+	private String createEObjectIRI(EObject eObject, String rdfNamespace) {
+		//String namespacePrefix = getEClassNsPrefix(eObject);
+		
+		// TODO Add switch case here for different URI generating methods.
+		String eObjectName = EcoreUtil.generateUUID();  // This UUID is generated using Date and Time (now).
+		
+		String rdfIRI = String.format("%s#%s", rdfNamespace,eObjectName);
+		System.out.println("new eObject rdfURI: " + rdfIRI);
+		return rdfIRI;
+	}
+	
+	private String createEObjectRDFtypeIRI(EObject eObject) {
+		String namespacePrefix = getEClassNsPrefix(eObject);
+		
+		String eObjectType = eObject.eClass().getName();
+		
+		String iri = String.format("%s#%s", namespacePrefix,eObjectType);
+		System.out.println("new eObject Type rdf IRI: " + iri);
+		return iri;
+	}
+	
+	private Resource createNewEObjectRootRDFstatement(EObject eObject, Model model) {
+		
+		// Make a URI for the EObject
+		String eObjectIRI = createEObjectIRI(eObject, "http://eclipse.org/epsilon/rdf/");
+		
+		// TODO check for existing URI in the deserializer
+		
+		// Make a URI for the EObject's EClass
+		String eClassIRI = createEObjectRDFtypeIRI(eObject);
+		
+		// Create the root statement for the eObject		
+		Resource subject = model.createResource(eObjectIRI);
+		Property predicate = RDF.type;
+		Resource object = model.createResource(eClassIRI);
+				
+		// Add the statement to the model
+		model.add(subject, predicate, object);
+
+		return subject;
+	}
+	
+	
 	//
 	// Containers statement operations
 	
