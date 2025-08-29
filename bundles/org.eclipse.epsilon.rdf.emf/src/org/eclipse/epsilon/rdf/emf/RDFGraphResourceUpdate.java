@@ -627,63 +627,20 @@ public class RDFGraphResourceUpdate {
 		});
 		
 		if(!contents.isEmpty()) {
-			System.out.println("\n ** Do content removal (recursive)");
+			System.out.println("\n ** Recursive content removal");
 			contents.forEach(eOb -> {
 				removeAllEObjectStatements(model, eOb);
 			});
 			System.out.println(" ** ");
 		}
 		
-		// Change this to EStructuralFeatures, we don't need to worry about attributes and references here...
-		EList<EAttribute> attributes = eObject.eClass().getEAllAttributes(); // eAttribute statements to be removed for this EObject
-		System.out.println("\n EAllAttributes:");
+		removeAllEStructuralFeatureStatements(eObject, model);
 		
-		
-		Iterator<EAttribute> attributesItr = attributes.iterator();
-		while(attributesItr.hasNext()) {
-			EAttribute a = attributesItr.next();
-			System.out.println("\t - " + a.getName() + " : " + eObject.eGet(a) + " : isMany? " + a.isMany());
-			if(a.isMany()) {
-				// Multi-value statements
-				removeMultiEStructuralFeature(model, eObject,a, eObject.eGet(a));
-			} else {
-				// Single-value statement
-				//eObject.eUnset(a); // reverts to the default value if there is one, leaving a statement behind
-				removeSingleValueEStructuralFeatureStatements(model, eObject, a, eObject.eGet(a));
-				
-			}
-		}
-		
-		EList<EReference> references = eObject.eClass().getEAllReferences(); // Any reference statements (none containment & containment)
-		System.out.println("\n EAllReferences:");		
-		references.forEach(r -> {
-			if (r.isMany()) { 
-				// this is a List that will need clearing before removing the statement for the reference
-				System.out.println("\t - " + r.getName() + " (isContainment? " + r.isContainment() + " isMany? " + r.isMany() + ")");
-				Object manyR = eObject.eGet(r);
-				if(manyR instanceof List) {
-					EList<?> listR = (EList<?>) manyR;
-					listR.forEach(R -> {
-						if(R instanceof EObject) {
-							EObject eR = (EObject) R;
-							System.out.println("\t   - " +eR.eClass().getName() + " #" + eR.hashCode());
-						}
-					});
-				} else {
-					// single item in a many (not a list)
-				}
-			} else {
-				System.out.println("\t - " + r.getName() + " (isContainment? " + r.isContainment() + "isMany? " + r.isMany() + ") #" + r.hashCode());
-				eObject.eUnset(r);
-			}
-		});
-		
-		// Remove the RDF TYPE statement for eObject IF there the RDF TYPE statement is the only statement left!
+		removeEObjectRootRDFStatement(model, eObject);
 		
 		System.out.println(" * \n");
 		
 	}
-	
 	
 	//
 	// Single-value Features operations
