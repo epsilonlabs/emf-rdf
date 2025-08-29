@@ -262,8 +262,9 @@ public class RDFDeserializer {
 				if (ePackage != null) {
 					EClassifier eClassifier = ePackage.getEClassifier(typeName);
 					if (eClassifier == null) {
-						throw new NoSuchElementException(
-							String.format("Cannot find type '%s' in EPackage with nsURI '%s'", typeName, nsURI));
+						System.err.println(
+							String.format("Cannot find type '%s' in EPackage with nsURI '%s'", typeName, nsURI)
+						);
 					}
 
 					if (eClassifier instanceof EClass newEClass) {
