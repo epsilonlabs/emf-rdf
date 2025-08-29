@@ -190,8 +190,11 @@ public class RDFGraphResourceUpdate {
 		return namespaceIRI;
 	}
 	
-	private String createEObjectIRI(EObject eObject, String rdfNamespace) {
+	private String createEObjectIRI(EObject eObject) {
 		//String namespacePrefix = getEClassNsPrefix(eObject);
+		
+		String rdfNamespace = "http://eclipse.org/epsilon/rdf/";
+		//String rdfNamespace = getEClassNsPrefix(eObject);
 		
 		// TODO Add switch case here for different URI generating methods.
 		String eObjectName = EcoreUtil.generateUUID();  // This UUID is generated using Date and Time (now).
@@ -209,27 +212,6 @@ public class RDFGraphResourceUpdate {
 		String iri = String.format("%s#%s", namespacePrefix,eObjectType);
 		System.out.println("new eObject Type rdf IRI: " + iri);
 		return iri;
-	}
-	
-	private Resource createNewEObjectRootRDFstatement(EObject eObject, Model model) {
-		
-		// Make a URI for the EObject
-		String eObjectIRI = createEObjectIRI(eObject, "http://eclipse.org/epsilon/rdf/");
-		
-		// TODO check for existing URI in the deserializer
-		
-		// Make a URI for the EObject's EClass
-		String eClassIRI = createEObjectRDFtypeIRI(eObject);
-		
-		// Create the root statement for the eObject		
-		Resource subject = model.createResource(eObjectIRI);
-		Property predicate = RDF.type;
-		Resource object = model.createResource(eClassIRI);
-				
-		// Add the statement to the model
-		model.add(subject, predicate, object);
-
-		return subject;
 	}
 	
 	
@@ -554,9 +536,43 @@ public class RDFGraphResourceUpdate {
 	//
 	// EObject operations
 	
+	private Resource createNewEObjectRootRDFstatement(Model model, EObject eObject) {
+		
+		// Make a URI for the EObject
+		String eObjectIRI = createEObjectIRI(eObject);
+		
+		// TODO check for existing URI in the deserializer
+		
+		// Make a URI for the EObject's EClass
+		String eClassIRI = createEObjectRDFtypeIRI(eObject);
+		
+		// Create the root statement for the eObject		
+		Resource subject = model.createResource(eObjectIRI);
+		Property predicate = RDF.type;
+		Resource object = model.createResource(eClassIRI);
+				
+		// Add the statement to the model
+		model.add(subject, predicate, object);
+
+		return subject;
+	}
+	
+	private void removeEObjectRootRDFStatement(Model model, EObject eObject) {
+		// Remove the RDF TYPE statement for eObject 
+		// Do we need to guard this so we only remove it IF there is only an RDF TYPE statement statement left on the eobject Resource?
+		
+		// Create the root statement for the eObject
+		Resource subject = deserializer.getRDFResource(eObject);  // eobject as a resource
+		Property predicate = RDF.type;
+		Resource object = model.createResource(createEObjectRDFtypeIRI(eObject)); // class iri as a resource
+				
+		// Add the statement to the model
+		model.remove(subject, predicate, object);
+	}
+	
 	private Resource addNewEObject(Model model, EObject eObject) {
 		
-		Resource eObjectRes = createNewEObjectRootRDFstatement(eObject, model);		
+		Resource eObjectRes = createNewEObjectRootRDFstatement(model, eObject);		
 		
 		// Update the deserializer maps
 		deserializer.registerNewEObject(eObject, eObjectRes);
