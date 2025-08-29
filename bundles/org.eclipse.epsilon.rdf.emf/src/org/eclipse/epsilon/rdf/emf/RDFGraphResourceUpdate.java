@@ -517,17 +517,27 @@ public class RDFGraphResourceUpdate {
 		// Make statements for EStructuralFeatures (Single-value/Multi-values)			
 		EList<EStructuralFeature> eStructuralFeatureList = eObject.eClass().getEAllStructuralFeatures();
 		for (EStructuralFeature eStructuralFeature : eStructuralFeatureList) {
-			Object value = eObject.eGet(eStructuralFeature, true);
-			System.out.println(String.format("%s %s %s %s", 
-					eStructuralFeature.eClass().getName(),
-					eStructuralFeature.getEType().getName(),
-					eStructuralFeature.getName(),
-					value));		
+			Object value = eObject.eGet(eStructuralFeature, true);	
 			if (null != value) {
 				if (eStructuralFeature.isMany()) {
-					addMultiValueEStructuralFeature(model, eObjectResource, eStructuralFeature, value, Notification.NO_INDEX);
+					addMultiValueEStructuralFeature(model, eObject, eStructuralFeature, value, Notification.NO_INDEX);
 				} else {
-					newSingleValueEStructuralFeatureStatements(model, eObjectResource, eStructuralFeature, value);
+					newSingleValueEStructuralFeatureStatements(model, eObject, eStructuralFeature, value);
+				}
+			}
+		}
+	}
+	
+	private void removeAllEStructuralFeatureStatements(EObject eObject, Model model) {
+		// Make statements for EStructuralFeatures (Single-value/Multi-values)			
+		EList<EStructuralFeature> eStructuralFeatureList = eObject.eClass().getEAllStructuralFeatures();
+		for (EStructuralFeature eStructuralFeature : eStructuralFeatureList) {
+			Object value = eObject.eGet(eStructuralFeature, true);	
+			if (null != value) {
+				if (eStructuralFeature.isMany()) {
+					removeMultiEStructuralFeature(model, eObject, eStructuralFeature, value);
+				} else {
+					removeSingleValueEStructuralFeatureStatements(model, eObject, eStructuralFeature, value);
 				}
 			}
 		}
