@@ -246,43 +246,41 @@ public class RDFDeserializer {
 				continue;
 			}
 
-			String typeURI = typeObject.asResource().getURI();
-			String[] parts = typeURI.split("#");
-			if (parts.length == 2) {
-				String nsURI = parts[0];
-				String typeName = parts[1];
+			String nsURI = typeObject.asResource().getNameSpace();
+			String typeName = typeObject.asResource().getLocalName();
+			EPackage ePackage = this.packageRegistry.get().getEPackage(nsURI);
+			if (ePackage == null && (nsURI.endsWith("#") || nsURI.endsWith("/"))) {
+				// Try stripping out the final # or /, to be more flexible:
+				// the user may not have included them in the EPackage nsURI.
+				ePackage = this.packageRegistry.get().getEPackage(nsURI.substring(0, nsURI.length() - 1));
+			}
 
-				EPackage ePackage = this.packageRegistry.get().getEPackage(nsURI);
+			/*
+			 * NOTE: there may be URIs that don't correspond to any namespaces, such as the
+			 * OWL or XML Schema ones. We skip them without raising errors.
+			 */
+			if (ePackage != null) {
+				EClassifier eClassifier = ePackage.getEClassifier(typeName);
+				if (eClassifier == null) {
+					System.err.println(
+							String.format("Cannot find type '%s' in EPackage with nsURI '%s'", typeName, nsURI));
+				}
 
-				/*
-				 * NOTE: there may be URIs that don't correspond to any namespaces,
-				 * such as the OWL or XML Schema ones. We skip them without raising
-				 * errors.
-				 */
-				if (ePackage != null) {
-					EClassifier eClassifier = ePackage.getEClassifier(typeName);
-					if (eClassifier == null) {
-						System.err.println(
-							String.format("Cannot find type '%s' in EPackage with nsURI '%s'", typeName, nsURI)
-						);
-					}
-
-					if (eClassifier instanceof EClass newEClass) {
-						for (Iterator<EClass> itEClass = eClasses.iterator(); itEClass.hasNext();) {
-							EClass existingEClass = itEClass.next();
-							if (existingEClass.isSuperTypeOf(newEClass)) {
-								/*
-								 * The new EClass is more specific than an existing one: remove the existing
-								 * one.
-								 */
-								itEClass.remove();
-							} else if (newEClass.isSuperTypeOf(existingEClass)) {
-								// The new EClass is a supertype of an existing one: skip
-								continue;
-							}
+				if (eClassifier instanceof EClass newEClass) {
+					for (Iterator<EClass> itEClass = eClasses.iterator(); itEClass.hasNext();) {
+						EClass existingEClass = itEClass.next();
+						if (existingEClass.isSuperTypeOf(newEClass)) {
+							/*
+							 * The new EClass is more specific than an existing one:
+							 * remove the existing one.
+							 */
+							itEClass.remove();
+						} else if (newEClass.isSuperTypeOf(existingEClass)) {
+							// The new EClass is a supertype of an existing one: skip
+							continue;
 						}
-						eClasses.add(newEClass);
 					}
+					eClasses.add(newEClass);
 				}
 			}
 		}
