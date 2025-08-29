@@ -620,12 +620,7 @@ public class RDFGraphResourceUpdate {
 		
 		System.out.println("\n * REMOVE ALL STATEMENTS FOR - " + eObject.eClass().getName() + " #" +eObject.hashCode());
 		
-		EList<EObject> contents = eObject.eContents(); // eObjects contained -- recurse the removal of these
-		System.out.println("\n eContents:");
-		contents.forEach(eOb -> {
-			System.out.println("\t Class: " + eOb.eClass().getName() + "  #"+ eOb.hashCode());
-		});
-		
+		EList<EObject> contents = eObject.eContents(); // eObjects contained -- recurse the removal of these		
 		if(!contents.isEmpty()) {
 			System.out.println("\n ** Recursive content removal");
 			contents.forEach(eOb -> {
