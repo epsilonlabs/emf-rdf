@@ -550,24 +550,17 @@ public class RDFGraphResourceUpdate {
 	// Feature operations
 	
 	private boolean containmentCheck (EStructuralFeature eStructuralFeature, Object value) {
-		String containmentCheckInstanceID = EcoreUtil.generateUUID();
 		if(eStructuralFeature instanceof EReference) {
-			EReference reference = (EReference) eStructuralFeature;
-			System.out.println (" -- CONTAINMENT CHECK -- " + containmentCheckInstanceID);
-			System.out.println ("  EReference: " + reference.getName() + " - containment is "  +reference.isContainment());
-//			System.out.println ("  Value: " + value);
-			
+			EReference reference = (EReference) eStructuralFeature;			
 			if (value instanceof EObject && reference.isContainment()) {
-//				System.out.println(" -- Containment - " + containmentCheckInstanceID + "\n");
 				return true;
 			}
 		}
-//		System.out.println (" -- Not containment - " + containmentCheckInstanceID + "\n");
 		return false;
 	}
 	
 	private void createAllEStructuralFeatureStatements(EObject eObject, Model model) {
-		// Make statements for EStructuralFeatures (Single-value/Multi-values)		
+		// Make statements for EStructuralFeatures (Single-value/Multi-values)
 		System.out.println("Add all statements for: " + eObject.eClass().getName() + " #" + eObject.hashCode());
 		EList<EStructuralFeature> eStructuralFeatureList = eObject.eClass().getEAllStructuralFeatures();
 		for (EStructuralFeature eStructuralFeature : eStructuralFeatureList) {
@@ -583,7 +576,7 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	private void removeAllEStructuralFeatureStatements(EObject eObject, Model model) {
-		// Make statements for EStructuralFeatures (Single-value/Multi-values)			
+		// Make statements for EStructuralFeatures (Single-value/Multi-values)
 		EList<EStructuralFeature> eStructuralFeatureList = eObject.eClass().getEAllStructuralFeatures();
 		for (EStructuralFeature eStructuralFeature : eStructuralFeatureList) {
 			Object value = eObject.eGet(eStructuralFeature, true);	
@@ -597,9 +590,9 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 	
+	
 	//
 	// EObject operations
-		
 	
 	private void addEObjectRootRDFStatement(Model model, EObject eObject) {
 		model.add(createEObjectRDFTypeStatement(model, eObject));
