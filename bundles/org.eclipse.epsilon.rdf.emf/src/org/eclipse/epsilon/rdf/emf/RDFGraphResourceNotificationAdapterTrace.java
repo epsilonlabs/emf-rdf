@@ -262,28 +262,25 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		if (eStructuralFeature instanceof EReference) {
 			EReference eReferenceChanged = (EReference) eStructuralFeature;
 			// If things blow up here, then something other than EObjects can be referenced...
-			if (oldValue instanceof EObject) {
-				EObject oldValueEob = (EObject) oldValue;
-				int oldValueHash = 0;
-				if (null != oldValueEob) {
-					oldValueHash = oldValueEob.hashCode();
-				}
+			
+			EObject oldValueEob = (EObject) oldValue;
+			int oldValueHash = 0;
+			if (null != oldValueEob) {
+				oldValueHash = oldValueEob.hashCode();
+			}
 
-				if (newValue instanceof EObject) {
-					EObject newValueEob = (EObject) newValue;
-					int newValueHash = 0;
-
-					if (null != newValueEob) {
-						newValueHash = newValueEob.hashCode();
-					}
-					processTrace.append(String.format("\n - EReference changed: (%s, %s, %s, %s)\n\t%s - %s \n\twas: (#%s) %s\n\tnow: (#%s) %s"
-							, order, unique, multi, referenceContainment,
-							eReferenceChanged.getEReferenceType().getName(), eReferenceChanged.getName(),
-							oldValueHash, getEObjectLocation(oldValueEob),  
-							newValueHash, getEObjectLocation((newValueEob))));
-				}				
+			EObject newValueEob = (EObject) newValue;
+			int newValueHash = 0;
+			if (null != newValueEob) {
+				newValueHash = newValueEob.hashCode();
 			}
 			
+			processTrace.append(String.format(
+					"\n - EReference changed: (%s, %s, %s, %s)\n\t%s - %s \n\twas: (#%s) %s\n\tnow: (#%s) %s", order,
+					unique, multi, referenceContainment, eReferenceChanged.getEReferenceType().getName(),
+					eReferenceChanged.getName(), oldValueHash, getEObjectLocation(oldValueEob), newValueHash,
+					getEObjectLocation((newValueEob))));
+
 			if (oldValue instanceof List) {
 				System.out.println ("old value is a list here...");
 			}
