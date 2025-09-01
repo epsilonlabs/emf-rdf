@@ -764,8 +764,6 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	public void removeMultiEStructuralFeature (Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object oldValue) {
-		System.out.println("removeMultiEStructuralFeature() " + eStructuralFeature.getName() + " " + oldValue);
-		
 		Resource onEObjectNode = rdfGraphResource.getRDFResource(onEObject);
 		if (!onEObjectNode.hasProperty(createProperty(eStructuralFeature))) {
 			System.err.println("Trying to remove a none existing RDFnode for a multivalue attribute");
@@ -810,9 +808,6 @@ public class RDFGraphResourceUpdate {
 	
 	public void addMultiValueEStructuralFeature (Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue, int position) {
 		// sequence (ordered), bag (unordered), list (ordered/unordered)
-		
-		System.out.println("addMultiValueEStructuralFeature() " + eStructuralFeature.getName() + " " + newValue);
-		
 		Resource onEObjectNode = rdfGraphResource.getRDFResource(onEObject);
 				
 		// Work out if we are adding a NEW multi-value attribute with no existing RDF node.
