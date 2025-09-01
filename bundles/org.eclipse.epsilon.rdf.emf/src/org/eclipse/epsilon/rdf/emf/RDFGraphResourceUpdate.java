@@ -36,7 +36,6 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.notify.Notification;
-import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
@@ -72,6 +71,52 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 	
+	private Resource createNewEObjectResource (Model model, EObject eObject) {		
+			//Resource eobResource = ResourceFactory.createResource(createEObjectIRI(eObject)); // Can pass in an IRI string
+			Resource eobResource = model.createResource(createEObjectIRI(eObject));
+			
+			if (CONSOLE_OUTPUT_ACTIVE) {
+				System.out.println("Created a new Resource node: " + eobResource);
+				}
+			
+			// Update the deserializer maps
+			deserializer.registerNewEObject(eObject, eobResource);
+			
+			// Apply the notification Adapters
+			eObject.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace(rdfGraphResource));
+			eObject.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF(rdfGraphResource));
+			
+		return eobResource;
+	}
+	
+	private Resource getEObjectResource (Model model, EObject eObject) {
+		// get Resource for EObject from the model or make one
+		Resource valueResource = null;
+		
+		valueResource = rdfGraphResource.getRDFResource((EObject)eObject);
+		if(null != valueResource) {
+			System.out.println("EXISTS " + getEObjectInstanceLabel(eObject));
+		return valueResource;
+		}
+		
+		valueResource = deserializer.restoreEObjectResource(eObject);
+		if(null != valueResource) {
+			System.out.println("RECOVERED " + getEObjectInstanceLabel(eObject));
+			addAllEObjectStatements(model, eObject);
+			return valueResource;
+		}
+		
+		valueResource = createNewEObjectResource(model, eObject);
+		if(null != valueResource) {		
+			System.out.println("NEW " + getEObjectInstanceLabel(eObject));
+			addAllEObjectStatements(model, eObject);
+			return valueResource;
+		}
+		
+		System.err.println("Returned null - getEObjectResource()");
+		return null;
+	}
+	
 	private RDFNode createValueRDFNode(Object value, Model model) {
 		if(value instanceof Resource) {
 			return (Resource) value;
@@ -82,16 +127,7 @@ public class RDFGraphResourceUpdate {
 		
 		if(value instanceof EObject) {
 			// get Resource for EObject from the model or make one
-			Resource valueResource = rdfGraphResource.getRDFResource((EObject)value);
-			if(null == valueResource) {
-				Resource newResource = addNewEObject(model, (EObject) value);
-				if (CONSOLE_OUTPUT_ACTIVE) {
-						System.out.println("Created a new Resource node: " + newResource);
-						}
-				return newResource;
-			} else {
-				return valueResource;
-			}
+			return getEObjectResource(model, (EObject) value);
 		} else {
 			// Literal values
 			return createLiteral(value);
@@ -186,7 +222,7 @@ public class RDFGraphResourceUpdate {
 		String namespaceIRI = null; 
 		// TODO Add switch case here for different methods for creating NsPrefix.
 		namespaceIRI = eObject.eClass().getEPackage().getNsURI(); // Name space based on EPackage prefix		
-		System.out.println("eClass namespace IRI prefix: " + namespaceIRI );
+		//System.out.println("eClass namespace IRI prefix: " + namespaceIRI );
 		return namespaceIRI;
 	}
 	
@@ -199,8 +235,8 @@ public class RDFGraphResourceUpdate {
 		// TODO Add switch case here for different URI generating methods.
 		String eObjectName = EcoreUtil.generateUUID();  // This UUID is generated using Date and Time (now).
 		
-		String rdfIRI = String.format("%s#%s", rdfNamespace,eObjectName);
-		System.out.println("new eObject rdfURI: " + rdfIRI);
+		String rdfIRI = String.format("%s%s", rdfNamespace,eObjectName);
+		System.out.println("new eObject RDF IRI: " + rdfIRI);
 		return rdfIRI;
 	}
 	
@@ -210,7 +246,7 @@ public class RDFGraphResourceUpdate {
 		String eObjectType = eObject.eClass().getName();
 		
 		String iri = String.format("%s#%s", namespacePrefix,eObjectType);
-		System.out.println("new eObject Type rdf IRI: " + iri);
+		//System.out.println("eObject Type RDF IRI: " + iri);
 		return iri;
 	}
 	
@@ -390,10 +426,10 @@ public class RDFGraphResourceUpdate {
 	private RDFList removeOneValueFromListHandleUnique(RDFList container, EStructuralFeature sf, RDFNode valueRDFNode) {
 		RDFList newContainer = container;
 
-		if (sf.isUnique()) {
+		if (sf.isUnique() && (null != valueRDFNode)) {
 			while (newContainer.isValid() && newContainer.contains(valueRDFNode)) {
 				newContainer = newContainer.remove(valueRDFNode);
-				System.out.println(newContainer);
+				System.out.println("newContainer: " + newContainer);
 			}
 		} else {
 			newContainer = container.remove(valueRDFNode);
@@ -403,7 +439,7 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	private RDFList removeOneValueFromList(Object value, RDFList container, EStructuralFeature eStructuralFeature) {
-		if(value instanceof EObject && eStructuralFeature instanceof EReference) {		
+		if(value instanceof EObject && eStructuralFeature instanceof EReference) {
 			// References
 			RDFNode valueRDFNode = rdfGraphResource.getRDFResource((EObject)value);
 			return removeOneValueFromListHandleUnique(container, eStructuralFeature, valueRDFNode);
@@ -505,16 +541,26 @@ public class RDFGraphResourceUpdate {
 	//
 	// Feature operations
 	
-	private boolean containmentCheck (EStructuralFeature eStructuralFeature) {
+	private boolean containmentCheck (EStructuralFeature eStructuralFeature, Object value) {
+		String containmentCheckInstanceID = EcoreUtil.generateUUID();
 		if(eStructuralFeature instanceof EReference) {
-			System.out.println (" -- CONTAINMENT CHECK -- " + ((EReference) eStructuralFeature).isContainment());
-			return ((EReference) eStructuralFeature).isContainment();
+			EReference reference = (EReference) eStructuralFeature;
+			System.out.println (" -- CONTAINMENT CHECK -- " + containmentCheckInstanceID);
+			System.out.println ("  EReference: " + reference.getName() + " - containment is "  +reference.isContainment());
+//			System.out.println ("  Value: " + value);
+			
+			if (value instanceof EObject && reference.isContainment()) {
+//				System.out.println(" -- Containment - " + containmentCheckInstanceID + "\n");
+				return true;
+			}
 		}
+//		System.out.println (" -- Not containment - " + containmentCheckInstanceID + "\n");
 		return false;
 	}
 	
-	private void createAllEStructuralFeatureStatements(EObject eObject, Model model, Resource eObjectResource) {
-		// Make statements for EStructuralFeatures (Single-value/Multi-values)			
+	private void createAllEStructuralFeatureStatements(EObject eObject, Model model) {
+		// Make statements for EStructuralFeatures (Single-value/Multi-values)		
+		System.out.println("Add all statements for: " + eObject.eClass().getName() + " #" + eObject.hashCode());
 		EList<EStructuralFeature> eStructuralFeatureList = eObject.eClass().getEAllStructuralFeatures();
 		for (EStructuralFeature eStructuralFeature : eStructuralFeatureList) {
 			Object value = eObject.eGet(eStructuralFeature, true);	
@@ -545,80 +591,64 @@ public class RDFGraphResourceUpdate {
 	
 	//
 	// EObject operations
-	
-	private Resource createNewEObjectRootRDFstatement(Model model, EObject eObject) {
 		
-		// Make a URI for the EObject
-		String eObjectIRI = createEObjectIRI(eObject);
-		
-		// TODO check for existing URI in the deserializer
-		
+	private Statement createEObjectRDFTypeStatement(Model model, EObject eObject) {
 		// Make a URI for the EObject's EClass
 		String eClassIRI = createEObjectRDFtypeIRI(eObject);
 		
-		// Create the root statement for the eObject		
-		Resource subject = model.createResource(eObjectIRI);
+		// Create the root statement for the eObject
+		//Resource subject = model.createResource(eObjectIRI);
+		Resource subject = getEObjectResource(model, eObject);
 		Property predicate = RDF.type;
 		Resource object = model.createResource(eClassIRI);
 				
 		// Add the statement to the model
-		model.add(subject, predicate, object);
-
-		return subject;
+		Statement statement = model.createStatement(subject, predicate, object);		
+		return statement;
+	}
+	
+	private void addEObjectRootRDFStatement(Model model, EObject eObject) {
+		model.add(createEObjectRDFTypeStatement(model, eObject));
 	}
 	
 	private void removeEObjectRootRDFStatement(Model model, EObject eObject) {
 		// Remove the RDF TYPE statement for eObject 
-		// Do we need to guard this so we only remove it IF there is only an RDF TYPE statement statement left on the eobject Resource?
-		
-		// Create the root statement for the eObject
-		Resource subject = deserializer.getRDFResource(eObject);  // eobject as a resource
-		Property predicate = RDF.type;
-		Resource object = model.createResource(createEObjectRDFtypeIRI(eObject)); // class iri as a resource
-				
-		// Add the statement to the model
-		model.remove(subject, predicate, object);
+		model.remove(createEObjectRDFTypeStatement(model, eObject));
 	}
 	
-	private Resource addNewEObject(Model model, EObject eObject) {
+	private void addAllEObjectStatements(Model model, EObject eObject) {
+		System.out.println("\n * ADD ALL STATEMENTS FOR - " + getEObjectInstanceLabel(eObject) );
 		
-		Resource eObjectRes = createNewEObjectRootRDFstatement(model, eObject);		
-		
-		// Update the deserializer maps
-		deserializer.registerNewEObject(eObject, eObjectRes);
-		
-		createAllEStructuralFeatureStatements(eObject, model, eObjectRes);
-		
-		// Apply the notification Adapters
-		eObject.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace(rdfGraphResource));
-		eObject.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF(rdfGraphResource));
-		
-		// TODO check the RDF statements and Model are in sync; did something fail when making the RDF?
-		// The EObject has been made, and is has been added to a multi-value array in EMF; this Array might now have more values then an RDF container
-		
-		
-		return eObjectRes;
+		addEObjectRootRDFStatement(model, eObject);
+		createAllEStructuralFeatureStatements(eObject, model);
+
+		EList<EObject> contents = eObject.eContents(); 
+		if(!contents.isEmpty()) {
+			System.out.println("\n ** Recursive content addition");
+			contents.forEach(eOb -> {
+				addAllEObjectStatements(model, eOb);
+			});
+			System.out.println(" ** ");
+		}
+		System.out.println("\n * ADDED - " + getEObjectInstanceLabel(eObject) );
 	}
 	
-	private void removeEObjectContainmentSubTree (Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object oldValue) {		
+	private void removeEObjectContainmentSubTree (Model model, Object oldValue) {
 		if (oldValue instanceof EObject) {
 			EObject oldValueEObject = (EObject) oldValue;
-			System.out.println(" -- EOBJECT -- \n\t- " + EcoreUtil.getIdentification(oldValueEObject));
-			removeAllEObjectStatements(model, oldValueEObject);
-
-			
-		} else if (oldValue instanceof RDFNode) {
-			// This happens when removing a single statement from within an update notification (recursive)
-			RDFNode oldValueRDFNode = (RDFNode) oldValue;
-			System.out.println(" -- REFERENCED RDFNode -- \n\t- " + oldValueRDFNode);
+			System.out.println("Remove EObject Containment Subtree - " + getEObjectInstanceLabel(oldValueEObject));
+			removeAllEObjectStatements(model, oldValueEObject);	
+		} else if (oldValue instanceof Resource) {
+			 Collection<EObject> eobs = deserializer.getEObjects((Resource)oldValue);
+			 System.out.println("removeEObjectContainmentSubTree for Resource: ");
+				eobs.forEach(e -> System.out.println("  - " + getEObjectInstanceLabel(e)));
 		} else {
-			System.out.println(" -- oldValue -- \n\t- " + oldValue);
+			System.err.println("Unexpected oldValue is not an EObject: " + oldValue);
 		}
 	}
 	
 	private void removeAllEObjectStatements (Model model, EObject eObject) {
-		
-		System.out.println("\n * REMOVE ALL STATEMENTS FOR - " + eObject.eClass().getName() + " #" +eObject.hashCode());
+		System.out.println("\n * REMOVE ALL STATEMENTS FOR - " + getEObjectInstanceLabel(eObject) );
 		
 		EList<EObject> contents = eObject.eContents(); // eObjects contained -- recurse the removal of these		
 		if(!contents.isEmpty()) {
@@ -633,7 +663,9 @@ public class RDFGraphResourceUpdate {
 		
 		removeEObjectRootRDFStatement(model, eObject);
 		
-		System.out.println(" * \n");
+		deserializer.deregisterEObject(eObject);
+		
+		System.out.println(" * REMOVED " + getEObjectInstanceLabel(eObject) + "\n");
 		
 	}
 	
@@ -653,6 +685,9 @@ public class RDFGraphResourceUpdate {
 	
 	public void newSingleValueEStructuralFeatureStatements(Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue) {
 		assert newValue != null : "new value must exist";
+		
+		System.out.println("newSingleValueEStructuralFeatureStatements() " + eStructuralFeature.getName() + " " + newValue);
+		
 		Statement newStatement = createStatement(model, onEObject, eStructuralFeature, newValue);
 		Statement existingStatements = findEquivalentStatement(model, onEObject, eStructuralFeature, newValue);
 		
@@ -662,18 +697,6 @@ public class RDFGraphResourceUpdate {
 			System.err.println(String.format("New statement already exists? : %s", newStatement));
 		}
 		
-	}
-	
-	public void newSingleValueEStructuralFeatureStatements(Model model, Resource eobRes, EStructuralFeature eStructuralFeature, Object newValue) {
-		assert newValue != null : "new value must exist";
-		Statement newStatement = createStatement(model, eobRes, eStructuralFeature, newValue);
-		Statement existingStatements = findEquivalentStatement(model, eobRes, eStructuralFeature, newValue);
-		
-		if (!model.contains(newStatement) && null == existingStatements) {
-			model.add(newStatement);
-		} else {
-			System.err.println(String.format("New statement already exists? : %s", newStatement));
-		}
 	}
 	
 	public void removeSingleValueEStructuralFeatureStatements(List<Resource> namedModelURIs, EObject onEObject, EStructuralFeature eStructuralFeature, Object oldValue) {
@@ -688,24 +711,33 @@ public class RDFGraphResourceUpdate {
 	public void removeSingleValueEStructuralFeatureStatements(Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object oldValue) {
 		// Object type values set a new value "null", remove the statement the
 		// deserializer uses the meta-model so we won't have missing attributes
+		
 		assert oldValue != null : "old value must exist";
 		
-		if (containmentCheck(eStructuralFeature)) {
-			removeEObjectContainmentSubTree(model, onEObject, eStructuralFeature, oldValue);
-			// After this remove the reference as normal
-		}
+		System.out.println("removeSingleValueEStructuralFeatureStatements() " + eStructuralFeature.getName() + " " + oldValue);
+		
+
 		
 		// try object-to-literal
 		Statement oldStatement = createStatement(model, onEObject, eStructuralFeature, oldValue);
 		if (model.contains(oldStatement)) {
+			if (containmentCheck(eStructuralFeature, oldValue)) {
+				removeEObjectContainmentSubTree(model, oldValue);
+			} 
 			model.remove(oldStatement);
+			
 			return;
 		}
 		
 		// try literal-to-object
 		Statement stmtToRemove = findEquivalentStatement(model, onEObject, eStructuralFeature, oldValue);
 		if (stmtToRemove != null) {
+			if (containmentCheck(eStructuralFeature, oldValue)) {
+				removeEObjectContainmentSubTree(model, oldValue);
+				
+			} 
 			model.remove(stmtToRemove);
+			
 			return;
 		}
 		
@@ -753,10 +785,7 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	public void removeMultiEStructuralFeature (Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object oldValue) {
-		
-		if (containmentCheck(eStructuralFeature)) {
-			removeEObjectContainmentSubTree(model, onEObject, eStructuralFeature, oldValue);
-		}
+		System.out.println("removeMultiEStructuralFeature() " + eStructuralFeature.getName() + " " + oldValue);
 		
 		Resource onEObjectNode = rdfGraphResource.getRDFResource(onEObject);
 		if (!onEObjectNode.hasProperty(createProperty(eStructuralFeature))) {
@@ -800,16 +829,10 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 	
-	public void addMultiValueEStructuralFeature (Model model, Resource eobRes, EStructuralFeature eStructuralFeature, Object newValue, int position) {
-		// TODO move multi-value processing to Resource
-		Object object =  deserializer.getEObjects(eobRes);
-		if(object instanceof EObject) {
-			addMultiValueEStructuralFeature(model, eStructuralFeature, eStructuralFeature, newValue, position);
-		}
-	}
-	
 	public void addMultiValueEStructuralFeature (Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue, int position) {
 		// sequence (ordered), bag (unordered), list (ordered/unordered)
+		
+		System.out.println("addMultiValueEStructuralFeature() " + eStructuralFeature.getName() + " " + newValue);
 		
 		Resource onEObjectNode = rdfGraphResource.getRDFResource(onEObject);
 				
@@ -922,6 +945,10 @@ public class RDFGraphResourceUpdate {
 				item = null;
 			}
 		}
+	}
+	
+	private String getEObjectInstanceLabel (EObject eObject) {
+		return String.format( "%s-#%s", eObject.eClass().getName(), eObject.hashCode());
 	}
 	
 }
