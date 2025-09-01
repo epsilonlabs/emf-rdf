@@ -242,7 +242,7 @@ public class RDFGraphResourceUpdate {
 		return eClassIRI;
 	}
 	
-	private Statement createEObjectRDFTypeStatement(Model model, EObject eObject) {
+	private Statement createEObjectEClassStatement(Model model, EObject eObject) {
 		// Make a URI for the EObject's EClass
 		String eClassIRI = createEClassIRI(eObject);
 		
@@ -559,7 +559,7 @@ public class RDFGraphResourceUpdate {
 		return false;
 	}
 	
-	private void createAllEStructuralFeatureStatements(EObject eObject, Model model) {
+	private void addAllEStructuralFeatureStatements(EObject eObject, Model model) {
 		// Make statements for EStructuralFeatures (Single-value/Multi-values)
 		System.out.println("Add all statements for: " + eObject.eClass().getName() + " #" + eObject.hashCode());
 		EList<EStructuralFeature> eStructuralFeatureList = eObject.eClass().getEAllStructuralFeatures();
@@ -594,66 +594,64 @@ public class RDFGraphResourceUpdate {
 	//
 	// EObject operations
 	
-	private void addEObjectRootRDFStatement(Model model, EObject eObject) {
-		model.add(createEObjectRDFTypeStatement(model, eObject));
+	private void addEObjectEClassStatement(Model model, EObject eObject) {
+		model.add(createEObjectEClassStatement(model, eObject));
 	}
-	
-	private void removeEObjectRootRDFStatement(Model model, EObject eObject) {
-		// Remove the RDF TYPE statement for eObject 
-		model.remove(createEObjectRDFTypeStatement(model, eObject));
-	}
-	
-	private void addAllEObjectStatements(Model model, EObject eObject) {
-		System.out.println("\n * ADD ALL STATEMENTS FOR - " + getEObjectInstanceLabel(eObject) );
-		
-		addEObjectRootRDFStatement(model, eObject);
-		createAllEStructuralFeatureStatements(eObject, model);
 
-		EList<EObject> contents = eObject.eContents(); 
-		if(!contents.isEmpty()) {
-			System.out.println("\n ** Recursive content addition");
+	private void removeEObjectEClassStatement(Model model, EObject eObject) {
+		model.remove(createEObjectEClassStatement(model, eObject));
+	}
+
+	private void addAllEObjectStatements(Model model, EObject eObject) {
+		if (CONSOLE_OUTPUT_ACTIVE) {
+			System.out.println("\n * Adding all statements for: " + getEObjectInstanceLabel(eObject));
+		}
+
+		addEObjectEClassStatement(model, eObject);
+		addAllEStructuralFeatureStatements(eObject, model);
+
+		EList<EObject> contents = eObject.eContents();
+		if (!contents.isEmpty()) {
+			if (CONSOLE_OUTPUT_ACTIVE) {
+				System.out.println("\n ** Recursive content addition happening...");
+			}
 			contents.forEach(eOb -> {
 				addAllEObjectStatements(model, eOb);
 			});
-			System.out.println(" ** ");
 		}
-		System.out.println("\n * ADDED - " + getEObjectInstanceLabel(eObject) );
 	}
-	
-	private void removeEObjectContainmentSubTree (Model model, Object oldValue) {
+
+	private void removeEObjectContainmentSubTree(Model model, Object oldValue) {
 		if (oldValue instanceof EObject) {
 			EObject oldValueEObject = (EObject) oldValue;
-			System.out.println("Remove EObject Containment Subtree - " + getEObjectInstanceLabel(oldValueEObject));
-			removeAllEObjectStatements(model, oldValueEObject);	
-		} else if (oldValue instanceof Resource) {
-			 Collection<EObject> eobs = deserializer.getEObjects((Resource)oldValue);
-			 System.out.println("removeEObjectContainmentSubTree for Resource: ");
-				eobs.forEach(e -> System.out.println("  - " + getEObjectInstanceLabel(e)));
+			if (CONSOLE_OUTPUT_ACTIVE) {
+				System.out.println("Remove EObject Containment Subtree - " + getEObjectInstanceLabel(oldValueEObject));
+			}
+			removeAllEObjectStatements(model, oldValueEObject);
 		} else {
-			System.err.println("Unexpected oldValue is not an EObject: " + oldValue);
+			System.err.println("Unexpected oldValue removeEObjectContainmentSubTree() not an EObject: "
+					+ oldValue.getClass().getName());
 		}
 	}
-	
-	private void removeAllEObjectStatements (Model model, EObject eObject) {
-		System.out.println("\n * REMOVE ALL STATEMENTS FOR - " + getEObjectInstanceLabel(eObject) );
-		
-		EList<EObject> contents = eObject.eContents(); // eObjects contained -- recurse the removal of these		
-		if(!contents.isEmpty()) {
-			System.out.println("\n ** Recursive content removal");
+
+	private void removeAllEObjectStatements(Model model, EObject eObject) {
+		if (CONSOLE_OUTPUT_ACTIVE) {
+			System.out.println("\n * Removing all statements for: " + getEObjectInstanceLabel(eObject));
+		}
+
+		EList<EObject> contents = eObject.eContents();
+		if (!contents.isEmpty()) {
+			if (CONSOLE_OUTPUT_ACTIVE) {
+				System.out.println("\n * Recursive content removal happening...");
+			}
 			contents.forEach(eOb -> {
 				removeAllEObjectStatements(model, eOb);
 			});
-			System.out.println(" ** ");
 		}
-		
+
 		removeAllEStructuralFeatureStatements(eObject, model);
-		
-		removeEObjectRootRDFStatement(model, eObject);
-		
+		removeEObjectEClassStatement(model, eObject);
 		deserializer.deregisterEObject(eObject);
-		
-		System.out.println(" * REMOVED " + getEObjectInstanceLabel(eObject) + "\n");
-		
 	}
 	
 	//
