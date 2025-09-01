@@ -218,36 +218,43 @@ public class RDFGraphResourceUpdate {
 		return ResourceFactory.createStatement(rdfNode, property, object);
 	}
 	
-	private String getEClassNsPrefix (EObject eObject) {
-		String namespaceIRI = null; 
-		// TODO Add switch case here for different methods for creating NsPrefix.
-		namespaceIRI = eObject.eClass().getEPackage().getNsURI(); // Name space based on EPackage prefix		
-		//System.out.println("eClass namespace IRI prefix: " + namespaceIRI );
-		return namespaceIRI;
-	}
-	
 	private String createEObjectIRI(EObject eObject) {
-		//String namespacePrefix = getEClassNsPrefix(eObject);
-		
-		String rdfNamespace = "http://eclipse.org/epsilon/rdf/";
-		//String rdfNamespace = getEClassNsPrefix(eObject);
-		
 		// TODO Add switch case here for different URI generating methods.
+		String rdfNamespace = "http://eclipse.org/epsilon/rdf/";
 		String eObjectName = EcoreUtil.generateUUID();  // This UUID is generated using Date and Time (now).
+		String eObjectIRI = String.format("%s%s", rdfNamespace,eObjectName);
 		
-		String rdfIRI = String.format("%s%s", rdfNamespace,eObjectName);
-		System.out.println("new eObject RDF IRI: " + rdfIRI);
-		return rdfIRI;
+		if (CONSOLE_OUTPUT_ACTIVE) {
+			System.out.println("eObject node IRI: " + eObjectIRI);
+		}
+		return eObjectIRI;
 	}
 	
-	private String createEObjectRDFtypeIRI(EObject eObject) {
-		String namespacePrefix = getEClassNsPrefix(eObject);
+	private String createEClassIRI(EObject eObject) {
+		String eClassNamespacePrefix = eObject.eClass().getEPackage().getNsURI(); // Name space based on EPackage prefix	
+		String eClassName = eObject.eClass().getName();
 		
-		String eObjectType = eObject.eClass().getName();
+		String eClassIRI = String.format("%s#%s", eClassNamespacePrefix,eClassName);
 		
-		String iri = String.format("%s#%s", namespacePrefix,eObjectType);
-		//System.out.println("eObject Type RDF IRI: " + iri);
-		return iri;
+		if (CONSOLE_OUTPUT_ACTIVE) {
+			System.out.println("eClass node IRI: " + eClassIRI);
+		}
+		return eClassIRI;
+	}
+	
+	private Statement createEObjectRDFTypeStatement(Model model, EObject eObject) {
+		// Make a URI for the EObject's EClass
+		String eClassIRI = createEClassIRI(eObject);
+		
+		// Create the root statement for the eObject
+		//Resource subject = model.createResource(eObjectIRI);
+		Resource subject = getEObjectResource(model, eObject);
+		Property predicate = RDF.type;
+		Resource object = model.createResource(eClassIRI);
+				
+		// Add the statement to the model
+		Statement statement = model.createStatement(subject, predicate, object);		
+		return statement;
 	}
 	
 	
@@ -386,6 +393,7 @@ public class RDFGraphResourceUpdate {
 		model.add(createStatement(model, onEObject, eStructuralFeature, objectNode));
 		return objectNode;
 	}
+	
 	
 	//
 	// List statement operations	
@@ -592,20 +600,6 @@ public class RDFGraphResourceUpdate {
 	//
 	// EObject operations
 		
-	private Statement createEObjectRDFTypeStatement(Model model, EObject eObject) {
-		// Make a URI for the EObject's EClass
-		String eClassIRI = createEObjectRDFtypeIRI(eObject);
-		
-		// Create the root statement for the eObject
-		//Resource subject = model.createResource(eObjectIRI);
-		Resource subject = getEObjectResource(model, eObject);
-		Property predicate = RDF.type;
-		Resource object = model.createResource(eClassIRI);
-				
-		// Add the statement to the model
-		Statement statement = model.createStatement(subject, predicate, object);		
-		return statement;
-	}
 	
 	private void addEObjectRootRDFStatement(Model model, EObject eObject) {
 		model.add(createEObjectRDFTypeStatement(model, eObject));
