@@ -64,6 +64,8 @@ public class RDFDeserializer {
 	private final Map<EObject, Resource> eobToResource = new IdentityHashMap<>();
 	private final Multimap<Resource, EObject> resourceToEob = HashMultimap.create();
 
+	private final Map<EObject, Resource> deregisteredEObject = new IdentityHashMap<>();
+
 	public RDFDeserializer(Supplier<EPackage.Registry> packageRegistry) {
 		this.packageRegistry = packageRegistry;
 	}
@@ -298,17 +300,29 @@ public class RDFDeserializer {
 			resourceToEob.put(node, eob);
 		}
 	}
-		
-	
-	public void deregisterEObject (EObject eob ) {
-		// TODO remove an EObject/RDFNode, cache the removed data.
-		
+
+	public void deregisterEObject(EObject eob) {
+		Resource node = getRDFResource(eob);
+		eobToResource.remove(eob);
+		resourceToEob.remove(eob, node);
+		deregisteredEObject.put(eob, node);
 	}
-	
 
 	public void registerNewEObject(EObject eob, Resource node) {
 		eobToResource.put(eob, node);
 		resourceToEob.put(node, eob);
+	}
+
+	public Resource restoreEObjectResource(EObject eObject) {
+		Resource node = deregisteredEObject.get(eObject);
+
+		if (null == node) {
+			return null;
+		}
+
+		deregisteredEObject.remove(eObject);
+		registerNewEObject(eObject, node);
+		return node;
 	}
 
 }
