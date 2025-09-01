@@ -88,7 +88,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 							namedModelURIs.add(first);
 						}
 					}
-					rdfUpdater.newSingleValueEStructuralFeatureStatements(namedModelURIs, onEObject,
+					rdfUpdater.addSingleValueEStructuralFeatureStatements(namedModelURIs, onEObject,
 						changedFeature, newValue);
 				}
 			} else {

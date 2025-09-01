@@ -569,7 +569,7 @@ public class RDFGraphResourceUpdate {
 				if (eStructuralFeature.isMany()) {
 					addMultiValueEStructuralFeature(model, eObject, eStructuralFeature, value, Notification.NO_INDEX);
 				} else {
-					newSingleValueEStructuralFeatureStatements(model, eObject, eStructuralFeature, value);
+					addSingleValueEStructuralFeatureStatements(model, eObject, eStructuralFeature, value);
 				}
 			}
 		}
@@ -657,25 +657,23 @@ public class RDFGraphResourceUpdate {
 	//
 	// Single-value Features operations
 	
-	public void newSingleValueEStructuralFeatureStatements(List<Resource> namedModelURIs, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue) {
+	public void addSingleValueEStructuralFeatureStatements(List<Resource> namedModelURIs, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue) {
 		assert newValue != null : "new value must exist";
-		
+
 		// We default always to the first named model for a new statement.
 		// In the future, we may use a rule-based system to decide which named model to use.
 		List<Model> namedModelsToUpdate = rdfGraphResource.getNamedModels(namedModelURIs);
 		for (Model model : namedModelsToUpdate) {
-			newSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, newValue);
+			addSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, newValue);
 		}
 	}
-	
-	public void newSingleValueEStructuralFeatureStatements(Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue) {
+
+	public void addSingleValueEStructuralFeatureStatements(Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue) {
 		assert newValue != null : "new value must exist";
-		
-		System.out.println("newSingleValueEStructuralFeatureStatements() " + eStructuralFeature.getName() + " " + newValue);
-		
+
 		Statement newStatement = createStatement(model, onEObject, eStructuralFeature, newValue);
 		Statement existingStatements = findEquivalentStatement(model, onEObject, eStructuralFeature, newValue);
-		
+
 		if (!model.contains(newStatement) && null == existingStatements) {
 			model.add(newStatement);
 		} else {
@@ -683,7 +681,7 @@ public class RDFGraphResourceUpdate {
 		}
 		
 	}
-	
+
 	public void removeSingleValueEStructuralFeatureStatements(List<Resource> namedModelURIs, EObject onEObject, EStructuralFeature eStructuralFeature, Object oldValue) {
 		// Object type values set a new value "null", remove the statement the deserializer uses the meta-model so we won't have missing attributes
 		assert oldValue != null : "old value must exist";		
@@ -692,58 +690,54 @@ public class RDFGraphResourceUpdate {
 			removeSingleValueEStructuralFeatureStatements(model,onEObject,eStructuralFeature,oldValue);
 		}
 	}
-	
+
 	public void removeSingleValueEStructuralFeatureStatements(Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object oldValue) {
 		// Object type values set a new value "null", remove the statement the
 		// deserializer uses the meta-model so we won't have missing attributes
-		
-		assert oldValue != null : "old value must exist";
-		
-		System.out.println("removeSingleValueEStructuralFeatureStatements() " + eStructuralFeature.getName() + " " + oldValue);
-		
 
-		
+		assert oldValue != null : "old value must exist";
+
 		// try object-to-literal
 		Statement oldStatement = createStatement(model, onEObject, eStructuralFeature, oldValue);
 		if (model.contains(oldStatement)) {
 			if (containmentCheck(eStructuralFeature, oldValue)) {
 				removeEObjectContainmentSubTree(model, oldValue);
-			} 
+			}
 			model.remove(oldStatement);
-			
+
 			return;
 		}
-		
+
 		// try literal-to-object
 		Statement stmtToRemove = findEquivalentStatement(model, onEObject, eStructuralFeature, oldValue);
 		if (stmtToRemove != null) {
 			if (containmentCheck(eStructuralFeature, oldValue)) {
 				removeEObjectContainmentSubTree(model, oldValue);
-				
-			} 
+
+			}
 			model.remove(stmtToRemove);
-			
+
 			return;
 		}
-		
+
 		// EAttribute has a default value no statements in the RDF to match
 		if (oldValue.equals(eStructuralFeature.getDefaultValue())) {
 			if (CONSOLE_OUTPUT_ACTIVE) {
 				System.out.println(String.format(
 						"Old statement not found, but the oldvalue matches the models default value, so there might not be a statement."
 						+ "\n Remove - default value %s - old value %s ",
-						eStructuralFeature.getDefaultValue(), oldValue));					
+						eStructuralFeature.getDefaultValue(), oldValue));
 			}
 			return;
 		}
-		
+
 		// Couldn't find old statement through either object-to-literal or
 		// literal-to-object conversion, and there is no default value
-		 
+
 		System.err.println(String.format("Old statement not found during single removal: %s", oldStatement));
 		return;
 	}
-	
+
 	public void updateSingleValueEStructuralFeatureStatements(List<Resource> namedModelURIs, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue, Object oldValue) {
 		assert oldValue != null : "old value must exist";
 		assert newValue != null : "new value must exist";
@@ -752,13 +746,13 @@ public class RDFGraphResourceUpdate {
 			updateSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, newValue, oldValue);
 		};
 	}
-	
+
 	public void updateSingleValueEStructuralFeatureStatements(Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object newValue, Object oldValue) {
 		// Remove any existing statements and add a new one
 		removeSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, oldValue);
-		newSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, newValue);
+		addSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, newValue);
 	}
-	
+
 	//
 	// Multi-value Feature operations
 	
@@ -829,7 +823,7 @@ public class RDFGraphResourceUpdate {
 				createContainerAndAdd(model, onEObject, eStructuralFeature, newValue, position, null);
 			} else {
 				if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("\n No existing container, first single value is a statement");}
-				newSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, newValue);	
+				addSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, newValue);	
 			}
 		} else {
 			// Exists on a model some where...
