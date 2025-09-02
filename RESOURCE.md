@@ -4,7 +4,7 @@ This repository includes a prototype implementation of an EMF resource for RDF g
 
 It can be installed from the repository's update site: see [`README`](./README.md) for details.
 
-This RDF-EMF resource produces an EMF model representation of an RDF model; this could be an EMF model save as RDF or an RDF model from another programming. One or more RDF model files and schemas can be combined/reasoned before being deserialising against an EMF ECore meta-model. An EMF model instance composed of `EObject`s for the RDF model element that have an `rdf:type` statement that matches an `EClass` in the configured ECore meta-model.
+This RDF-EMF resource produces an EMF model representation of an RDF model; this could be an EMF model save as RDF or an RDF model from another programming. One or more RDF model files and schemas can be combined/reasoned before being deserialising against an EMF Ecore metamodel. An EMF model instance composed of `EObject`s for the RDF model element that have an `rdf:type` statement that matches an `EClass` in the configured Ecore metamodel.
 
 ## Differences with emf-triple
 
@@ -84,3 +84,15 @@ schemaModels:
   - schema.ttl
 multiValueAttributeMode: List
 ```
+
+### Default model namespace
+
+A default model namespace prefix is require when adding new statements to an RDF model. The namespace can be configured in the `.rdfres` file as shown below.
+
+```yaml
+defaultModelNamespace: /foo/bar/example#
+```
+
+The example above results in new RDF node with an IRI composed of the default name space and a UUID for the new EObject. E.g. `/foo/bar/example#_6sDDMIgJEfC2g6UdYdL1hg`
+
+If a default model name space is not provided in the `.rdfres` file, then `http://eclipse.org/epsilon/rdf/` will be used.

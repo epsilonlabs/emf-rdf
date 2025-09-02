@@ -62,6 +62,16 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	private Model rdfSchemaModel;
 	private Model rdfDataModel;
 	private OntModel rdfOntModel;
+	
+	private String defaultModelNamespace;
+
+	public String getDefaultModelNamespace() {
+		return defaultModelNamespace;
+	}
+
+	public void setDefaultModelNamespace(String defaultModelNamespace) {
+		this.defaultModelNamespace = defaultModelNamespace;
+	}
 
 	public static enum MultiValueAttributeMode {
 		LIST("List"), CONTAINER("Container");
@@ -108,6 +118,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		CustomClassLoaderConstructor constructor = new CustomClassLoaderConstructor(this.getClass().getClassLoader(), new LoaderOptions());
 		this.config = new Yaml(constructor).loadAs(inputStream, RDFResourceConfiguration.class);
 		loadRDFModels();
+		defaultModelNamespace = config.getDefaultModelNamespace();
 
 		validationMode = config.getRawValidationMode();
 		

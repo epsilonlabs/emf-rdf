@@ -44,7 +44,7 @@ import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl.MultiValueAttributeMode;
 
 public class RDFGraphResourceUpdate {
 	
-	private static final boolean CONSOLE_OUTPUT_ACTIVE = false;
+	private static final boolean CONSOLE_OUTPUT_ACTIVE = true;
 	private static final boolean SINGLE_MULTIVALUES_AS_STATEMENT = true;
 	
 	private boolean preferListsForMultiValues = false;
@@ -220,7 +220,7 @@ public class RDFGraphResourceUpdate {
 
 	private String createEObjectIRI(EObject eObject) {
 		// TODO Add switch case here for different URI generating methods.
-		String rdfNamespace = "http://eclipse.org/epsilon/rdf/";
+		String rdfNamespace = rdfGraphResource.getDefaultModelNamespace();
 		String eObjectName = EcoreUtil.generateUUID();  // This UUID is generated using Date and Time (now).
 		String eObjectIRI = String.format("%s%s", rdfNamespace,eObjectName);
 		
