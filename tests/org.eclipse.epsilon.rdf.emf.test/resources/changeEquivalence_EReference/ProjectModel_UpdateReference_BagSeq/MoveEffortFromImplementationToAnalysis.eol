@@ -1,8 +1,9 @@
 import "../TestOperations.eol";
 
 for (p in Project.all) {
-
-	"\n-Start-\n".println();
+	if(consoleOutput) {
+		"\n-Start-\n".println();
+	}
 	
 	var analysisTask = p.tasks.selectOne(i|i.title == "Analysis");
 	var analysisEfforts = analysisTask.effort;
@@ -17,6 +18,8 @@ for (p in Project.all) {
 	moveEffort = implementationEfforts.first();
 	implementationEfforts.remove(moveEffort);
 	analysisEfforts.add(moveEffort);
-
-	"\n-End-\n".println();
+	
+	if(consoleOutput) {
+		"\n-End-\n".println();
+	}
 }
