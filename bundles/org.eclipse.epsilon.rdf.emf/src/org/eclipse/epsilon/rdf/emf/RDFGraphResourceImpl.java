@@ -50,7 +50,7 @@ import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 
 public class RDFGraphResourceImpl extends ResourceImpl {
 	
-	private static final boolean NOTIFICATION_TRACE = true;
+	private static final boolean NOTIFICATION_TRACE = false;
 	
 	private RDFResourceConfiguration config;
 	private RDFDeserializer deserializer;

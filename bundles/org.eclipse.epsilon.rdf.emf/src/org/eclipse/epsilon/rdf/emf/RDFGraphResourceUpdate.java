@@ -44,7 +44,7 @@ import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl.MultiValueAttributeMode;
 
 public class RDFGraphResourceUpdate {
 	
-	private static final boolean CONSOLE_OUTPUT_ACTIVE = true;
+	private static final boolean CONSOLE_OUTPUT_ACTIVE = false;
 	private static final boolean SINGLE_MULTIVALUES_AS_STATEMENT = true;
 	
 	private boolean preferListsForMultiValues = false;
@@ -95,25 +95,31 @@ public class RDFGraphResourceUpdate {
 		
 		valueResource = rdfGraphResource.getRDFResource((EObject)eObject);
 		if(null != valueResource) {
-			System.out.println("EXISTS " + getEObjectInstanceLabel(eObject));
+			if (CONSOLE_OUTPUT_ACTIVE) {
+				System.out.println("getEObjectResource() - returned: " + getEObjectInstanceLabel(eObject));
+			}
 		return valueResource;
 		}
 		
 		valueResource = deserializer.restoreEObjectResource(eObject);
 		if(null != valueResource) {
-			System.out.println("RECOVERED " + getEObjectInstanceLabel(eObject));
+			if (CONSOLE_OUTPUT_ACTIVE) {
+				System.out.println("getEObjectResource() - restored: " + getEObjectInstanceLabel(eObject));
+			}
 			addAllEObjectStatements(model, eObject);
 			return valueResource;
 		}
 		
 		valueResource = createNewEObjectResource(model, eObject);
-		if(null != valueResource) {		
-			System.out.println("NEW " + getEObjectInstanceLabel(eObject));
+		if(null != valueResource) {	
+			if (CONSOLE_OUTPUT_ACTIVE) {	
+				System.out.println("getEObjectResource() - registered: " + getEObjectInstanceLabel(eObject));
+			}
 			addAllEObjectStatements(model, eObject);
 			return valueResource;
 		}
 		
-		System.err.println("Returned null - getEObjectResource()");
+		System.err.println("getEObjectResource() - Returned null");
 		return null;
 	}
 	
@@ -243,6 +249,8 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	private Statement createEObjectEClassStatement(Model model, EObject eObject) {
+		// TODO Add options here for creating EClassStatements with something other than RDF.type
+		
 		// Make a URI for the EObject's EClass
 		String eClassIRI = createEClassIRI(eObject);
 		
@@ -437,7 +445,9 @@ public class RDFGraphResourceUpdate {
 		if (sf.isUnique() && (null != valueRDFNode)) {
 			while (newContainer.isValid() && newContainer.contains(valueRDFNode)) {
 				newContainer = newContainer.remove(valueRDFNode);
-				System.out.println("newContainer: " + newContainer);
+				if (CONSOLE_OUTPUT_ACTIVE) {
+					System.out.println("newContainer: " + newContainer);
+				}
 			}
 		} else {
 			newContainer = container.remove(valueRDFNode);
@@ -561,7 +571,9 @@ public class RDFGraphResourceUpdate {
 	
 	private void addAllEStructuralFeatureStatements(EObject eObject, Model model) {
 		// Make statements for EStructuralFeatures (Single-value/Multi-values)
-		System.out.println("Add all statements for: " + eObject.eClass().getName() + " #" + eObject.hashCode());
+		if (CONSOLE_OUTPUT_ACTIVE) {
+			System.out.println("Add all statements for: " + eObject.eClass().getName() + " #" + eObject.hashCode());
+		}
 		EList<EStructuralFeature> eStructuralFeatureList = eObject.eClass().getEAllStructuralFeatures();
 		for (EStructuralFeature eStructuralFeature : eStructuralFeatureList) {
 			Object value = eObject.eGet(eStructuralFeature, true);	
@@ -577,6 +589,9 @@ public class RDFGraphResourceUpdate {
 	
 	private void removeAllEStructuralFeatureStatements(EObject eObject, Model model) {
 		// Make statements for EStructuralFeatures (Single-value/Multi-values)
+		if (CONSOLE_OUTPUT_ACTIVE) {
+			System.out.println("Remove all statements for: " + eObject.eClass().getName() + " #" + eObject.hashCode());
+		}
 		EList<EStructuralFeature> eStructuralFeatureList = eObject.eClass().getEAllStructuralFeatures();
 		for (EStructuralFeature eStructuralFeature : eStructuralFeatureList) {
 			Object value = eObject.eGet(eStructuralFeature, true);	
