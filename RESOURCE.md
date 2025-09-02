@@ -4,6 +4,8 @@ This repository includes a prototype implementation of an EMF resource for RDF g
 
 It can be installed from the repository's update site: see [`README`](./README.md) for details.
 
+This RDF-EMF resource produces an EMF model representation of an RDF model; this could be an EMF model save as RDF or an RDF model from another programming. One or more RDF model files and schemas can be combined/reasoned before being deserialising against an EMF ECore meta-model. An EMF model instance composed of `EObject`s for the RDF model element that have an `rdf:type` statement that matches an `EClass` in the configured ECore meta-model.
+
 ## Differences with emf-triple
 
 This implementation has some major differences with [emf-triple](https://github.com/ghillairet/emftriple):
@@ -15,12 +17,11 @@ These differences are achieved by loading an intermediary `.rdfres` file with al
 
 ## Current limitations
 
-The only modifications that are supported at the moment are:
+Saving has only been tested against file-based locations. We have not tested saving into triple stores.
 
-* Setting/unsetting single-valued `EAttribute`s with the pre-defined `EDataType`s in Ecore.
+The name spaces of the EMF meta-model and the subject (class name) in RDF type statement need to match for an EMF model to be produced by the resource.
 
-Saving has only been tested against file-based locations.
-We have not tested saving into triple stores.
+Names spaces for creating EMF models must be configured in the rdfres, only one is supported at the moment.
 
 ## .rdfres file format
 
