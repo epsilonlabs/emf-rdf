@@ -37,7 +37,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		}
 	}
 	
-	private void featureNotification (Object feature, Notification notification){
+	private void featureNotification (Object feature, Notification notification){		
 		if (feature instanceof EStructuralFeature) {
 			eStructuralFeatureNotification((EStructuralFeature) feature, notification);
 		} else {
@@ -45,7 +45,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		}
 	}
 
-	private void eStructuralFeatureNotification(EStructuralFeature eStructuralFeature, Notification notification) {
+	private void eStructuralFeatureNotification(EStructuralFeature eStructuralFeature, Notification notification) {		
 		EObject onEObject = (EObject) notification.getNotifier(); 	// RDF node
 		EStructuralFeature changedFeature = eStructuralFeature; 	// RDF property
 		// eAttribute's values are the objects						// RDF object (node/literal)
@@ -77,7 +77,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 				if (null == newValue) {
 					// No old value and no new value - nothing to do
 				} else {
-					// Create new statement for value
+					// Create new statement for value					
 					namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
 					if (namedModelURIs.isEmpty()) {
 						// No named RDF models contain the object yet - fall back on the first one
