@@ -449,9 +449,6 @@ public class RDFGraphResourceUpdate {
 		if (sf.isUnique() && (null != valueRDFNode)) {
 			while (newContainer.isValid() && newContainer.contains(valueRDFNode)) {
 				newContainer = newContainer.remove(valueRDFNode);
-				if (CONSOLE_OUTPUT_ACTIVE) {
-					System.out.println("newContainer: " + newContainer);
-				}
 			}
 		} else {
 			newContainer = container.remove(valueRDFNode);
