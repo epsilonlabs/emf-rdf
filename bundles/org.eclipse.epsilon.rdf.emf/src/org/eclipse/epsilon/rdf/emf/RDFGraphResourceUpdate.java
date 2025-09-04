@@ -44,7 +44,7 @@ import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl.MultiValueAttributeMode;
 
 public class RDFGraphResourceUpdate {
 	
-	private static final boolean CONSOLE_OUTPUT_ACTIVE = false;
+	private static final boolean CONSOLE_OUTPUT_ACTIVE = true;
 	private static final boolean SINGLE_MULTIVALUES_AS_STATEMENT = true;
 	
 	private boolean preferListsForMultiValues = false;
@@ -297,7 +297,7 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 	
-	private void searchContainerAndRemoveValue(Object value, Container container, EStructuralFeature sf) {
+	private void searchContainerAndRemoveValue(Model model, Object value, Container container, EStructuralFeature sf) {
 		if (CONSOLE_OUTPUT_ACTIVE) {System.out.println("Remove from container: " + value);}
 
 		List<Statement> containerPropertyStatements = container.listProperties().toList();
@@ -323,18 +323,22 @@ public class RDFGraphResourceUpdate {
 				done = true;
 			}
 		}
+		
+		if(checkContainment(sf, value)) {
+			removeAllObjectStatements(model, value);
+		}
 	}
 
-	private void removeFromContainer(Object values, Container container, EObject onEObject, EStructuralFeature eStructuralFeature) {
+	private void removeFromContainer(Model model, Object values, Container container, EObject onEObject, EStructuralFeature eStructuralFeature) {
 		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("Before remove", container);}
 		
 		EStructuralFeature sf = eStructuralFeature.eContainingFeature();
 		if(values instanceof EList<?>) { 
 			EList<?> valuesList = (EList<?>) values;
 			valuesList.iterator().forEachRemaining(value -> 
-				searchContainerAndRemoveValue(value, container, sf));
+				searchContainerAndRemoveValue(model, value, container, sf));
 		} else {
-			searchContainerAndRemoveValue(values, container, sf);
+			searchContainerAndRemoveValue(model, values, container, sf);
 		}
 		
 		if (CONSOLE_OUTPUT_ACTIVE) {reportContainer("After remove", container);}
@@ -343,12 +347,12 @@ public class RDFGraphResourceUpdate {
 		checkAndRemoveEmptyContainers(container, onEObject, eStructuralFeature);
 	}
 	
-	private void removeFromSeq(Object value, Container container, EObject onEObject, EStructuralFeature eStructuralFeature) {
-		removeFromContainer(value, container, onEObject, eStructuralFeature);
+	private void removeFromSeq(Model model, Object value, Container container, EObject onEObject, EStructuralFeature eStructuralFeature) {
+		removeFromContainer(model, value, container, onEObject, eStructuralFeature);
 	}
 	
-	private void removeFromBag(Object value, Container container, EObject onEObject, EStructuralFeature eStructuralFeature) {
-		removeFromContainer(value, container, onEObject, eStructuralFeature);
+	private void removeFromBag(Model model, Object value, Container container, EObject onEObject, EStructuralFeature eStructuralFeature) {
+		removeFromContainer(model, value, container, onEObject, eStructuralFeature);
 	}
 	
 	private void addToSequence(Object values, Seq container, int position) {
@@ -457,11 +461,19 @@ public class RDFGraphResourceUpdate {
 		return newContainer;
 	}
 	
-	private RDFList removeOneValueFromList(Object value, RDFList container, EStructuralFeature eStructuralFeature) {
+	private RDFList removeOneValueFromList(Model model, Object value, RDFList container, EStructuralFeature eStructuralFeature) {
+		if (CONSOLE_OUTPUT_ACTIVE) {
+			System.out.println(String.format(" - removeOneValueFromList: %s", value));
+		}
+
 		if(value instanceof EObject && eStructuralFeature instanceof EReference) {		
 			// References
 			RDFNode valueRDFNode = rdfGraphResource.getRDFResource((EObject)value);
-			return removeOneValueFromListHandleUnique(container, eStructuralFeature, valueRDFNode);
+			RDFList newContainer = removeOneValueFromListHandleUnique(container, eStructuralFeature, valueRDFNode);
+			if(checkContainment(eStructuralFeature, value)) {
+				removeAllObjectStatements(model, value);
+			}
+			return newContainer;
 		} else {	
 			// Attributes (Literal values)
 			Iterator<RDFNode> containerItr = container.iterator();
@@ -478,7 +490,7 @@ public class RDFGraphResourceUpdate {
 		}
 		return container;
 	}
-	
+
 	private void removeFromList(Object values, RDFList container, EObject onEObject, EStructuralFeature eStructuralFeature, Model model) {
 		RDFList newContainer = container;
 		if(values instanceof List<?> valueList) {
@@ -486,10 +498,10 @@ public class RDFGraphResourceUpdate {
 				System.out.println(String.format("list of values to remove: %s", valueList));
 			}
 			for (Object value : valueList) {
-				newContainer = removeOneValueFromList(value, newContainer, eStructuralFeature);
+				newContainer = removeOneValueFromList(model, value, newContainer, eStructuralFeature);
 			}
 		} else {
-			newContainer = removeOneValueFromList(values, newContainer, eStructuralFeature);
+			newContainer = removeOneValueFromList(model, values, newContainer, eStructuralFeature);
 		}
 
 		if (container != newContainer) {
@@ -560,7 +572,7 @@ public class RDFGraphResourceUpdate {
 	//
 	// Feature operations
 	
-	private boolean containmentCheck (EStructuralFeature eStructuralFeature, Object value) {
+	private boolean checkContainment (EStructuralFeature eStructuralFeature, Object value) {
 		if(eStructuralFeature instanceof EReference) {
 			EReference reference = (EReference) eStructuralFeature;			
 			if (value instanceof EObject && reference.isContainment()) {
@@ -572,16 +584,36 @@ public class RDFGraphResourceUpdate {
 	
 	private void addAllEStructuralFeatureStatements(EObject eObject, Model model) {
 		// Make statements for EStructuralFeatures (Single-value/Multi-values)
+		EList<EStructuralFeature> eStructuralFeatureList = eObject.eClass().getEAllStructuralFeatures();
+
 		if (CONSOLE_OUTPUT_ACTIVE) {
 			System.out.println("Add all statements for: " + eObject.eClass().getName() + " #" + eObject.hashCode());
 		}
-		EList<EStructuralFeature> eStructuralFeatureList = eObject.eClass().getEAllStructuralFeatures();
+
 		for (EStructuralFeature eStructuralFeature : eStructuralFeatureList) {
 			Object value = eObject.eGet(eStructuralFeature, true);	
 			if (null != value) {
 				if (eStructuralFeature.isMany()) {
-					addMultiValueEStructuralFeature(model, eObject, eStructuralFeature, value, Notification.NO_INDEX);
+					if (value instanceof List) {
+						if (CONSOLE_OUTPUT_ACTIVE) {
+							System.out.println(String.format(" - %s : %s : [%s]", eStructuralFeature.eClass().getName(),
+									eStructuralFeature.getName(), ((List<?>) value).size()));
+						}
+						for(Object v :  (List<?>) value) {
+							addMultiValueEStructuralFeature(model, eObject, eStructuralFeature, v, Notification.NO_INDEX);
+						} 
+					} else { 
+						if (CONSOLE_OUTPUT_ACTIVE) {
+							System.out.println(String.format(" - %s : %s : %s", eStructuralFeature.eClass().getName(),
+									eStructuralFeature.getName(),  value));
+						}
+						addMultiValueEStructuralFeature(model, eObject, eStructuralFeature, value, Notification.NO_INDEX);
+					}
 				} else {
+					if (CONSOLE_OUTPUT_ACTIVE) {
+						System.out.println(String.format(" - %s : %s : %s", eStructuralFeature.eClass().getName(),
+								eStructuralFeature.getName(),  value));
+					}
 					addSingleValueEStructuralFeatureStatements(model, eObject, eStructuralFeature, value);
 				}
 			}
@@ -590,20 +622,43 @@ public class RDFGraphResourceUpdate {
 	
 	private void removeAllEStructuralFeatureStatements(EObject eObject, Model model) {
 		// Make statements for EStructuralFeatures (Single-value/Multi-values)
-		if (CONSOLE_OUTPUT_ACTIVE) {
-			System.out.println("Remove all statements for: " + eObject.eClass().getName() + " #" + eObject.hashCode());
-		}
 		EList<EStructuralFeature> eStructuralFeatureList = eObject.eClass().getEAllStructuralFeatures();
+		
+		if (CONSOLE_OUTPUT_ACTIVE) {
+			System.out.println("\nRemove all statements for: " + eObject.eClass().getName() + " #" + eObject.hashCode());
+		}
+
 		for (EStructuralFeature eStructuralFeature : eStructuralFeatureList) {
-			Object value = eObject.eGet(eStructuralFeature, true);	
+			Object value = eObject.eGet(eStructuralFeature);
 			if (null != value) {
 				if (eStructuralFeature.isMany()) {
-					removeMultiEStructuralFeature(model, eObject, eStructuralFeature, value);
+					if (value instanceof List) {
+						if (CONSOLE_OUTPUT_ACTIVE) {
+							System.out.println(String.format(" - %s : %s : [%s]", eStructuralFeature.eClass().getName(),
+									eStructuralFeature.getName(), ((List<?>) value).size()));
+						}
+						for(Object v :  (List<?>) value) {
+							removeMultiEStructuralFeature(model, eObject, eStructuralFeature, v);
+						} 
+					} else {
+						if (CONSOLE_OUTPUT_ACTIVE) {
+							System.out.println(String.format(" - %s : %s : %s", eStructuralFeature.eClass().getName(),
+									eStructuralFeature.getName(),  value));
+						}
+							removeMultiEStructuralFeature(model, eObject, eStructuralFeature, value);
+						}
 				} else {
+					if (CONSOLE_OUTPUT_ACTIVE) {
+						System.out.println(String.format(" - %s : %s : %s", eStructuralFeature.eClass().getName(),
+								eStructuralFeature.getName(),  value));
+					}
 					removeSingleValueEStructuralFeatureStatements(model, eObject, eStructuralFeature, value);
 				}
+			} else {
+				System.err.println(String.format("removeAllEStructuralFeatureStatements() - value is null "));
 			}
 		}
+		
 	}
 	
 	
@@ -637,15 +692,11 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 
-	private void removeEObjectContainmentSubTree(Model model, Object oldValue) {
+	private void removeAllObjectStatements(Model model, Object oldValue) {
 		if (oldValue instanceof EObject) {
-			EObject oldValueEObject = (EObject) oldValue;
-			if (CONSOLE_OUTPUT_ACTIVE) {
-				System.out.println("Remove EObject Containment Subtree - " + getEObjectInstanceLabel(oldValueEObject));
-			}
-			removeAllEObjectStatements(model, oldValueEObject);
+			removeAllEObjectStatements(model, (EObject) oldValue);
 		} else {
-			System.err.println("Unexpected oldValue removeEObjectContainmentSubTree() not an EObject: "
+			System.err.println("removeAllObjectStatements() not an EObject: "
 					+ oldValue.getClass().getName());
 		}
 	}
@@ -654,19 +705,10 @@ public class RDFGraphResourceUpdate {
 		if (CONSOLE_OUTPUT_ACTIVE) {
 			System.out.println("\n * Removing all statements for: " + getEObjectInstanceLabel(eObject));
 		}
-
-		EList<EObject> contents = eObject.eContents();
-		if (!contents.isEmpty()) {
-			if (CONSOLE_OUTPUT_ACTIVE) {
-				System.out.println("\n * Recursive content removal happening...");
-			}
-			contents.forEach(eOb -> {
-				removeAllEObjectStatements(model, eOb);
-			});
-		}
-
+		
 		removeAllEStructuralFeatureStatements(eObject, model);
 		removeEObjectEClassStatement(model, eObject);
+
 		deserializer.deregisterEObject(eObject);
 	}
 	
@@ -713,9 +755,13 @@ public class RDFGraphResourceUpdate {
 
 		// try object-to-literal
 		Statement oldStatement = createStatement(model, onEObject, eStructuralFeature, oldValue);
-		if (model.contains(oldStatement)) {
-			if (containmentCheck(eStructuralFeature, oldValue)) {
-				removeEObjectContainmentSubTree(model, oldValue);
+		if (null == oldStatement) {
+			System.err.println("Can't make a statement, probably removed from deserialiser already");
+		}
+		
+		if (null != oldStatement  && model.contains(oldStatement)) {
+			if (checkContainment(eStructuralFeature, oldValue)) {
+				removeAllObjectStatements(model, oldValue);
 			}
 			model.remove(oldStatement);
 			return;
@@ -724,8 +770,8 @@ public class RDFGraphResourceUpdate {
 		// try literal-to-object
 		Statement stmtToRemove = findEquivalentStatement(model, onEObject, eStructuralFeature, oldValue);
 		if (stmtToRemove != null) {
-			if (containmentCheck(eStructuralFeature, oldValue)) {
-				removeEObjectContainmentSubTree(model, oldValue);
+			if (checkContainment(eStructuralFeature, oldValue)) {
+				removeAllObjectStatements(model, oldValue);
 			}
 			model.remove(stmtToRemove);
 			return;
@@ -745,7 +791,7 @@ public class RDFGraphResourceUpdate {
 		// Couldn't find old statement through either object-to-literal or
 		// literal-to-object conversion, and there is no default value
 		 
-		System.err.println(String.format("Old statement not found during single removal: %s", oldStatement));
+		System.err.println(String.format("Old statement not found during single removal: %s\n - eObject (subject): %s\n - feature (predicate): %s\n - value (object): %s ", oldStatement, onEObject, eStructuralFeature,oldValue));
 		return;
 	}
 	
@@ -798,10 +844,10 @@ public class RDFGraphResourceUpdate {
 					System.err.println("Removing from Empty list");				
 				} else if (objectResource.hasProperty(RDF.type, RDF.Bag)) {
 					Bag bag = model.getBag(objectResource);
-					removeFromBag(oldValue, bag, onEObject, eStructuralFeature);
+					removeFromBag(model, oldValue, bag, onEObject, eStructuralFeature);
 				} else if (objectResource.hasProperty(RDF.type, RDF.Seq)) {
 					Seq seq = model.getSeq(objectResource);
-					removeFromSeq(oldValue, seq, onEObject, eStructuralFeature);
+					removeFromSeq(model, oldValue, seq, onEObject, eStructuralFeature);
 				} else {
 					// The first item might look like a single value EAttribute
 					removeSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, oldValue);
