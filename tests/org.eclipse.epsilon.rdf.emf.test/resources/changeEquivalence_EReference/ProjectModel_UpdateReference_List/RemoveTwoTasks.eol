@@ -1,24 +1,19 @@
 import "../TestOperations.eol";
 
 	var p = Project.all.first();
-	p.println();
 	
 	if(consoleOutput) {
 		"\n-Start-\n".println();
-		
+		showProjectTask(p);
 	}
-	showProjectTask(p);
 	
 	p.tasks.remove(p.tasks.first());
 	p.tasks.remove(p.tasks.first());
-	
-	showProjectTask(p);
 	
 	if(consoleOutput) {
 		showProjectTask(p);
 		"\n-End-\n".println();
 	}
-
 
 
 
