@@ -210,6 +210,10 @@ public class RDFGraphResourceUpdate {
 
 	private Statement createStatement(Model model, EObject eObject, EStructuralFeature eStructuralFeature, Object value) {
 		Resource subject = rdfGraphResource.getRDFResource(eObject);
+		if(null == subject) {
+			System.err.println("createStatement() subject is null");
+			return null;
+		}
 		return createStatement(model, subject, eStructuralFeature, value);
 	}
 	
