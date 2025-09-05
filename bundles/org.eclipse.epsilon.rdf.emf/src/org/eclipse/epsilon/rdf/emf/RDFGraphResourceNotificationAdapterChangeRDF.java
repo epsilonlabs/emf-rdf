@@ -23,7 +23,7 @@ import org.eclipse.emf.ecore.util.EContentAdapter;
 
 public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapter {	
 	
-	RDFGraphResourceImpl initialRDFGraphResource;
+	private final RDFGraphResourceImpl initialRDFGraphResource;
 	
 	public RDFGraphResourceNotificationAdapterChangeRDF(RDFGraphResourceImpl rdfGraphResource) {
 		this.initialRDFGraphResource = rdfGraphResource;

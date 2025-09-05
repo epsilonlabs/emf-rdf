@@ -16,7 +16,6 @@ import java.util.List;
 
 import org.apache.jena.rdf.model.Resource;
 import org.eclipse.emf.common.notify.Notification;
-import org.eclipse.emf.common.notify.Notifier;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
@@ -30,7 +29,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 	StringBuilder processTrace;
 	int i = 0;
 	
-	RDFGraphResourceImpl initialRDFGraphResource;
+	private final RDFGraphResourceImpl initialRDFGraphResource;
 	
 	public RDFGraphResourceNotificationAdapterTrace(RDFGraphResourceImpl rdfGraphResource) {
 		this.initialRDFGraphResource = rdfGraphResource;
