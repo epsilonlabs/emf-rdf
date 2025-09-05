@@ -314,14 +314,10 @@ public class RDFDeserializer {
 	}
 
 	public Resource restoreEObjectResource(EObject eObject) {
-		Resource node = deregisteredEObject.get(eObject);
-
-		if (null == node) {
-			return null;
+		Resource node = deregisteredEObject.remove(eObject);
+		if (node != null) {
+			registerNewEObject(eObject, node);
 		}
-
-		deregisteredEObject.remove(eObject);
-		registerNewEObject(eObject, node);
 		return node;
 	}
 
