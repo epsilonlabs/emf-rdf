@@ -19,9 +19,10 @@ These differences are achieved by loading an intermediary `.rdfres` file with al
 
 Saving has only been tested against file-based locations. We have not tested saving into triple stores.
 
-The name spaces of the EMF meta-model and the subject (class name) in RDF type statement need to match for an EMF model to be produced by the resource.
+The namespaces of the EMF meta-model and the subject (class name) in `rdf:type` statements need to match for an EMF model to be produced by the resource.
 
-Names spaces for creating EMF models must be configured in the rdfres, only one is supported at the moment.
+Namespaces for creating EMF models must be configured in the `.rdfres`.
+At the moment, the same namespace URI is used for every object created by the resource.
 
 ## .rdfres file format
 
@@ -29,8 +30,8 @@ Suppose you have a `model.ttl` Turtle file with some statements of interest, wri
 
 Suppose as well that the RDF resources in `model.ttl` follows certain conventions that relate them to an Ecore metamodel, in the [MOF2RDF](https://www.omg.org/spec/MOF2RDF/1.0/About-MOF2RDF) style:
 
-* There are `rdf:type` predicates from the RDF resource to another RDF resource whose URI is `ePackageNamespaceURI#eClassName`.
-* Statements use predicates with URIs of the form `ePackageNamespaceURI#eStructuralFeatureName`:
+* There are `rdf:type` predicates from the RDF resource to another RDF resource whose namespace URI is `ePackageNamespaceURI`, and local name is `eClassName`.
+* Statements use predicates whose namespace URIs is `ePackageNamespaceURI` and local name is `eStructuralFeatureName`:
   * Predicate objects can be other RDF resources (in the case of `EReference`s), or literals (in the case of `EAttribute`s).
   * RDF lists are supported for many-valued features.
 
@@ -87,7 +88,8 @@ multiValueAttributeMode: List
 
 ### Default model namespace
 
-A default model namespace prefix is require when adding new statements to an RDF model. The namespace can be configured in the `.rdfres` file as shown below.
+A default model namespace URI is required when adding new resources to an RDF model.
+The namespace URI can be configured in the `.rdfres` file as shown below.
 
 ```yaml
 defaultModelNamespace: /foo/bar/example#
