@@ -354,6 +354,10 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	private void addToSequence(Object values, Seq container, int position) {
+		if(-1 == position) {
+			position = container.size();
+		}
+		
 		Model model = container.getModel();
 		if (CONSOLE_OUTPUT_ACTIVE) {
 			reportContainer("Before add to container ", container);
