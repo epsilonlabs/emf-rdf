@@ -667,19 +667,8 @@ public class RDFGraphResourceUpdate {
 		if (CONSOLE_OUTPUT_ACTIVE) {
 			System.out.println("\n * Adding all statements for: " + getEObjectInstanceLabel(eObject));
 		}
-
 		addEObjectEClassStatement(model, eObject);
 		addAllEStructuralFeatureStatements(eObject, model);
-
-		EList<EObject> contents = eObject.eContents();
-		if (!contents.isEmpty()) {
-			if (CONSOLE_OUTPUT_ACTIVE) {
-				System.out.println("\n ** Recursive content addition happening...");
-			}
-			contents.forEach(eOb -> {
-				addAllEObjectStatements(model, eOb);
-			});
-		}
 	}
 
 	private void removeAllObjectStatements(Model model, Object oldValue) {
