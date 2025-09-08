@@ -76,14 +76,8 @@ public class RDFGraphResourceUpdate {
 		if (CONSOLE_OUTPUT_ACTIVE) {
 			System.out.println("Created a new Resource node: " + eobResource);
 		}
-
 		// Update the deserializer maps
 		deserializer.registerNewEObject(eObject, eobResource);
-
-		// Apply the notification Adapters
-		eObject.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace(rdfGraphResource));
-		eObject.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF(rdfGraphResource));
-
 		return eobResource;
 	}
 	
