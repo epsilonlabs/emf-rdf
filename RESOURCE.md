@@ -25,8 +25,8 @@ Specifically, we support two options:
 * RDF namespace IRI = EPackage nsURI (including any trailing separator, such as `#` or `/`).
 * RDF namespace IRI = EPackage nsURI + "#".
 
-Namespaces for creating EMF models must be configured in the `.rdfres`.
-At the moment, the same namespace URI is used for every object created by the resource.
+Namespaces for creating EMF models must be configured in the `.rdfres` (see  Default model namespace section below).
+At the moment, the same namespace URI is used for every EObject created by the resource.
 
 ## .rdfres file format
 
@@ -96,9 +96,10 @@ A default model namespace URI is required when adding new resources to an RDF mo
 The namespace URI can be configured in the `.rdfres` file as shown below.
 
 ```yaml
-defaultModelNamespace: /foo/bar/example#
+defaultModelNamespace: http://foo/bar/example#
 ```
+The URI should being `file://` (`/` will become file) or `http://`. If you provide an invalid URI, then Jena will revert to using the URI of the named model it loaded the RDF from as the name space. 
 
-The example above results in new RDF node with an IRI composed of the default name space and a UUID for the new EObject. E.g. `/foo/bar/example#_6sDDMIgJEfC2g6UdYdL1hg`
+The example above results in new RDF node with an IRI composed of the default name space and a UUID for the new EObject. E.g. `http://foo/bar/example#_6sDDMIgJEfC2g6UdYdL1hg`
 
-If a default model name space is not provided in the `.rdfres` file, then `http://eclipse.org/epsilon/rdf/` will be used.
+If a default model name space is not provided in the `.rdfres` file, then we will look for a blank prefix `PREFIX : <URI>` in the RDF model. The last resort is the let Jena decide, which will used the URI that the RDF model was loaded from.
