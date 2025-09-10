@@ -72,7 +72,7 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	private Resource createNewEObjectResource (Model model, EObject eObject) {		
-		Resource eobResource = model.createResource(createEObjectIRI(eObject));
+		Resource eobResource = model.createResource(createEObjectIRI(model, eObject));
 		if (CONSOLE_OUTPUT_ACTIVE) {
 			System.out.println("Created a new Resource node: " + eobResource);
 		}
@@ -134,9 +134,8 @@ public class RDFGraphResourceUpdate {
 	
 	private Property createProperty(EStructuralFeature eStructuralFeature) {
 		// PREDICATE
-		String nameSpace = eStructuralFeature.getEContainingClass().getEPackage().getNsURI();
-		String propertyURI = nameSpace + "#" + eStructuralFeature.getName();
-		return ResourceFactory.createProperty(propertyURI);
+		String ePackageNamespace = deserializer.cleanEMFNameSpaceURI(eStructuralFeature.getEContainingClass().getEPackage().getNsURI());
+		return ResourceFactory.createProperty(ePackageNamespace, eStructuralFeature.getName());
 	}
 	
 	private RDFNode getObjectRDFNode(EObject eObject, EStructuralFeature eStructuralFeature, Model model) {
@@ -220,24 +219,46 @@ public class RDFGraphResourceUpdate {
 		return ResourceFactory.createStatement(rdfNode, property, object);
 	}
 
-	private String createEObjectIRI(EObject eObject) {
-		// TODO Add switch case here for different URI generating methods.
-		String rdfNamespace = rdfGraphResource.getDefaultModelNamespace();
-		String eObjectName = EcoreUtil.generateUUID();  // This UUID is generated using Date and Time (now).
-		String eObjectIRI = String.format("%s%s", rdfNamespace, eObjectName);
+	private String createEObjectIRI(Model model, EObject eObject) {
+		// If you configure a bad URI for the defaultModelNamespace then jena will revert to filename <File://path/file.ext>
 		
+		// TODO Add switch case here for different eObject names
+		String eObjectName = EcoreUtil.generateUUID();  // This UUID is generated using Date and Time (now).
+		
+		String eObjectNamespace = rdfGraphResource.getDefaultModelNamespace();
+		if(!eObjectNamespace.equals("")) {
+			// Plan a, clean the user input from the rdfres config file; must end # or /
+			eObjectNamespace = deserializer.cleanEMFNameSpaceURI(eObjectNamespace); }
+		else {
+			// Plan b, check for a PREFIX : <default>
+			String prefix = model.getNsPrefixMap().get("nomatch");
+			if (null != prefix) {
+				eObjectNamespace = prefix;
+			} else {
+				// Plan c, fallback to file names with a fragment for the eObject <file>#<eObjectname>
+				
+				// Uncomment this to use the rdfres file
+				//eObjectNamespace = deserializer.cleanEMFNameSpaceURI(eObject.eResource().getURI().toString());
+				
+				// Uncomment this to use a Jena default approach that uses the filename of the namedModel
+				eObjectNamespace = "#";
+				System.err.println("Warning, fallback for eObject namespace used! eObject IRI: " + eObjectNamespace + eObjectName );
+			}
+		}
+				
+		String eObjectIRI = eObjectNamespace+eObjectName;
 		if (CONSOLE_OUTPUT_ACTIVE) {
-			System.out.println("eObject node IRI: " + eObjectIRI);
+			System.out.println("Created eObject node IRI: " + eObjectIRI);
 		}
 		return eObjectIRI;
 	}
 	
 	private String createEClassIRI(EObject eObject) {
-		String eClassNamespacePrefix = eObject.eClass().getEPackage().getNsURI(); // Name space based on EPackage prefix	
+		//TODO We could check the name spaces on the named model, and only create the eClass IRI if the name space exists.
+		String eClassNamespacePrefix = deserializer.cleanEMFNameSpaceURI(eObject.eClass().getEPackage().getNsURI()); // Name space based on EPackage prefix
 		String eClassName = eObject.eClass().getName();
 		
-		String eClassIRI = String.format("%s#%s", eClassNamespacePrefix,eClassName);
-		
+		String eClassIRI = eClassNamespacePrefix + eClassName;
 		if (CONSOLE_OUTPUT_ACTIVE) {
 			System.out.println("eClass node IRI: " + eClassIRI);
 		}
@@ -251,7 +272,6 @@ public class RDFGraphResourceUpdate {
 		String eClassIRI = createEClassIRI(eObject);
 		
 		// Create the root statement for the eObject
-		//Resource subject = model.createResource(eObjectIRI);
 		Resource subject = getEObjectResource(model, eObject);
 		Property predicate = RDF.type;
 		Resource object = model.createResource(eClassIRI);

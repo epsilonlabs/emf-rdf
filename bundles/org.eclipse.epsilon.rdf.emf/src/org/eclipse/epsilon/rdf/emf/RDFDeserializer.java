@@ -21,7 +21,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -69,7 +68,17 @@ public class RDFDeserializer {
 	public RDFDeserializer(Supplier<EPackage.Registry> packageRegistry) {
 		this.packageRegistry = packageRegistry;
 	}
-
+	
+	/**
+	 * Normalise EMF package URI to end in '#' if they don't end in '#' or '/'
+	 */
+	public String cleanEMFNameSpaceURI (String nameSpace) {
+		if (!nameSpace.endsWith("#") && !nameSpace.endsWith("/")) {
+			nameSpace += "#";
+		}
+		return nameSpace;
+	}
+	
 	/**
 	 * Populates the {@link #getEObjectToResourceMap()} from the contents of
 	 * the {@code ontModel}.
@@ -141,12 +150,18 @@ public class RDFDeserializer {
 		}
 	}
 
+	/**
+	 * The resource assumes that the EPackage nsURI and the RDF nsURI used for `rdf:type` subjects and for property statements (e.g. `metamodel:featureName`) are a close match to each other.
+	 * Specifically, we support two options:
+	 * <br>- RDF namespace IRI = EPackage nsURI (including any trailing separator, such as `#` or `/`).
+	 * <br>- RDF namespace IRI = EPackage nsURI + "#".
+	 */
 	@SuppressWarnings("unchecked")
 	protected Object deserializeProperty(Resource node, EStructuralFeature sf) {
-		String sfPackageURI = sf.getEContainingClass().getEPackage().getNsURI();
+		String sfPackageURI = cleanEMFNameSpaceURI(sf.getEContainingClass().getEPackage().getNsURI());
 
 		List<Object> values = new ArrayList<>();
-		for (StmtIterator itValue = node.listProperties(new PropertyImpl(sfPackageURI + "#", sf.getName())); itValue.hasNext(); ) {
+		for (StmtIterator itValue = node.listProperties(new PropertyImpl(sfPackageURI, sf.getName())); itValue.hasNext(); ) {
 			Statement stmt = itValue.next();
 			
 			Object deserialized = deserializeValue(stmt.getObject(), sf);
@@ -239,7 +254,14 @@ public class RDFDeserializer {
 		 return value;
 	}
 
+	/**
+	 * The resource assumes that the EPackage nsURI and the RDF nsURI used for `rdf:type` subjects and for property statements (e.g. `metamodel:featureName`) are a close match to each other.
+	 * Specifically, we support two options:
+	 * <br>- RDF namespace IRI = EPackage nsURI (including any trailing separator, such as `#` or `/`).
+	 * <br>- RDF namespace IRI = EPackage nsURI + "#".
+	 */
 	protected Set<EClass> findMostSpecificEClasses(Resource node) {
+		// TODO -- namespace HASH fix
 		Set<EClass> eClasses = new HashSet<>();
 
 		for (StmtIterator it = node.listProperties(RDF.type); it.hasNext(); ) {
@@ -247,43 +269,43 @@ public class RDFDeserializer {
 			if (typeObject.isAnon()) {
 				continue;
 			}
+			
+			String nsURI = typeObject.asResource().getNameSpace();
+			String typeName = typeObject.asResource().getLocalName();
+			
+			EPackage ePackage = this.packageRegistry.get().getEPackage(nsURI);
+			if (ePackage == null && (nsURI.endsWith("#") || nsURI.endsWith("/"))) {
+				// Try stripping out the final # or /, to be more flexible:
+				// the user may not have included them in the EPackage nsURI.
+				ePackage = this.packageRegistry.get().getEPackage(nsURI.substring(0, nsURI.length() - 1));
+			}
 
-			String typeURI = typeObject.asResource().getURI();
-			String[] parts = typeURI.split("#");
-			if (parts.length == 2) {
-				String nsURI = parts[0];
-				String typeName = parts[1];
-
-				EPackage ePackage = this.packageRegistry.get().getEPackage(nsURI);
-
-				/*
-				 * NOTE: there may be URIs that don't correspond to any namespaces,
-				 * such as the OWL or XML Schema ones. We skip them without raising
-				 * errors.
-				 */
-				if (ePackage != null) {
-					EClassifier eClassifier = ePackage.getEClassifier(typeName);
-					if (eClassifier == null) {
-						throw new NoSuchElementException(
+			/*
+			 * NOTE: there may be URIs that don't correspond to any namespaces, such as the
+			 * OWL or XML Schema ones. We skip them without raising errors.
+			 */
+			if (ePackage != null) {
+				EClassifier eClassifier = ePackage.getEClassifier(typeName);
+				if (eClassifier == null) {
+					System.err.println(
 							String.format("Cannot find type '%s' in EPackage with nsURI '%s'", typeName, nsURI));
-					}
+				}
 
-					if (eClassifier instanceof EClass newEClass) {
-						for (Iterator<EClass> itEClass = eClasses.iterator(); itEClass.hasNext();) {
-							EClass existingEClass = itEClass.next();
-							if (existingEClass.isSuperTypeOf(newEClass)) {
-								/*
-								 * The new EClass is more specific than an existing one: remove the existing
-								 * one.
-								 */
-								itEClass.remove();
-							} else if (newEClass.isSuperTypeOf(existingEClass)) {
-								// The new EClass is a supertype of an existing one: skip
-								continue;
-							}
+				if (eClassifier instanceof EClass newEClass) {
+					for (Iterator<EClass> itEClass = eClasses.iterator(); itEClass.hasNext();) {
+						EClass existingEClass = itEClass.next();
+						if (existingEClass.isSuperTypeOf(newEClass)) {
+							/*
+							 * The new EClass is more specific than an existing one:
+							 * remove the existing one.
+							 */
+							itEClass.remove();
+						} else if (newEClass.isSuperTypeOf(existingEClass)) {
+							// The new EClass is a supertype of an existing one: skip
+							continue;
 						}
-						eClasses.add(newEClass);
 					}
+					eClasses.add(newEClass);
 				}
 			}
 		}
