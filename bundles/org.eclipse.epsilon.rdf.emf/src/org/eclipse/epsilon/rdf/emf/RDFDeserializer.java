@@ -21,7 +21,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -142,9 +141,17 @@ public class RDFDeserializer {
 	@SuppressWarnings("unchecked")
 	protected Object deserializeProperty(Resource node, EStructuralFeature sf) {
 		String sfPackageURI = sf.getEContainingClass().getEPackage().getNsURI();
+		if (!sfPackageURI.endsWith("#") && !sfPackageURI.endsWith("/")) {
+			/*
+			 * We assume that when the EPackage nsURI does not end in # or /, the RDF nsURI ends in #.
+			 *
+			 * TODO make this mapping configurable?
+			 */
+			sfPackageURI += "#";
+		}
 
 		List<Object> values = new ArrayList<>();
-		for (StmtIterator itValue = node.listProperties(new PropertyImpl(sfPackageURI + "#", sf.getName())); itValue.hasNext(); ) {
+		for (StmtIterator itValue = node.listProperties(new PropertyImpl(sfPackageURI, sf.getName())); itValue.hasNext(); ) {
 			Statement stmt = itValue.next();
 			
 			Object deserialized = deserializeValue(stmt.getObject(), sf);

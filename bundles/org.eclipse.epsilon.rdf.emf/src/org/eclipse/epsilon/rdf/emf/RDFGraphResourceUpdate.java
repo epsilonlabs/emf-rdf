@@ -108,10 +108,12 @@ public class RDFGraphResourceUpdate {
 	private Property createProperty(EStructuralFeature eStructuralFeature) {
 		// PREDICATE
 		String nameSpace = eStructuralFeature.getEContainingClass().getEPackage().getNsURI();
-		String propertyURI = nameSpace + "#" + eStructuralFeature.getName();
-		return ResourceFactory.createProperty(propertyURI);
+		if (!nameSpace.endsWith("#") && !nameSpace.endsWith("/")) {
+			nameSpace += "#";
+		}
+		return ResourceFactory.createProperty(nameSpace, eStructuralFeature.getName());
 	}
-	
+
 	private RDFNode getObjectRDFNode(EObject eObject, EStructuralFeature eStructuralFeature, Model model) {
 		// SUBJECT
 		Resource rdfNode = rdfGraphResource.getRDFResource(eObject);
