@@ -261,7 +261,6 @@ public class RDFDeserializer {
 	 * <br>- RDF namespace IRI = EPackage nsURI + "#".
 	 */
 	protected Set<EClass> findMostSpecificEClasses(Resource node) {
-		// TODO -- namespace HASH fix
 		Set<EClass> eClasses = new HashSet<>();
 
 		for (StmtIterator it = node.listProperties(RDF.type); it.hasNext(); ) {
@@ -269,10 +268,9 @@ public class RDFDeserializer {
 			if (typeObject.isAnon()) {
 				continue;
 			}
-			
+
 			String nsURI = typeObject.asResource().getNameSpace();
 			String typeName = typeObject.asResource().getLocalName();
-			
 			EPackage ePackage = this.packageRegistry.get().getEPackage(nsURI);
 			if (ePackage == null && (nsURI.endsWith("#") || nsURI.endsWith("/"))) {
 				// Try stripping out the final # or /, to be more flexible:

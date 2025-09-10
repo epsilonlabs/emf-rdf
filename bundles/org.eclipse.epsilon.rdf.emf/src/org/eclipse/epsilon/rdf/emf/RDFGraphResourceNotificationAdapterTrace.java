@@ -35,7 +35,6 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		this.initialRDFGraphResource = rdfGraphResource;
 	}
 
-
 	@Override
 	public void notifyChanged(Notification notification) {
 		// Decode the notification
