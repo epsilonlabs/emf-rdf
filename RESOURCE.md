@@ -19,7 +19,11 @@ These differences are achieved by loading an intermediary `.rdfres` file with al
 
 Saving has only been tested against file-based locations. We have not tested saving into triple stores.
 
-The namespaces of the EMF meta-model and the subject (class name) in `rdf:type` statements need to match for an EMF model to be produced by the resource.
+The resource assumes that the EPackage nsURI and the RDF nsURI used for `rdf:type` subjects and for property statements (e.g. `metamodel:featureName`) are a close match to each other.
+Specifically, we support two options:
+
+* RDF namespace IRI = EPackage nsURI (including any trailing separator, such as `#` or `/`).
+* RDF namespace IRI = EPackage nsURI + "#".
 
 Namespaces for creating EMF models must be configured in the `.rdfres`.
 At the moment, the same namespace URI is used for every object created by the resource.
