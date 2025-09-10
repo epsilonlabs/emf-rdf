@@ -64,3 +64,10 @@ operation showEffort(e : Effort) {
 	e.percentage.println( "    - percentage % ");
 	return;
 }
+
+operation showProjectTask(p : Project) {
+	p.title.println(" Project: ");
+	for(t in p.tasks) {
+		t.title.println("  - Task: ");
+	}
+}

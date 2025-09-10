@@ -4,6 +4,8 @@ This repository includes a prototype implementation of an EMF resource for RDF g
 
 It can be installed from the repository's update site: see [`README`](./README.md) for details.
 
+This RDF-EMF resource produces an EMF model representation of an RDF model; this could be an EMF model save as RDF or an RDF model from another programming. One or more RDF model files and schemas can be combined/reasoned before being deserialising against an EMF Ecore metamodel. An EMF model instance composed of `EObject`s for the RDF model element that have an `rdf:type` statement that matches an `EClass` in the configured Ecore metamodel.
+
 ## Differences with emf-triple
 
 This implementation has some major differences with [emf-triple](https://github.com/ghillairet/emftriple):
@@ -15,12 +17,16 @@ These differences are achieved by loading an intermediary `.rdfres` file with al
 
 ## Current limitations
 
-The only modifications that are supported at the moment are:
+Saving has only been tested against file-based locations. We have not tested saving into triple stores.
 
-* Setting/unsetting single-valued `EAttribute`s with the pre-defined `EDataType`s in Ecore.
+The resource assumes that the EPackage nsURI and the RDF nsURI used for `rdf:type` subjects and for property statements (e.g. `metamodel:featureName`) are a close match to each other.
+Specifically, we support two options:
 
-Saving has only been tested against file-based locations.
-We have not tested saving into triple stores.
+* RDF namespace IRI = EPackage nsURI (including any trailing separator, such as `#` or `/`).
+* RDF namespace IRI = EPackage nsURI + "#".
+
+Namespaces for creating EMF models must be configured in the `.rdfres`.
+At the moment, the same namespace URI is used for every object created by the resource.
 
 ## .rdfres file format
 
@@ -28,8 +34,8 @@ Suppose you have a `model.ttl` Turtle file with some statements of interest, wri
 
 Suppose as well that the RDF resources in `model.ttl` follows certain conventions that relate them to an Ecore metamodel, in the [MOF2RDF](https://www.omg.org/spec/MOF2RDF/1.0/About-MOF2RDF) style:
 
-* There are `rdf:type` predicates from the RDF resource to another RDF resource whose URI is `ePackageNamespaceURI#eClassName`.
-* Statements use predicates with URIs of the form `ePackageNamespaceURI#eStructuralFeatureName`:
+* There are `rdf:type` predicates from the RDF resource to another RDF resource whose namespace URI is `ePackageNamespaceURI`, and local name is `eClassName`.
+* Statements use predicates whose namespace URIs is `ePackageNamespaceURI` and local name is `eStructuralFeatureName`:
   * Predicate objects can be other RDF resources (in the case of `EReference`s), or literals (in the case of `EAttribute`s).
   * RDF lists are supported for many-valued features.
 
@@ -83,3 +89,16 @@ schemaModels:
   - schema.ttl
 multiValueAttributeMode: List
 ```
+
+### Default model namespace
+
+A default model namespace URI is required when adding new resources to an RDF model.
+The namespace URI can be configured in the `.rdfres` file as shown below.
+
+```yaml
+defaultModelNamespace: /foo/bar/example#
+```
+
+The example above results in new RDF node with an IRI composed of the default name space and a UUID for the new EObject. E.g. `/foo/bar/example#_6sDDMIgJEfC2g6UdYdL1hg`
+
+If a default model name space is not provided in the `.rdfres` file, then `http://eclipse.org/epsilon/rdf/` will be used.
