@@ -231,7 +231,7 @@ public class RDFGraphResourceUpdate {
 			eObjectNamespace = deserializer.cleanEMFNameSpaceURI(eObjectNamespace); }
 		else {
 			// Plan b, check for a PREFIX : <default>
-			String prefix = model.getNsPrefixMap().get("nomatch");
+			String prefix = model.getNsPrefixMap().get("");
 			if (null != prefix) {
 				eObjectNamespace = prefix;
 			} else {
