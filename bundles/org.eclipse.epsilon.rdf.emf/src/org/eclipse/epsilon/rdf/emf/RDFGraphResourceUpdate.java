@@ -78,8 +78,8 @@ public class RDFGraphResourceUpdate {
 		}
 		
 		// Apply the notification Adapters
-					eObject.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace(rdfGraphResource));
-					eObject.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF(rdfGraphResource));
+		eObject.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace(rdfGraphResource));
+		eObject.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF(rdfGraphResource));
 		
 		// Update the deserializer maps
 		deserializer.registerNewEObject(eObject, eobResource);
