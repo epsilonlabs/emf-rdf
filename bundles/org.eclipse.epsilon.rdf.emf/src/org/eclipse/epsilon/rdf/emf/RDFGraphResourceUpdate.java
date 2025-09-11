@@ -44,7 +44,7 @@ import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl.MultiValueAttributeMode;
 
 public class RDFGraphResourceUpdate {
 	
-	private static final boolean CONSOLE_OUTPUT_ACTIVE = false;
+	private static final boolean CONSOLE_OUTPUT_ACTIVE = true;
 	private static final boolean SINGLE_MULTIVALUES_AS_STATEMENT = true;
 	
 	private boolean preferListsForMultiValues = false;
@@ -76,6 +76,11 @@ public class RDFGraphResourceUpdate {
 		if (CONSOLE_OUTPUT_ACTIVE) {
 			System.out.println("Created a new Resource node: " + eobResource);
 		}
+		
+		// Apply the notification Adapters
+					eObject.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace(rdfGraphResource));
+					eObject.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF(rdfGraphResource));
+		
 		// Update the deserializer maps
 		deserializer.registerNewEObject(eObject, eobResource);
 		return eobResource;
