@@ -51,6 +51,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		}
 
 		System.out.println(processTrace + "\n\n");
+		super.notifyChanged(notification);
 	}
 
 	private void featureNotification (Object feature, Notification notification){		

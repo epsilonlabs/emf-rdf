@@ -35,6 +35,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		if (null != feature) {
 			featureNotification(feature, notification);
 		}
+		super.notifyChanged(notification);
 	}
 	
 	private void featureNotification (Object feature, Notification notification){		

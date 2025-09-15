@@ -76,11 +76,7 @@ public class RDFGraphResourceUpdate {
 		if (CONSOLE_OUTPUT_ACTIVE) {
 			System.out.println("Created a new Resource node: " + eobResource);
 		}
-		
-		// Apply the notification Adapters
-		eObject.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace(rdfGraphResource));
-		eObject.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF(rdfGraphResource));
-		
+
 		// Update the deserializer maps
 		deserializer.registerNewEObject(eObject, eobResource);
 		return eobResource;
@@ -730,12 +726,13 @@ public class RDFGraphResourceUpdate {
 		Statement newStatement = createStatement(model, onEObject, eStructuralFeature, newValue);
 		Statement existingStatements = findEquivalentStatement(model, onEObject, eStructuralFeature, newValue);
 
-		if (!model.contains(newStatement) && null == existingStatements) {
-			model.add(newStatement);
-		} else {
-			System.err.println(String.format("New statement already exists? : %s", newStatement));
+		if (null != newStatement) {
+			if (!model.contains(newStatement) && null == existingStatements) {
+				model.add(newStatement);
+			} else {
+				System.err.println(String.format("New statement already exists? : %s", newStatement));
+			}
 		}
-
 	}
 	
 	public void removeSingleValueEStructuralFeatureStatements(List<Resource> namedModelURIs, EObject onEObject, EStructuralFeature eStructuralFeature, Object oldValue) {

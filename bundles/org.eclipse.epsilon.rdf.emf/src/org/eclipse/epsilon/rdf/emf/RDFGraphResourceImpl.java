@@ -250,7 +250,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	
 	public List<Resource> getResourcesForNamedModelsContaining(Resource res) {
 		List<Resource> resources = new ArrayList<Resource>();		
-		if (null != dataModelSet) {
+		if (null != dataModelSet && null != res) {
 			Iterator<Resource> namedModels = dataModelSet.listModelNames();
 			namedModels.forEachRemaining(m -> {
 				Model model = dataModelSet.getNamedModel(m);
