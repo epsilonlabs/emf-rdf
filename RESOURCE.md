@@ -4,7 +4,9 @@ This repository includes a prototype implementation of an EMF resource for RDF g
 
 It can be installed from the repository's update site: see [`README`](./README.md) for details.
 
-This RDF-EMF resource produces an EMF model representation of an RDF model; this could be an EMF model save as RDF or an RDF model from another programming. One or more RDF model files and schemas can be combined/reasoned before being deserialising against an EMF Ecore metamodel. An EMF model instance composed of `EObject`s for the RDF model element that have an `rdf:type` statement that matches an `EClass` in the configured Ecore metamodel.
+This RDF-EMF resource produces an EMF model representation of an RDF model; this could be an EMF model saved as RDF, or an RDF model from another program.
+One or more RDF model files and schemas can be combined/reasoned before being deserialised against an EMF Ecore metamodel.
+An EMF model instance is composed of `EObject`s for the RDF model element that have `rdf:type` statements that match an `EClass` in the configured Ecore metamodel(s).
 
 ## Differences with emf-triple
 
@@ -35,7 +37,7 @@ Suppose you have a `model.ttl` Turtle file with some statements of interest, wri
 Suppose as well that the RDF resources in `model.ttl` follows certain conventions that relate them to an Ecore metamodel, in the [MOF2RDF](https://www.omg.org/spec/MOF2RDF/1.0/About-MOF2RDF) style:
 
 * There are `rdf:type` predicates from the RDF resource to another RDF resource whose namespace URI is `ePackageNamespaceURI`, and local name is `eClassName`.
-* Statements use predicates whose namespace URIs is `ePackageNamespaceURI` and local name is `eStructuralFeatureName`:
+* Statements use predicates whose namespace URIs are `ePackageNamespaceURI` and local names are `eStructuralFeatureName`:
   * Predicate objects can be other RDF resources (in the case of `EReference`s), or literals (in the case of `EAttribute`s).
   * RDF lists are supported for many-valued features.
 
