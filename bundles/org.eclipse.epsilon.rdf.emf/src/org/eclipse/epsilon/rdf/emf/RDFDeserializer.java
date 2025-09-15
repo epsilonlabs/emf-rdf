@@ -70,9 +70,31 @@ public class RDFDeserializer {
 	}
 	
 	/**
-	 * Normalise EMF package URI to end in '#' if they don't end in '#' or '/'
+	 * <p>
+	 * Normalise EMF package URI to end in '#' if they don't end in '#' or '/'.
+	 * </p>
+	 *
+	 * <p>
+	 * The resource assumes that the EPackage nsURI and the RDF nsURI used for
+	 * `rdf:type` subjects and for property statements (e.g.
+	 * `metamodel:featureName`) are a close match to each other.
+	 * </p>
+	 *
+	 * <p>
+	 * Specifically, we support two options:
+	 * </p>
+	 *
+	 * <ul>
+	 * <li>RDF namespace IRI = EPackage nsURI (including any trailing separator,
+	 * such as `#` or `/`).</li>
+	 * <li>RDF namespace IRI = EPackage nsURI + "#".</li>
+	 * </ul>
+	 *
+	 * @param namespaceURI EPackage namespace URI to be normalised.
+	 * @return EPackage namespace URI normalised to have a trailing separator (e.g.
+	 *         # or /).
 	 */
-	public String cleanEMFNameSpaceURI(String namespaceURI) {
+	public String normaliseEPackageNSURI(String namespaceURI) {
 		if (!namespaceURI.endsWith("#") && !namespaceURI.endsWith("/")) {
 			namespaceURI += "#";
 		}
@@ -158,7 +180,7 @@ public class RDFDeserializer {
 	 */
 	@SuppressWarnings("unchecked")
 	protected Object deserializeProperty(Resource node, EStructuralFeature sf) {
-		String sfPackageURI = cleanEMFNameSpaceURI(sf.getEContainingClass().getEPackage().getNsURI());
+		String sfPackageURI = normaliseEPackageNSURI(sf.getEContainingClass().getEPackage().getNsURI());
 
 		List<Object> values = new ArrayList<>();
 		for (StmtIterator itValue = node.listProperties(new PropertyImpl(sfPackageURI, sf.getName())); itValue.hasNext(); ) {
@@ -254,12 +276,6 @@ public class RDFDeserializer {
 		 return value;
 	}
 
-	/**
-	 * The resource assumes that the EPackage nsURI and the RDF nsURI used for `rdf:type` subjects and for property statements (e.g. `metamodel:featureName`) are a close match to each other.
-	 * Specifically, we support two options:
-	 * <br>- RDF namespace IRI = EPackage nsURI (including any trailing separator, such as `#` or `/`).
-	 * <br>- RDF namespace IRI = EPackage nsURI + "#".
-	 */
 	protected Set<EClass> findMostSpecificEClasses(Resource node) {
 		Set<EClass> eClasses = new HashSet<>();
 

@@ -139,7 +139,7 @@ public class RDFGraphResourceUpdate {
 	
 	private Property createProperty(EStructuralFeature eStructuralFeature) {
 		// PREDICATE
-		String ePackageNamespace = deserializer.cleanEMFNameSpaceURI(eStructuralFeature.getEContainingClass().getEPackage().getNsURI());
+		String ePackageNamespace = deserializer.normaliseEPackageNSURI(eStructuralFeature.getEContainingClass().getEPackage().getNsURI());
 		return ResourceFactory.createProperty(ePackageNamespace, eStructuralFeature.getName());
 	}
 
@@ -233,7 +233,7 @@ public class RDFGraphResourceUpdate {
 		String eObjectNamespace = rdfGraphResource.getDefaultModelNamespace();
 		if(!eObjectNamespace.equals("")) {
 			// Plan a, clean the user input from the rdfres config file; must end # or /
-			eObjectNamespace = deserializer.cleanEMFNameSpaceURI(eObjectNamespace); }
+			eObjectNamespace = deserializer.normaliseEPackageNSURI(eObjectNamespace); }
 		else {
 			// Plan b, check for a PREFIX : <default>
 			String prefix = model.getNsPrefixMap().get("");
@@ -260,7 +260,7 @@ public class RDFGraphResourceUpdate {
 	
 	private String createEClassIRI(EObject eObject) {
 		//TODO We could check the name spaces on the named model, and only create the eClass IRI if the name space exists.
-		String eClassNamespacePrefix = deserializer.cleanEMFNameSpaceURI(eObject.eClass().getEPackage().getNsURI()); // Name space based on EPackage prefix
+		String eClassNamespacePrefix = deserializer.normaliseEPackageNSURI(eObject.eClass().getEPackage().getNsURI()); // Name space based on EPackage prefix
 		String eClassName = eObject.eClass().getName();
 		
 		String eClassIRI = eClassNamespacePrefix + eClassName;
