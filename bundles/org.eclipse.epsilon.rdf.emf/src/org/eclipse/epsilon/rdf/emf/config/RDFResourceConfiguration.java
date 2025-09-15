@@ -24,6 +24,15 @@ public class RDFResourceConfiguration {
 	private Set<String> schemaModels = new HashSet<>();
 	private String validationMode = ValidationMode.NONE.getId();
 	private String multiValueAttributeMode = MultiValueAttributeMode.CONTAINER.getId();
+	private String defaultModelNamespace = ""; 
+
+	public String getDefaultModelNamespace() {
+		return defaultModelNamespace;
+	}
+
+	public void setDefaultModelNamespace(String defaultModelNamespace) {
+		this.defaultModelNamespace = defaultModelNamespace;
+	}
 
 	public String getMultiValueAttributeMode() {
 		return multiValueAttributeMode;

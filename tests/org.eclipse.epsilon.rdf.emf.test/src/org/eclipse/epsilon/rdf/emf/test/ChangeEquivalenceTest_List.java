@@ -31,6 +31,6 @@ public class ChangeEquivalenceTest_List extends AbstractChangeEquivalenceTest {
 	}
 
 	public ChangeEquivalenceTest_List(File eolTestFile) {
-		super(eolTestFile);
+		super(eolTestFile, false);
 	}
 }

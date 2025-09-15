@@ -22,12 +22,20 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EContentAdapter;
 
 public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapter {	
+	
+	private final RDFGraphResourceImpl initialRDFGraphResource;
+	
+	public RDFGraphResourceNotificationAdapterChangeRDF(RDFGraphResourceImpl rdfGraphResource) {
+		this.initialRDFGraphResource = rdfGraphResource;
+	}
+
 	@Override
 	public void notifyChanged(Notification notification) {
 		Object feature = notification.getFeature();
 		if (null != feature) {
 			featureNotification(feature, notification);
 		}
+		super.notifyChanged(notification);
 	}
 	
 	private void featureNotification (Object feature, Notification notification){		
@@ -47,6 +55,11 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		int position = notification.getPosition();
 		
 		RDFGraphResourceImpl graphResource = (RDFGraphResourceImpl) onEObject.eResource();
+		if (null == graphResource) {
+			System.err.println("The Graph resource has been removed, using the initial graph resource instead");
+			graphResource = initialRDFGraphResource;
+		}
+		
 		RDFGraphResourceUpdate rdfUpdater = graphResource.getRDFGraphUpdater();
 		List<Resource> namedModelURIs = graphResource.getResourcesForNamedModelsContaining(onEObject);
 
@@ -76,7 +89,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 							namedModelURIs.add(first);
 						}
 					}
-					rdfUpdater.newSingleValueEStructuralFeatureStatements(namedModelURIs, onEObject,
+					rdfUpdater.addSingleValueEStructuralFeatureStatements(namedModelURIs, onEObject,
 						changedFeature, newValue);
 				}
 			} else {
@@ -96,8 +109,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 			break;
 		case Notification.REMOVE_MANY:
 		case Notification.REMOVE:
-			rdfUpdater.removeMultiEStructuralFeature(namedModelURIs, onEObject, changedFeature, 
-					newValue, oldValue);
+			rdfUpdater.removeMultiEStructuralFeature(namedModelURIs, onEObject, changedFeature, oldValue);
 			break;
 		case Notification.UNSET:
 			// Single values, don't need to worry about order

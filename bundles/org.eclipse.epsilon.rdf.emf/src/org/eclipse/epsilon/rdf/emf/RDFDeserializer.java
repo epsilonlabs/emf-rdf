@@ -63,10 +63,44 @@ public class RDFDeserializer {
 	private final Map<EObject, Resource> eobToResource = new IdentityHashMap<>();
 	private final Multimap<Resource, EObject> resourceToEob = HashMultimap.create();
 
+	private final Map<EObject, Resource> deregisteredEObject = new IdentityHashMap<>();
+
 	public RDFDeserializer(Supplier<EPackage.Registry> packageRegistry) {
 		this.packageRegistry = packageRegistry;
 	}
-
+	
+	/**
+	 * <p>
+	 * Normalise EMF package URI to end in '#' if they don't end in '#' or '/'.
+	 * </p>
+	 *
+	 * <p>
+	 * The resource assumes that the EPackage nsURI and the RDF nsURI used for
+	 * `rdf:type` subjects and for property statements (e.g.
+	 * `metamodel:featureName`) are a close match to each other.
+	 * </p>
+	 *
+	 * <p>
+	 * Specifically, we support two options:
+	 * </p>
+	 *
+	 * <ul>
+	 * <li>RDF namespace IRI = EPackage nsURI (including any trailing separator,
+	 * such as `#` or `/`).</li>
+	 * <li>RDF namespace IRI = EPackage nsURI + "#".</li>
+	 * </ul>
+	 *
+	 * @param namespaceURI EPackage namespace URI to be normalised.
+	 * @return EPackage namespace URI normalised to have a trailing separator (e.g.
+	 *         # or /).
+	 */
+	public String normaliseEPackageNSURI(String namespaceURI) {
+		if (!namespaceURI.endsWith("#") && !namespaceURI.endsWith("/")) {
+			namespaceURI += "#";
+		}
+		return namespaceURI;
+	}
+	
 	/**
 	 * Populates the {@link #getEObjectToResourceMap()} from the contents of
 	 * the {@code ontModel}.
@@ -138,17 +172,15 @@ public class RDFDeserializer {
 		}
 	}
 
+	/**
+	 * The resource assumes that the EPackage nsURI and the RDF nsURI used for `rdf:type` subjects and for property statements (e.g. `metamodel:featureName`) are a close match to each other.
+	 * Specifically, we support two options:
+	 * <br>- RDF namespace IRI = EPackage nsURI (including any trailing separator, such as `#` or `/`).
+	 * <br>- RDF namespace IRI = EPackage nsURI + "#".
+	 */
 	@SuppressWarnings("unchecked")
 	protected Object deserializeProperty(Resource node, EStructuralFeature sf) {
-		String sfPackageURI = sf.getEContainingClass().getEPackage().getNsURI();
-		if (!sfPackageURI.endsWith("#") && !sfPackageURI.endsWith("/")) {
-			/*
-			 * We assume that when the EPackage nsURI does not end in # or /, the RDF nsURI ends in #.
-			 *
-			 * TODO make this mapping configurable?
-			 */
-			sfPackageURI += "#";
-		}
+		String sfPackageURI = normaliseEPackageNSURI(sf.getEContainingClass().getEPackage().getNsURI());
 
 		List<Object> values = new ArrayList<>();
 		for (StmtIterator itValue = node.listProperties(new PropertyImpl(sfPackageURI, sf.getName())); itValue.hasNext(); ) {
@@ -303,6 +335,26 @@ public class RDFDeserializer {
 			eobToResource.put(eob, node);
 			resourceToEob.put(node, eob);
 		}
+	}
+
+	public void deregisterEObject(EObject eob) {
+		Resource node = getRDFResource(eob);
+		eobToResource.remove(eob);
+		resourceToEob.remove(eob, node);
+		deregisteredEObject.put(eob, node);
+	}
+
+	public void registerNewEObject(EObject eob, Resource node) {
+		eobToResource.put(eob, node);
+		resourceToEob.put(node, eob);
+	}
+
+	public Resource restoreEObjectResource(EObject eObject) {
+		Resource node = deregisteredEObject.remove(eObject);
+		if (node != null) {
+			registerNewEObject(eObject, node);
+		}
+		return node;
 	}
 
 }

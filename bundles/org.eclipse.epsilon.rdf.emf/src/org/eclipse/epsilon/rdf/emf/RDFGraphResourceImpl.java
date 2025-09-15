@@ -50,7 +50,7 @@ import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 
 public class RDFGraphResourceImpl extends ResourceImpl {
 	
-	private static final boolean NOTIFICATION_TRACE = true;
+	private static final boolean NOTIFICATION_TRACE = false;
 	
 	private RDFResourceConfiguration config;
 	private RDFDeserializer deserializer;
@@ -62,6 +62,16 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	private Model rdfSchemaModel;
 	private Model rdfDataModel;
 	private OntModel rdfOntModel;
+	
+	private String defaultModelNamespace;
+
+	public String getDefaultModelNamespace() {
+		return defaultModelNamespace;
+	}
+
+	public void setDefaultModelNamespace(String defaultModelNamespace) {
+		this.defaultModelNamespace = defaultModelNamespace;
+	}
 
 	public static enum MultiValueAttributeMode {
 		LIST("List"), CONTAINER("Container");
@@ -108,6 +118,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		CustomClassLoaderConstructor constructor = new CustomClassLoaderConstructor(this.getClass().getClassLoader(), new LoaderOptions());
 		this.config = new Yaml(constructor).loadAs(inputStream, RDFResourceConfiguration.class);
 		loadRDFModels();
+		setDefaultModelNamespace(config.getDefaultModelNamespace());
 
 		validationMode = config.getRawValidationMode();
 		
@@ -124,9 +135,9 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		// Apply eAdapters for notifications of changes, and setup the Graph Resource updater
 		if (NOTIFICATION_TRACE) {
 			// Produce a console trace for debugging and development
-			this.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace());
+			this.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace(this));
 		}
-		this.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF());
+		this.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF(this));
 		rdfGraphUpdater = new RDFGraphResourceUpdate(deserializer, this, multiValueAttributeMode);
 	}
 	
@@ -239,7 +250,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	
 	public List<Resource> getResourcesForNamedModelsContaining(Resource res) {
 		List<Resource> resources = new ArrayList<Resource>();		
-		if (null != dataModelSet) {
+		if (null != dataModelSet && null != res) {
 			Iterator<Resource> namedModels = dataModelSet.listModelNames();
 			namedModels.forEachRemaining(m -> {
 				Model model = dataModelSet.getNamedModel(m);

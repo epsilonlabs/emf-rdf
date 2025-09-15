@@ -28,6 +28,12 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 
 	StringBuilder processTrace;
 	int i = 0;
+	
+	private final RDFGraphResourceImpl initialRDFGraphResource;
+	
+	public RDFGraphResourceNotificationAdapterTrace(RDFGraphResourceImpl rdfGraphResource) {
+		this.initialRDFGraphResource = rdfGraphResource;
+	}
 
 	@Override
 	public void notifyChanged(Notification notification) {
@@ -45,6 +51,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		}
 
 		System.out.println(processTrace + "\n\n");
+		super.notifyChanged(notification);
 	}
 
 	private void featureNotification (Object feature, Notification notification){		
@@ -73,11 +80,15 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		EObject onEObject = (EObject) notification.getNotifier(); 	// RDF node
 		EStructuralFeature changedFeature = eStructuralFeature; 	// RDF property
 		// eAttribute's is value 									// RDF object (node/literal)
-
-
-		
+	
 		Object oldValue = notification.getOldValue();
 		Object newValue = notification.getNewValue();
+		
+		RDFGraphResourceImpl graphResource = (RDFGraphResourceImpl) onEObject.eResource();
+		if(null == graphResource) {
+			processTrace.append("  Adapter firing for EObject with no Graph Resource, using initial Graph Resource");
+			graphResource = initialRDFGraphResource;
+		}
 
 		if (changedFeature instanceof EAttribute) {
 			processTrace.append(String.format("\n EAttribute "));
@@ -118,19 +129,19 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 				// Create new statement
 				if (null == newValue) {
 					// Create new statement for null value
-					processTrace.append(String.format("\n ** new statement set to null"));
+					processTrace.append(String.format("\n ** Create new statement set to null"));
 				} else {
 					// Create new statement for value
-					processTrace.append(String.format("\n ** new statement set to value %s", newValue));
+					processTrace.append(String.format("\n ** Create new statement set to value %s", newValue));
 				}
 			} else {
 				// Update existing statement
 				if (null == newValue) {
 					// Update existing statement to null
-					processTrace.append(String.format("\n ** existing statement set to null"));
+					processTrace.append(String.format("\n ** Update statement set to null"));
 				} else {
 					// Update existing statement value
-					processTrace.append(String.format("\n ** existing statement set to value %s", newValue));
+					processTrace.append(String.format("\n ** Update statement set to value %s", newValue));
 				}
 			}
 			break;
@@ -161,29 +172,8 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 	private void notImplmentedWarning (Notification notification, boolean isOrdered) {
 		String feature = notification.getFeature().getClass().getSimpleName();
 		
-		String operation = "";
-		switch (notification.getEventType()) {
-		case Notification.ADD:
-			operation = "ADD";
-			break;
-		case Notification.ADD_MANY:
-			operation = "ADD_MANY";
-			break;
-		case Notification.SET:
-			operation = "SET";
-			break;
-		case Notification.REMOVE:
-			operation = "REMOVE";
-			break;
-		case Notification.REMOVE_MANY:
-			operation = "REMOVE_MANY";
-			break;
-		case Notification.UNSET:
-			operation = "UNSET";
-			break;
-		default:
-			break;
-		}
+		String operation = eventTypeToString(notification.getEventType());
+
 		String order = "";
 		if(isOrdered) {
 			order = "ordered";
@@ -224,7 +214,6 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		default:
 			return "N/A";
 		}
-		
 	}
 	
 	// REPORTING code
@@ -251,6 +240,16 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 			unique = "not unique";
 		}
 		
+		String referenceContainment = "N/A";
+		if(eStructuralFeature instanceof EReference) {
+			EReference reference = (EReference) eStructuralFeature;
+			if (reference.isContainment()) {
+				referenceContainment = "containment";
+				//reportEObject(eStructuralFeature.getEContainingClass(), true, i);
+			} else {
+				referenceContainment = "not containment";
+			}
+		}
 		
 		if (eStructuralFeature instanceof EAttribute) {
 			EAttribute eAttributeChanged = (EAttribute) eStructuralFeature;
@@ -262,19 +261,29 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		if (eStructuralFeature instanceof EReference) {
 			EReference eReferenceChanged = (EReference) eStructuralFeature;
 			// If things blow up here, then something other than EObjects can be referenced...
+			
 			EObject oldValueEob = (EObject) oldValue;
 			int oldValueHash = 0;
+			if (null != oldValueEob) {
+				oldValueHash = oldValueEob.hashCode();
+			}
+
 			EObject newValueEob = (EObject) newValue;
 			int newValueHash = 0;
+			if (null != newValueEob) {
+				newValueHash = newValueEob.hashCode();
+			}
 			
-			if(null != oldValueEob) { oldValueHash = oldValueEob.hashCode() ;}
+			processTrace.append(String.format(
+					"\n - EReference changed: (%s, %s, %s, %s)\n\t%s - %s \n\twas: (#%s) %s\n\tnow: (#%s) %s", order,
+					unique, multi, referenceContainment, eReferenceChanged.getEReferenceType().getName(),
+					eReferenceChanged.getName(), oldValueHash, getEObjectLocation(oldValueEob), newValueHash,
+					getEObjectLocation((newValueEob))));
+
+			if (oldValue instanceof List) {
+				System.out.println ("old value is a list here...");
+			}
 			
-			if(null != newValueEob) { newValueHash = newValueEob.hashCode() ;}
-			processTrace.append(String.format("\n - EReference changed: (%s, %s, %s)\n\t%s - %s \n\twas: (#%s) %s\n\tnow: (#%s) %s"
-					, order, unique, multi,
-					eReferenceChanged.getEReferenceType().getName(), eReferenceChanged.getName(),
-					oldValueHash, getEObjectLocation(oldValueEob),  
-					newValueHash, getEObjectLocation((newValueEob))));
 			return;
 		}
 		
@@ -315,8 +324,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 
 	private void reportEObjectIdentity(EObject eObject) {
 		processTrace.append(  String.format("\n - EObject : (#%s) %s - %s ",eObject.hashCode() , eObject.eClass().getName(),
-				//EcoreUtil.getIdentification(eObject)));
-				EcoreUtil.getURI(eObject)));
+				EcoreUtil.getIdentification(eObject)));
 	}
 	
 	@SuppressWarnings("unchecked")
