@@ -72,11 +72,11 @@ public class RDFDeserializer {
 	/**
 	 * Normalise EMF package URI to end in '#' if they don't end in '#' or '/'
 	 */
-	public String cleanEMFNameSpaceURI (String nameSpace) {
-		if (!nameSpace.endsWith("#") && !nameSpace.endsWith("/")) {
-			nameSpace += "#";
+	public String cleanEMFNameSpaceURI(String namespaceURI) {
+		if (!namespaceURI.endsWith("#") && !namespaceURI.endsWith("/")) {
+			namespaceURI += "#";
 		}
-		return nameSpace;
+		return namespaceURI;
 	}
 	
 	/**

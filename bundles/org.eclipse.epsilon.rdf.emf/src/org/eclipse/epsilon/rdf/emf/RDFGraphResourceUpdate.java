@@ -44,7 +44,7 @@ import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl.MultiValueAttributeMode;
 
 public class RDFGraphResourceUpdate {
 	
-	private static final boolean CONSOLE_OUTPUT_ACTIVE = true;
+	private static final boolean CONSOLE_OUTPUT_ACTIVE = false;
 	private static final boolean SINGLE_MULTIVALUES_AS_STATEMENT = true;
 	
 	private boolean preferListsForMultiValues = false;
@@ -142,7 +142,7 @@ public class RDFGraphResourceUpdate {
 		String ePackageNamespace = deserializer.cleanEMFNameSpaceURI(eStructuralFeature.getEContainingClass().getEPackage().getNsURI());
 		return ResourceFactory.createProperty(ePackageNamespace, eStructuralFeature.getName());
 	}
-	
+
 	private RDFNode getObjectRDFNode(EObject eObject, EStructuralFeature eStructuralFeature, Model model) {
 		// SUBJECT
 		Resource rdfNode = rdfGraphResource.getRDFResource(eObject);

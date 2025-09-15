@@ -17,6 +17,7 @@ operation renderEObject(ob, nodeName: String) {
         <tr><td  href="[%=javascript%]">[%=nodeName%] : <b>[%=ob.eClass.name%]</b></td></tr>
         <tr><td>
           <table border="0" cellborder="0" cellspacing="0">
+            <tr><td></td></tr>
           [% for (eAttr in ob.eClass.eAllAttributes) {
             if (ob.eIsSet(eAttr)) {
               var value = ob.eGet(eAttr); %]
