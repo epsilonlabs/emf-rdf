@@ -118,7 +118,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		CustomClassLoaderConstructor constructor = new CustomClassLoaderConstructor(this.getClass().getClassLoader(), new LoaderOptions());
 		this.config = new Yaml(constructor).loadAs(inputStream, RDFResourceConfiguration.class);
 		loadRDFModels();
-		defaultModelNamespace = config.getDefaultModelNamespace();
+		setDefaultModelNamespace(config.getDefaultModelNamespace());
 
 		validationMode = config.getRawValidationMode();
 		

@@ -231,10 +231,10 @@ public class RDFGraphResourceUpdate {
 		String eObjectName = EcoreUtil.generateUUID();  // This UUID is generated using Date and Time (now).
 		
 		String eObjectNamespace = rdfGraphResource.getDefaultModelNamespace();
-		if(!eObjectNamespace.equals("")) {
+		if(null != eObjectNamespace && !"".equals(eObjectNamespace.strip())) {
 			// Plan a, clean the user input from the rdfres config file; must end # or /
-			eObjectNamespace = deserializer.normaliseEPackageNSURI(eObjectNamespace); }
-		else {
+			eObjectNamespace = deserializer.normaliseEPackageNSURI(eObjectNamespace);
+		} else {
 			// Plan b, check for a PREFIX : <default>
 			String prefix = model.getNsPrefixMap().get("");
 			if (null != prefix) {
