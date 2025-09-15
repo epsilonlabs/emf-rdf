@@ -100,8 +100,10 @@ The namespace URI can be configured in the `.rdfres` file as shown below.
 ```yaml
 defaultModelNamespace: http://foo/bar/example#
 ```
-The URI should being `file://` (`/` will become file) or `http://`. If you provide an invalid URI, then Jena will revert to using the URI of the named model it loaded the RDF from as the name space. 
+The URI must be absolute, e.g. by starting with `file://` (`/` will become file) or `http://`.
+If you provide an invalid URI, then Jena will revert to using the URI of the named model it loaded the RDF from as the name space. 
 
 The example above results in new RDF node with an IRI composed of the default name space and a UUID for the new EObject. E.g. `http://foo/bar/example#_6sDDMIgJEfC2g6UdYdL1hg`
 
-If a default model name space is not provided in the `.rdfres` file, then we will look for a blank prefix `PREFIX : <URI>` in the RDF model. The last resort is the let Jena decide, which will used the URI that the RDF model was loaded from.
+If a default model namespace is not provided in the `.rdfres` file, the resource will fall back to the blank prefix `PREFIX : <URI>` in the RDF model.
+The last resort is to let Jena decide, which will use the URI that the RDF model was loaded from.
