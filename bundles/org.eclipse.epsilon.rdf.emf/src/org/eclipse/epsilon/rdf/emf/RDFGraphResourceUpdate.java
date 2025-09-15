@@ -232,25 +232,20 @@ public class RDFGraphResourceUpdate {
 		
 		String eObjectNamespace = rdfGraphResource.getDefaultModelNamespace();
 		if(null != eObjectNamespace && !"".equals(eObjectNamespace.strip())) {
-			// Plan a, clean the user input from the rdfres config file; must end # or /
+			// Clean the user input from the rdfres config file; must end # or /
 			eObjectNamespace = deserializer.normaliseEPackageNSURI(eObjectNamespace);
 		} else {
-			// Plan b, check for a PREFIX : <default>
+			// Check for PREFIX : <default>
 			String prefix = model.getNsPrefixMap().get("");
 			if (null != prefix) {
 				eObjectNamespace = prefix;
 			} else {
-				// Plan c, fallback to file names with a fragment for the eObject <file>#<eObjectname>
-				
-				// Uncomment this to use the rdfres file
-				//eObjectNamespace = deserializer.cleanEMFNameSpaceURI(eObject.eResource().getURI().toString());
-				
-				// Uncomment this to use a Jena default approach that uses the filename of the namedModel
+				// Fallback  to file nameswith a fragment for the eObject <file>#<eObjectname>
 				eObjectNamespace = "#";
 				System.err.println("Warning, fallback for eObject namespace used! eObject IRI: " + eObjectNamespace + eObjectName );
 			}
 		}
-				
+
 		String eObjectIRI = eObjectNamespace+eObjectName;
 		if (CONSOLE_OUTPUT_ACTIVE) {
 			System.out.println("Created eObject node IRI: " + eObjectIRI);
@@ -373,7 +368,7 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	private void addToSequence(Object values, Seq container, int position) {
-		if(-1 == position) {
+		if (-1 == position) {
 			position = container.size();
 		}
 		
