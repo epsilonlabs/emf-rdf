@@ -11,8 +11,8 @@ if(consoleOutput) {
 }
 
 var newEffort = new Effort;
-newEffort.person = Person.all.first;
 t.effort.add(newEffort);
+newEffort.person = Person.all.first;
 
 if(consoleOutput) {
 	showTaskEffort(t);
