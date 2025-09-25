@@ -1,9 +1,7 @@
 package org.eclipse.epsilon.rdf.emf.converter.jobs;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 
 import org.eclipse.core.resources.IContainer;
@@ -19,6 +17,9 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.epsilon.rdf.emf.config.RDFResourceConfiguration;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.PlatformUI;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
@@ -57,6 +58,9 @@ public class XMI2TurtleJob extends Job {
 			// Create empty .ttl file
 			IFile ttlFile = folder.getFile(ttlFilename);
 			try {
+				if (ttlFile.exists()) {
+					ttlFile.delete(true, monitor);
+				}
 				ttlFile.create(new ByteArrayInputStream(new byte[0]), true, monitor);
 			} catch (Exception ex) {
 				return Status.error("Failed to generate empty .ttl", ex);
@@ -72,6 +76,7 @@ public class XMI2TurtleJob extends Job {
 			Resource targetR = targetRS.getResource(
 				URI.createURI(rdfresFile.getLocationURI().toString()), true);
 
+			targetR.getContents().clear();
 			targetR.getContents().addAll(sourceR.getContents());
 			try {
 				targetR.save(null);
@@ -92,6 +97,14 @@ public class XMI2TurtleJob extends Job {
 			try (
 				ByteArrayInputStream bis = new ByteArrayInputStream(dumpedYaml.getBytes(StandardCharsets.UTF_8));
 			) {
+				if (rdfresFile.exists()) {
+					PlatformUI.getWorkbench().getDisplay().syncCall(() -> {
+						if (MessageDialog.openConfirm(null, "Overwrite?", rdfresFile.getName() + " already exists: overwrite?")) {
+							rdfresFile.delete(true, monitor);
+						}
+						return null;
+					});
+				}
 				rdfresFile.create(bis, true, monitor);
 			}
 	}
