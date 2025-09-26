@@ -18,6 +18,7 @@ import java.util.List;
 import org.apache.jena.rdf.model.Resource;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EContentAdapter;
 
@@ -29,13 +30,77 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		this.initialRDFGraphResource = rdfGraphResource;
 	}
 
+	private RDFGraphResourceImpl getGraphResourceForEObject(EObject eObject) {
+		RDFGraphResourceImpl graphResource = (RDFGraphResourceImpl) eObject.eResource();
+		if (null == graphResource) {
+			System.err.println("The Graph resource has been removed, using the initial graph resource instead");
+			graphResource = initialRDFGraphResource;
+		}
+		return graphResource;
+	}
+	
+	private List<Resource> getNamedModelsToUpdate(EObject eObject, RDFGraphResourceImpl graphResource) {
+		List<Resource> namedModelResources = graphResource.getResourcesForNamedModelsContaining(eObject);
+		if (!namedModelResources.isEmpty()) {
+			return namedModelResources;
+		} else {
+			// No named RDF models contain the object yet - fall back on the first one
+			namedModelResources = graphResource.getResourcesForAllNamedModels();
+			if (!namedModelResources.isEmpty()) {
+				Resource first = namedModelResources.get(0);
+				namedModelResources.clear();
+				namedModelResources.add(first);
+				System.out.println("using first named models: " + first);
+				return namedModelResources;
+			} else {
+				// This is a problem...
+				System.out.println("no model resource?");
+				return null;
+			}
+		}
+
+	}
+
 	@Override
 	public void notifyChanged(Notification notification) {
 		Object feature = notification.getFeature();
 		if (null != feature) {
 			featureNotification(feature, notification);
+		} else {
+			// Check for adding and removing of an EObject to the resource (model root)
+			checkNoneFeatureValue(notification.getNewValue(), notification);
+			checkNoneFeatureValue(notification.getOldValue(), notification);
 		}
 		super.notifyChanged(notification);
+	}
+	
+	private void checkNoneFeatureValue(Object value, Notification notification) {
+		if(value instanceof EPackage) {
+			// Do nothing for EPackages
+			return;
+		}
+		
+		if(value instanceof EObject) {
+			// Process EObjects being added
+			EObject eObjectValue = (EObject) value;
+		
+			RDFGraphResourceImpl graphResource = getGraphResourceForEObject(eObjectValue);
+			RDFGraphResourceUpdate rdfUpdater = graphResource.getRDFGraphUpdater();
+		
+			switch (notification.getEventType()) {
+			case Notification.ADD: 
+				for (Resource namedModelResource : getNamedModelsToUpdate(eObjectValue, graphResource)) {
+					rdfUpdater.addToResource(eObjectValue, graphResource.getNamedModel(namedModelResource));
+				}
+			break;
+			
+			case Notification.REMOVE: 
+				for (Resource namedModelResource : getNamedModelsToUpdate(eObjectValue, graphResource)) {
+					rdfUpdater.removeFromResource(eObjectValue, graphResource.getNamedModel(namedModelResource));
+				}
+			break;
+			}	
+		}
 	}
 	
 	private void featureNotification (Object feature, Notification notification){		

@@ -220,6 +220,10 @@ public class RDFGraphResourceUpdate {
 		return ResourceFactory.createStatement(rdfNode, property, object);
 	}
 
+	private String getEMFResourceURI(EObject eObject) {
+		return eObject.eResource().getURI().toString();
+	}
+	
 	private String createEObjectIRI(Model model, EObject eObject) {
 		// If you configure a bad URI for the defaultModelNamespace then jena will revert to filename <File://path/file.ext>
 		
@@ -237,8 +241,8 @@ public class RDFGraphResourceUpdate {
 				eObjectNamespace = prefix;
 			} else {
 				// Fallback  to file nameswith a fragment for the eObject <file>#<eObjectname>
-				eObjectNamespace = "#";
-				System.err.println("Warning, fallback for eObject namespace used! eObject IRI: " + eObjectNamespace + eObjectName );
+				eObjectNamespace = getEMFResourceURI(eObject) + "#";
+				System.err.println("Warning, fallback for eObject namespace used! (EMF Resource URI used)\n - eObject IRI: " + eObjectNamespace + eObjectName );
 			}
 		}
 
@@ -632,7 +636,7 @@ public class RDFGraphResourceUpdate {
 		EList<EStructuralFeature> eStructuralFeatureList = eObject.eClass().getEAllStructuralFeatures();
 		
 		if (CONSOLE_OUTPUT_ACTIVE) {
-			System.out.println("\nRemove all statements for: " + eObject.eClass().getName() + " #" + eObject.hashCode());
+			System.out.println("\nRemove all statements for: " + getEObjectInstanceLabel(eObject));
 		}
 
 		for (EStructuralFeature eStructuralFeature : eStructuralFeatureList) {
@@ -705,6 +709,40 @@ public class RDFGraphResourceUpdate {
 		removeEObjectEClassStatement(model, eObject);
 
 		deserializer.deregisterEObject(eObject);
+	}
+	
+	//
+	// Model resource operations (model root changes)
+	
+	public void addToResource(List<EObject> eObjects, Model model) {
+		if(null == model) {
+			System.out.println("no model?");
+		}
+		for (EObject eObject : eObjects) {
+			addToResource(eObject, model);
+		}
+	}
+
+	public void addToResource(EObject eObject, Model model) {
+		System.out.println("ADD to Resource EObject: " + eObject.eClass().getName() + " #"
+				+ eObject.hashCode() + "\n Container: " + eObject.eContainer());
+		if (null == eObject.eContainer()) {
+			addAllEObjectStatements(model, eObject);
+		}
+	}
+
+	public void removeFromResource(List<EObject> eObjects, Model model) {
+		for (EObject eObject : eObjects) {
+			removeFromResource(eObject, model);
+		}
+	}
+
+	public void removeFromResource(EObject eObject, Model model) {
+		System.out.println("Remove from Resource EObject: " + eObject.eClass().getName() + " #"
+				+ eObject.hashCode() + "\n Container: " + eObject.eContainer());
+		if (null == eObject.eContainer()) {
+			removeAllEObjectStatements(model, eObject);
+		}
 	}
 	
 	//
@@ -977,7 +1015,7 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	private String getEObjectInstanceLabel (EObject eObject) {
-		return String.format( "%s-#%s", eObject.eClass().getName(), eObject.hashCode());
+		return String.format( "%s#%s", eObject.eClass().getName(), eObject.hashCode());
 	}
 	
 }

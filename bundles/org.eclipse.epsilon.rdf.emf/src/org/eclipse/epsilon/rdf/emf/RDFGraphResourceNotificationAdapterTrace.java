@@ -48,6 +48,28 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 		} else {
 			// Notification is not for a feature
 			processTrace.append(String.format("\n - Not a Feature notification \n - %s ", notification));
+			processTrace.append(String.format("Event: %s", eventTypeToString(notification.getEventType())));
+			
+			if (null != notification.getNewValue()) {
+				processTrace.append(String.format("NewValue: %s", notification.getNewValue()));
+				if (notification.getNewValue() instanceof EObject && notification.getEventType() == Notification.ADD) {
+					processTrace.append(String.format("EObject ADDED to Model"));
+					processTrace.append(
+							String.format("EObject: %s#%s", ((EObject) notification.getNewValue()).eClass().getName(),
+									((EObject) notification.getNewValue()).hashCode()));
+				}
+			}
+			
+			if (null != notification.getOldValue()) {
+				processTrace.append(String.format("OldValue: %s", notification.getOldValue()));
+				if (notification.getOldValue() instanceof EObject
+						&& notification.getEventType() == Notification.REMOVE) {
+					processTrace.append(String.format("EObject REMOVED from Model "));
+					processTrace.append(
+							String.format("EObject: %s#%s", ((EObject) notification.getOldValue()).eClass().getName(),
+									((EObject) notification.getOldValue()).hashCode()));
+				}
+			}
 		}
 
 		System.out.println(processTrace + "\n\n");
