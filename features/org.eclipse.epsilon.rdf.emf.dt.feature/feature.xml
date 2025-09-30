@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="org.eclipse.epsilon.rdf.emf.feature"
-      label="Feature for RDF EMF resource"
+      id="org.eclipse.epsilon.rdf.emf.dt.feature"
+      label="RDF-EMF Developer Tools"
       version="1.0.0.qualifier"
       provider-name="University of York">
 
-   <description>
-      Prototype RDF binding for EMF.
+   <description url="https://github.com/epsilonlabs/emf-rdf/">
+      Developer tools for the RDF binding for EMF.
    </description>
 
    <copyright>
@@ -277,11 +277,7 @@ No third-party beneficiary rights are created under this Agreement.
    </license>
 
    <plugin
-         id="org.eclipse.epsilon.rdf.emf"
-         version="0.0.0"/>
-
-   <plugin
-         id="org.eclipse.epsilon.rdf.validation"
+         id="org.eclipse.epsilon.rdf.emf.converter"
          version="0.0.0"/>
 
 </feature>

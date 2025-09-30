@@ -9,6 +9,9 @@
    <feature id="org.eclipse.epsilon.rdf.emf.feature">
       <category name="org.eclipse.epsilon.rdf.emf.category"/>
    </feature>
+   <feature id="org.eclipse.epsilon.rdf.emf.dt.feature">
+      <category name="org.eclipse.epsilon.rdf.emf.category"/>
+   </feature>
    <category-def name="org.eclipse.epsilon.emc.rdf.category" label="Epsilon RDF Integration"/>
    <category-def name="org.eclipse.epsilon.rdf.emf.category" label="RDF binding for EMF"/>
 </site>

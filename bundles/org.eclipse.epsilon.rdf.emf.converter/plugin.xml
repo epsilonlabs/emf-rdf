@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            description="Conversion of XMI models to RDF"
+            id="org.eclipse.epsilon.rdf.emf.converter.cmd.category"
+            name="xmi2rdf">
+      </category>
+      <command
+            categoryId="org.eclipse.epsilon.rdf.emf.converter.cmd.category"
+            defaultHandler="org.eclipse.epsilon.rdf.emf.converter.XMI2RDFHandler"
+            description="Convert XMI to RDF"
+            id="org.eclipse.epsilon.rdf.emf.converter.cmd.xmi2rdf"
+            name="XMI2RDF">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:org.eclipse.ui.popup.any?before=compareWithMenu">
+         <command
+               commandId="org.eclipse.epsilon.rdf.emf.converter.cmd.xmi2rdf"
+               label="Convert to Turtle"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="activeMenuSelection">
+                  <iterate
+                        ifEmpty="false">
+                     <adapt
+                           type="org.eclipse.core.resources.IResource">
+                        <or>
+                           <test
+                                 property="org.eclipse.core.resources.extension"
+                                 value="xmi">
+                           </test>
+                           <test
+                                 property="org.eclipse.core.resources.extension"
+                                 value="model">
+                           </test>
+                        </or>
+                     </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+   </extension>
+
+</plugin>
