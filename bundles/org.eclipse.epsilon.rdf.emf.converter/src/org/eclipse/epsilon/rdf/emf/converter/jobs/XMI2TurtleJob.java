@@ -4,6 +4,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -13,12 +16,14 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl;
 import org.eclipse.epsilon.rdf.emf.config.RDFResourceConfiguration;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -73,11 +78,27 @@ public class XMI2TurtleJob extends Job {
 
 			// Load target resource
 			ResourceSet targetRS = new ResourceSetImpl();
-			Resource targetR = targetRS.getResource(
+			RDFGraphResourceImpl targetR = (RDFGraphResourceImpl) targetRS.getResource(
 				URI.createURI(rdfresFile.getLocationURI().toString()), true);
 
+			// Replace contents and set up prefixes
 			targetR.getContents().clear();
+			Model jenaModel = targetR.getFirstNamedModel();
+			jenaModel.setNsPrefix("rdf", RDF.uri);
+			jenaModel.setNsPrefix("owl", OWL.NS);
+			jenaModel.setNsPrefix("f", targetR.getURI() + "#");
+			if (!sourceR.getContents().isEmpty()) {
+				EObject root = sourceR.getContents().get(0);
+				EPackage ePkg = root.eClass().getEPackage();
+
+				String nsURIPrefix = ePkg.getNsURI();
+				if (!nsURIPrefix.endsWith("#") && !nsURIPrefix.endsWith("/")) {
+					nsURIPrefix += "#";
+				}
+				jenaModel.setNsPrefix("mm", nsURIPrefix);
+			}
 			targetR.getContents().addAll(sourceR.getContents());
+
 			try {
 				targetR.save(null);
 			} catch (IOException e) {
