@@ -16,11 +16,21 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+
 import org.eclipse.emf.common.notify.Adapter;
+import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.emfatic.core.EmfaticResourceFactory;
+import org.eclipse.epsilon.rdf.emf.RDFGraphResourceFactory;
 import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl;
 import org.eclipse.epsilon.rdf.emf.RDFGraphResourceNotificationAdapterChangeRDF;
 import org.eclipse.epsilon.rdf.emf.RDFGraphResourceNotificationAdapterTrace;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -32,11 +42,38 @@ import org.junit.Test;
  */
 public class AdapterPropagationTest {
 
+	@BeforeClass
+	public static void setupDrivers() {
+		Resource.Factory.Registry.INSTANCE
+			.getExtensionToFactoryMap()
+			.put("emf", new EmfaticResourceFactory());
+		Resource.Factory.Registry.INSTANCE
+			.getExtensionToFactoryMap()
+			.put("rdfres", new RDFGraphResourceFactory());
+	}
+
 	@Test
-	public void changeAdapterPropagates() {
-		var r = new RDFGraphResourceImpl();
-		var adapter = new RDFGraphResourceNotificationAdapterChangeRDF(r);
-		assertEAdaptersPropagate(r, adapter);
+	public void changeAdapterMatches() throws Exception {
+		var rsMetamodels = new ResourceSetImpl();
+		var rMetamodel = rsMetamodels.getResource(URI.createFileURI(
+			new File("resources/rdfresConfigs/book.emf").getCanonicalPath()), true);
+		var ePkg = (EPackage) rMetamodel.getContents().get(0);
+
+		var rsModel = new ResourceSetImpl();
+		rsModel.getPackageRegistry().put(ePkg.getNsURI(), ePkg);
+		var r = rsModel.getResource(URI.createFileURI(
+			new File("resources/rdfresConfigs/Validation_none.rdfres").getCanonicalPath()), true);
+
+		var changeAdapter = r.eAdapters().stream()
+			.filter(e -> e instanceof RDFGraphResourceNotificationAdapterChangeRDF).findFirst();
+		assertTrue("There should be a change adapter in the resource", changeAdapter.isPresent());
+
+		EObject root = (EObject) r.getContents().get(0);
+		var changeAdapterEob = root.eAdapters().stream()
+			.filter(e -> e instanceof RDFGraphResourceNotificationAdapterChangeRDF).findFirst();
+		assertTrue("There should be a change adapter in the root EObject", changeAdapterEob.isPresent());
+		assertSame("Both resource and root should use the same change adapter",
+			changeAdapter.get(), changeAdapterEob.get());
 	}
 
 	@Test
