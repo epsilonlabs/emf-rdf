@@ -20,8 +20,6 @@ import java.io.File;
 import java.io.IOException;
 
 import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
@@ -47,14 +45,14 @@ public class ConfigModelValidationTest {
 	@Test
 	public void ValidationBlank () throws IOException {
 		RDFGraphResourceImpl graph = getGraphResourceImpl(VALIDATION_BLANK);
-		ValidationMode mode = graph.getValidationMode();		
+		ValidationMode mode = graph.getValidationMode();
 		assertEquals("none", mode.getId());
 	}
 	
 	@Test
 	public void ValidationJenaClean () throws IOException {
 		RDFGraphResourceImpl graph = getGraphResourceImpl(VALIDATION_JENA_CLEAN);
-		ValidationMode mode = graph.getValidationMode();		
+		ValidationMode mode = graph.getValidationMode();
 		assertEquals("jena-clean", mode.getId());
 	}
 	
@@ -72,21 +70,9 @@ public class ConfigModelValidationTest {
 	}
 	
 	protected RDFGraphResourceImpl getGraphResourceImpl(File file) throws IOException {
-		ResourceSet rsMetamodels = new ResourceSetImpl();
 		ResourceSet rsRDF = new ResourceSetImpl();
-		registerEPackages(rsMetamodels, rsRDF);
-		loadFile(file, rsRDF);		
+		loadFile(file, rsRDF);
 		return (RDFGraphResourceImpl) rsRDF.getResources().get(0);
-	}
-	
-	protected void registerEPackages(ResourceSet rsMetamodels, ResourceSet rsTarget) {
-		for (Resource rMetamodel : rsMetamodels.getResources()) {
-			for (EObject eob : rMetamodel.getContents()) {
-				if (eob instanceof EPackage epkg) {
-					rsTarget.getPackageRegistry().put(epkg.getNsURI(), epkg);
-				}
-			}
-		}
 	}
 
 	protected void loadFile(File file, ResourceSet rs) throws IOException {

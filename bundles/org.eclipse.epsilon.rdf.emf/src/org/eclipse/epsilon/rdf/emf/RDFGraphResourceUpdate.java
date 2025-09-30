@@ -34,8 +34,8 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Seq;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDF;
-import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.notify.Notification;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
@@ -220,6 +220,10 @@ public class RDFGraphResourceUpdate {
 		return ResourceFactory.createStatement(rdfNode, property, object);
 	}
 
+	private String getEMFResourceURI(EObject eObject) {
+		return eObject.eResource().getURI().toString();
+	}
+
 	private String createEObjectIRI(Model model, EObject eObject) {
 		// If you configure a bad URI for the defaultModelNamespace then jena will revert to filename <File://path/file.ext>
 		
@@ -237,8 +241,8 @@ public class RDFGraphResourceUpdate {
 				eObjectNamespace = prefix;
 			} else {
 				// Fallback  to file nameswith a fragment for the eObject <file>#<eObjectname>
-				eObjectNamespace = "#";
-				System.err.println("Warning, fallback for eObject namespace used! eObject IRI: " + eObjectNamespace + eObjectName );
+				eObjectNamespace = getEMFResourceURI(eObject) + "#";
+				System.err.println("Warning, fallback for eObject namespace used! (EMF Resource URI used)\n - eObject IRI: " + eObjectNamespace + eObjectName );
 			}
 		}
 
@@ -632,7 +636,7 @@ public class RDFGraphResourceUpdate {
 		EList<EStructuralFeature> eStructuralFeatureList = eObject.eClass().getEAllStructuralFeatures();
 		
 		if (CONSOLE_OUTPUT_ACTIVE) {
-			System.out.println("\nRemove all statements for: " + eObject.eClass().getName() + " #" + eObject.hashCode());
+			System.out.println("\nRemove all statements for: " + getEObjectInstanceLabel(eObject));
 		}
 
 		for (EStructuralFeature eStructuralFeature : eStructuralFeatureList) {
@@ -706,7 +710,26 @@ public class RDFGraphResourceUpdate {
 
 		deserializer.deregisterEObject(eObject);
 	}
-	
+
+	//
+	// Model resource operations (model root changes)
+
+	protected void addToResource(EObject eObject, Model model) {
+		System.out.println("ADD to Resource EObject: " + eObject.eClass().getName() + " #"
+				+ eObject.hashCode() + "\n Container: " + eObject.eContainer());
+		if (null == eObject.eContainer()) {
+			addAllEObjectStatements(model, eObject);
+		}
+	}
+
+	protected void removeFromResource(EObject eObject, Model model) {
+		System.out.println("Remove from Resource EObject: " + eObject.eClass().getName() + " #"
+				+ eObject.hashCode() + "\n Container: " + eObject.eContainer());
+		if (null == eObject.eContainer()) {
+			removeAllEObjectStatements(model, eObject);
+		}
+	}
+
 	//
 	// Single-value Features operations
 	
@@ -977,7 +1000,7 @@ public class RDFGraphResourceUpdate {
 	}
 	
 	private String getEObjectInstanceLabel (EObject eObject) {
-		return String.format( "%s-#%s", eObject.eClass().getName(), eObject.hashCode());
+		return String.format( "%s#%s", eObject.eClass().getName(), eObject.hashCode());
 	}
 	
 }

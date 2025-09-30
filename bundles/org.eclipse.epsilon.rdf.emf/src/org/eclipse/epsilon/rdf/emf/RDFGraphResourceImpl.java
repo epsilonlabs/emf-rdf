@@ -39,6 +39,7 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.epsilon.rdf.emf.config.RDFResourceConfiguration;
 import org.eclipse.epsilon.rdf.validation.RDFValidation.ValidationMode;
@@ -124,7 +125,15 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		
 		multiValueAttributeMode = MultiValueAttributeMode.fromValue(this.config.getMultiValueAttributeMode());
 
-		deserializer = new RDFDeserializer(() -> this.getResourceSet().getPackageRegistry());
+		deserializer = new RDFDeserializer(() -> {
+			if (this.getResourceSet() != null) {
+				// Prefer the resource set's package registry
+				return this.getResourceSet().getPackageRegistry();
+			} else {
+				// Fall back to the global package registry
+				return EPackage.Registry.INSTANCE;
+			}
+		});
 		deserializer.deserialize(rdfOntModel);
 		for (EObject eob : deserializer.getEObjectToResourceMap().keySet()) {
 			if (eob.eContainer() == null) {

@@ -29,15 +29,82 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		this.initialRDFGraphResource = rdfGraphResource;
 	}
 
+	private RDFGraphResourceImpl getGraphResourceForEObject(EObject eObject) {
+		RDFGraphResourceImpl graphResource = (RDFGraphResourceImpl) eObject.eResource();
+		if (null == graphResource) {
+			System.err.println("The Graph resource has been removed, using the initial graph resource instead");
+			graphResource = initialRDFGraphResource;
+		}
+		return graphResource;
+	}
+
+	private List<Resource> getNamedModelsToUpdate(EObject eObject, RDFGraphResourceImpl graphResource) {
+		List<Resource> namedModelResources = graphResource.getResourcesForNamedModelsContaining(eObject);
+		if (!namedModelResources.isEmpty()) {
+			return namedModelResources;
+		} else {
+			// No named RDF models contain the object yet - fall back on the first one
+			namedModelResources = graphResource.getResourcesForAllNamedModels();
+			if (!namedModelResources.isEmpty()) {
+				Resource first = namedModelResources.get(0);
+				namedModelResources.clear();
+				namedModelResources.add(first);
+				System.out.println("using first named models: " + first);
+				return namedModelResources;
+			} else {
+				// This is a problem...
+				System.out.println("no model resource?");
+				return null;
+			}
+		}
+	}
+
 	@Override
 	public void notifyChanged(Notification notification) {
 		Object feature = notification.getFeature();
 		if (null != feature) {
 			featureNotification(feature, notification);
+		} else {
+			// Check for adding and removing of an EObject to the resource (model root)
+			handleNonFeatureNotification(notification.getNewValue(), notification);
+			handleNonFeatureNotification(notification.getOldValue(), notification);
 		}
 		super.notifyChanged(notification);
 	}
 	
+	private void handleNonFeatureNotification(Object value, Notification notification) {
+		if (value instanceof EObject eObjectValue) {
+			handleEObjectAttachOrDetach(notification, eObjectValue);
+		}
+		if (value instanceof List eObjectList) {
+			for (Object o : eObjectList) {
+				if (o instanceof EObject eob) {
+					handleEObjectAttachOrDetach(notification, eob);
+				}
+			}
+		}
+	}
+
+	protected void handleEObjectAttachOrDetach(Notification notification, EObject eObjectValue) {
+		RDFGraphResourceImpl graphResource = getGraphResourceForEObject(eObjectValue);
+		RDFGraphResourceUpdate rdfUpdater = graphResource.getRDFGraphUpdater();
+
+		switch (notification.getEventType()) {
+		case Notification.ADD:
+		case Notification.ADD_MANY:
+			for (Resource namedModelResource : getNamedModelsToUpdate(eObjectValue, graphResource)) {
+				rdfUpdater.addToResource(eObjectValue, graphResource.getNamedModel(namedModelResource));
+			}
+		break;
+		case Notification.REMOVE:
+		case Notification.REMOVE_MANY:
+			for (Resource namedModelResource : getNamedModelsToUpdate(eObjectValue, graphResource)) {
+				rdfUpdater.removeFromResource(eObjectValue, graphResource.getNamedModel(namedModelResource));
+			}
+		break;
+		}
+	}
+
 	private void featureNotification (Object feature, Notification notification){		
 		if (feature instanceof EStructuralFeature) {
 			eStructuralFeatureNotification((EStructuralFeature) feature, notification);
