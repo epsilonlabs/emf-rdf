@@ -223,7 +223,7 @@ public class RDFGraphResourceUpdate {
 	private String getEMFResourceURI(EObject eObject) {
 		return eObject.eResource().getURI().toString();
 	}
-	
+
 	private String createEObjectIRI(Model model, EObject eObject) {
 		// If you configure a bad URI for the defaultModelNamespace then jena will revert to filename <File://path/file.ext>
 		
@@ -710,7 +710,7 @@ public class RDFGraphResourceUpdate {
 
 		deserializer.deregisterEObject(eObject);
 	}
-	
+
 	//
 	// Model resource operations (model root changes)
 
@@ -729,7 +729,7 @@ public class RDFGraphResourceUpdate {
 			removeAllEObjectStatements(model, eObject);
 		}
 	}
-	
+
 	//
 	// Single-value Features operations
 	

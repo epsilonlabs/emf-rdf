@@ -49,7 +49,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 			// Notification is not for a feature
 			processTrace.append(String.format("\n - Not a Feature notification \n - %s ", notification));
 			processTrace.append(String.format("Event: %s", eventTypeToString(notification.getEventType())));
-			
+
 			if (null != notification.getNewValue()) {
 				processTrace.append(String.format("NewValue: %s", notification.getNewValue()));
 				if (notification.getNewValue() instanceof EObject && notification.getEventType() == Notification.ADD) {
@@ -67,7 +67,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 					}
 				}
 			}
-			
+
 			if (null != notification.getOldValue()) {
 				processTrace.append(String.format("OldValue: %s", notification.getOldValue()));
 				if (notification.getOldValue() instanceof EObject

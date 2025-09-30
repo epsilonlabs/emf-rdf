@@ -37,7 +37,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		}
 		return graphResource;
 	}
-	
+
 	private List<Resource> getNamedModelsToUpdate(EObject eObject, RDFGraphResourceImpl graphResource) {
 		List<Resource> namedModelResources = graphResource.getResourcesForNamedModelsContaining(eObject);
 		if (!namedModelResources.isEmpty()) {
@@ -57,7 +57,6 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 				return null;
 			}
 		}
-
 	}
 
 	@Override
@@ -97,7 +96,6 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 				rdfUpdater.addToResource(eObjectValue, graphResource.getNamedModel(namedModelResource));
 			}
 		break;
-
 		case Notification.REMOVE:
 		case Notification.REMOVE_MANY:
 			for (Resource namedModelResource : getNamedModelsToUpdate(eObjectValue, graphResource)) {
@@ -106,7 +104,7 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 		break;
 		}
 	}
-	
+
 	private void featureNotification (Object feature, Notification notification){		
 		if (feature instanceof EStructuralFeature) {
 			eStructuralFeatureNotification((EStructuralFeature) feature, notification);
