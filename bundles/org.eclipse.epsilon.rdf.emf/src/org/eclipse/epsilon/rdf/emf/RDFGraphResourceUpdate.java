@@ -34,8 +34,8 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Seq;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDF;
-import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.notify.Notification;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
@@ -713,17 +713,8 @@ public class RDFGraphResourceUpdate {
 	
 	//
 	// Model resource operations (model root changes)
-	
-	public void addToResource(List<EObject> eObjects, Model model) {
-		if(null == model) {
-			System.out.println("no model?");
-		}
-		for (EObject eObject : eObjects) {
-			addToResource(eObject, model);
-		}
-	}
 
-	public void addToResource(EObject eObject, Model model) {
+	protected void addToResource(EObject eObject, Model model) {
 		System.out.println("ADD to Resource EObject: " + eObject.eClass().getName() + " #"
 				+ eObject.hashCode() + "\n Container: " + eObject.eContainer());
 		if (null == eObject.eContainer()) {
@@ -731,13 +722,7 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 
-	public void removeFromResource(List<EObject> eObjects, Model model) {
-		for (EObject eObject : eObjects) {
-			removeFromResource(eObject, model);
-		}
-	}
-
-	public void removeFromResource(EObject eObject, Model model) {
+	protected void removeFromResource(EObject eObject, Model model) {
 		System.out.println("Remove from Resource EObject: " + eObject.eClass().getName() + " #"
 				+ eObject.hashCode() + "\n Container: " + eObject.eContainer());
 		if (null == eObject.eContainer()) {

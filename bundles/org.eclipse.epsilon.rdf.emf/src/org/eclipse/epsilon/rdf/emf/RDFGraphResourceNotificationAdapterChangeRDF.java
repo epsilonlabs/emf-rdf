@@ -18,7 +18,6 @@ import java.util.List;
 import org.apache.jena.rdf.model.Resource;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EContentAdapter;
 
@@ -68,38 +67,43 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 			featureNotification(feature, notification);
 		} else {
 			// Check for adding and removing of an EObject to the resource (model root)
-			checkNoneFeatureValue(notification.getNewValue(), notification);
-			checkNoneFeatureValue(notification.getOldValue(), notification);
+			handleNonFeatureNotification(notification.getNewValue(), notification);
+			handleNonFeatureNotification(notification.getOldValue(), notification);
 		}
 		super.notifyChanged(notification);
 	}
 	
-	private void checkNoneFeatureValue(Object value, Notification notification) {
-		if(value instanceof EPackage) {
-			// Do nothing for EPackages
-			return;
+	private void handleNonFeatureNotification(Object value, Notification notification) {
+		if (value instanceof EObject eObjectValue) {
+			handleEObjectAttachOrDetach(notification, eObjectValue);
 		}
-		
-		if(value instanceof EObject) {
-			// Process EObjects being added
-			EObject eObjectValue = (EObject) value;
-		
-			RDFGraphResourceImpl graphResource = getGraphResourceForEObject(eObjectValue);
-			RDFGraphResourceUpdate rdfUpdater = graphResource.getRDFGraphUpdater();
-		
-			switch (notification.getEventType()) {
-			case Notification.ADD: 
-				for (Resource namedModelResource : getNamedModelsToUpdate(eObjectValue, graphResource)) {
-					rdfUpdater.addToResource(eObjectValue, graphResource.getNamedModel(namedModelResource));
+		if (value instanceof List eObjectList) {
+			for (Object o : eObjectList) {
+				if (o instanceof EObject eob) {
+					handleEObjectAttachOrDetach(notification, eob);
 				}
-			break;
-			
-			case Notification.REMOVE: 
-				for (Resource namedModelResource : getNamedModelsToUpdate(eObjectValue, graphResource)) {
-					rdfUpdater.removeFromResource(eObjectValue, graphResource.getNamedModel(namedModelResource));
-				}
-			break;
-			}	
+			}
+		}
+	}
+
+	protected void handleEObjectAttachOrDetach(Notification notification, EObject eObjectValue) {
+		RDFGraphResourceImpl graphResource = getGraphResourceForEObject(eObjectValue);
+		RDFGraphResourceUpdate rdfUpdater = graphResource.getRDFGraphUpdater();
+
+		switch (notification.getEventType()) {
+		case Notification.ADD:
+		case Notification.ADD_MANY:
+			for (Resource namedModelResource : getNamedModelsToUpdate(eObjectValue, graphResource)) {
+				rdfUpdater.addToResource(eObjectValue, graphResource.getNamedModel(namedModelResource));
+			}
+		break;
+
+		case Notification.REMOVE:
+		case Notification.REMOVE_MANY:
+			for (Resource namedModelResource : getNamedModelsToUpdate(eObjectValue, graphResource)) {
+				rdfUpdater.removeFromResource(eObjectValue, graphResource.getNamedModel(namedModelResource));
+			}
+		break;
 		}
 	}
 	

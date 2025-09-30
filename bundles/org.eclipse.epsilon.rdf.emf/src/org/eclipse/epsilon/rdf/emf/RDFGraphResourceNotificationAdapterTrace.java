@@ -53,10 +53,18 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 			if (null != notification.getNewValue()) {
 				processTrace.append(String.format("NewValue: %s", notification.getNewValue()));
 				if (notification.getNewValue() instanceof EObject && notification.getEventType() == Notification.ADD) {
-					processTrace.append(String.format("EObject ADDED to Model"));
+					processTrace.append("\nEObject ADDED to Model");
 					processTrace.append(
 							String.format("EObject: %s#%s", ((EObject) notification.getNewValue()).eClass().getName(),
 									((EObject) notification.getNewValue()).hashCode()));
+				}
+				if (notification.getNewValue() instanceof List el && notification.getEventType() == Notification.ADD_MANY) {
+					processTrace.append("\nEObjects ADDED to Model:");
+					for (Object o : el) {
+						processTrace.append(
+							String.format("\n - EObject: %s#%s", ((EObject) o).eClass().getName(),
+									((EObject) o).hashCode()));
+					}
 				}
 			}
 			
@@ -64,10 +72,18 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
 				processTrace.append(String.format("OldValue: %s", notification.getOldValue()));
 				if (notification.getOldValue() instanceof EObject
 						&& notification.getEventType() == Notification.REMOVE) {
-					processTrace.append(String.format("EObject REMOVED from Model "));
+					processTrace.append(String.format("\nEObject REMOVED from Model "));
 					processTrace.append(
 							String.format("EObject: %s#%s", ((EObject) notification.getOldValue()).eClass().getName(),
 									((EObject) notification.getOldValue()).hashCode()));
+				}
+				if (notification.getNewValue() instanceof List el && notification.getEventType() == Notification.REMOVE_MANY) {
+					processTrace.append("\nEObjects REMOVED from Model:");
+					for (Object o : el) {
+						processTrace.append(
+							String.format("\n - EObject: %s#%s", ((EObject) o).eClass().getName(),
+									((EObject) o).hashCode()));
+					}
 				}
 			}
 		}
