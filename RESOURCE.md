@@ -30,6 +30,9 @@ Specifically, we support two options:
 Namespaces for creating EMF models must be configured in the `.rdfres` (see  Default model namespace section below).
 At the moment, the same namespace URI is used for every EObject created by the resource.
 
+The contents of the resource must only be changed *after* it has been loaded.
+The resource assumes that a Jena graph is present to be synchronised whenever a change is made to the contents of the resource.
+
 ## .rdfres file format
 
 Suppose you have a `model.ttl` Turtle file with some statements of interest, written against an ontology in `schema.ttl`.
@@ -107,3 +110,11 @@ The example above results in new RDF node with an IRI composed of the default na
 
 If a default model namespace is not provided in the `.rdfres` file, the resource will fall back to the blank prefix `PREFIX : <URI>` in the RDF model.
 The last resort is to let Jena decide, which will use the URI that the RDF model was loaded from.
+
+## Converting an XMI file to RDF Turtle
+
+The "Developer Tools for RDF binding for EMF" feature includes a converter from XMI to the [Turtle](https://www.w3.org/TR/turtle/) serialisation format for RDF.
+
+To use it, right-click on a file with the `.xmi` or `.model` extensions in the Eclipse "Project Explorer" or "Package Explorer" views, and select "Convert to Turtle":
+
+![Screenshot showing the Convert to Turtle option](./images/convert-to-turtle.png)
