@@ -12,16 +12,16 @@
  ********************************************************************************/
 package org.eclipse.epsilon.rdf.emf.config;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl.MultiValueAttributeMode;
 import org.eclipse.epsilon.rdf.validation.RDFValidation.ValidationMode;
 
 public class RDFResourceConfiguration {
 
-	private Set<String> dataModels = new HashSet<>();
-	private Set<String> schemaModels = new HashSet<>();
+	private List<String> dataModels = new ArrayList<>();
+	private List<String> schemaModels = new ArrayList<>();
 	private String validationMode = ValidationMode.NONE.getId();
 	private String multiValueAttributeMode = MultiValueAttributeMode.CONTAINER.getId();
 	private String defaultModelNamespace = ""; 
@@ -42,19 +42,19 @@ public class RDFResourceConfiguration {
 		this.multiValueAttributeMode = multiValueAttributeMode;
 	}
 
-	public Set<String> getDataModels() {
+	public List<String> getDataModels() {
 		return dataModels;
 	}
 
-	public void setDataModels(Set<String> dataModels) {
+	public void setDataModels(List<String> dataModels) {
 		this.dataModels = dataModels;
 	}
 
-	public Set<String> getSchemaModels() {
+	public List<String> getSchemaModels() {
 		return schemaModels;
 	}
 
-	public void setSchemaModels(Set<String> schemaModels) {
+	public void setSchemaModels(List<String> schemaModels) {
 		this.schemaModels = schemaModels;
 	}
 

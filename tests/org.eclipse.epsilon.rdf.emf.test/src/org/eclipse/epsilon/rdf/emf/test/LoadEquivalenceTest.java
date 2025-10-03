@@ -17,6 +17,7 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.compare.Comparison;
@@ -83,14 +84,14 @@ public class LoadEquivalenceTest {
 	@Test
 	public void equivalentModels() throws Exception {
 		ResourceSet rsMetamodels = new ResourceSetImpl();
-		loadModelsWithExtension(testCaseFolder, ".emf", rsMetamodels);
+		loadModelsWithExtension(testCaseFolder, ".emf", rsMetamodels, (r) -> {
+			registerEPackages(r);
+		});
 
 		ResourceSet rsXmi = new ResourceSetImpl();
-		registerEPackages(rsMetamodels, rsXmi);
 		loadModelsWithExtension(testCaseFolder, ".xmi", rsXmi);
 
 		ResourceSet rsRDF = new ResourceSetImpl();
-		registerEPackages(rsMetamodels, rsRDF);
 		loadModelsWithExtension(testCaseFolder, ".rdfres", rsRDF);
 
 		EMFCompare compareEngine = EMFCompare.builder().build();
@@ -112,23 +113,31 @@ public class LoadEquivalenceTest {
 		fail("Differences were reported: see error messages");
 	}
 
-	protected void registerEPackages(ResourceSet rsMetamodels, ResourceSet rsTarget) {
-		for (Resource rMetamodel : rsMetamodels.getResources()) {
-			for (EObject eob : rMetamodel.getContents()) {
-				if (eob instanceof EPackage epkg) {
-					rsTarget.getPackageRegistry().put(epkg.getNsURI(), epkg);
-				}
+	protected void registerEPackages(Resource rMetamodel) {
+		for (EObject eob : rMetamodel.getContents()) {
+			if (eob instanceof EPackage epkg) {
+				// Global registration is needed to allow Emfatic itself
+				// to reference the package (e.g. from an 'import' statement)
+				EPackage.Registry.INSTANCE.put(epkg.getNsURI(), epkg);
 			}
 		}
 	}
 
 	protected void loadModelsWithExtension(File testCaseFolder, String fileNameSuffix, ResourceSet rs) throws IOException {
-		for (File fEmf : testCaseFolder.listFiles(fn -> fn.getName().endsWith(fileNameSuffix))) {
-			Resource rMetamodel = rs.createResource(URI.createFileURI(fEmf.getAbsolutePath()));
-			rs.getResources().add(rMetamodel);
+		loadModelsWithExtension(testCaseFolder, fileNameSuffix, rs, (x) -> {});
+	}
+
+	protected void loadModelsWithExtension(File testCaseFolder, String fileNameSuffix, ResourceSet rs, Consumer<Resource> onResource) throws IOException {
+		// Sort by name (e.g. for interdependent metamodels)
+		File[] filesToLoad = testCaseFolder.listFiles(fn -> fn.getName().endsWith(fileNameSuffix));
+		Arrays.sort(filesToLoad, (a, b) -> a.getName().compareTo(b.getName()));
+
+		for (File fEmf : filesToLoad) {
+			rs.createResource(URI.createFileURI(fEmf.getAbsolutePath()));
 		}
 		for (Resource r : rs.getResources()) {
 			r.load(null);
+			onResource.accept(r);
 		}
 	}
 

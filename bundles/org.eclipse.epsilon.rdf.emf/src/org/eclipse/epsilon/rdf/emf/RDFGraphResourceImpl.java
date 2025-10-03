@@ -211,7 +211,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		}
 	}
 
-	public Dataset loadRDFModels(Set<String> uris) throws IOException, MalformedURLException {
+	public Dataset loadRDFModels(Collection<String> uris) throws IOException, MalformedURLException {
 		Dataset newDataset = null;
 		List<String> namedModelSources = new ArrayList<String>();
 
