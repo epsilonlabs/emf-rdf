@@ -136,6 +136,7 @@ public class LoadEquivalenceTest {
 			rs.createResource(URI.createFileURI(fEmf.getAbsolutePath()));
 		}
 		for (Resource r : rs.getResources()) {
+			System.out.println("Loading " + r.getURI());
 			r.load(null);
 			onResource.accept(r);
 		}
