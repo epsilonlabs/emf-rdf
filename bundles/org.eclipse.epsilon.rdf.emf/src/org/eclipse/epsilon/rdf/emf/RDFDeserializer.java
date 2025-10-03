@@ -301,27 +301,28 @@ public class RDFDeserializer {
 			if (ePackage != null) {
 				EClassifier eClassifier = ePackage.getEClassifier(typeName);
 				if (eClassifier == null) {
-					System.err.println(
-							String.format("Cannot find type '%s' in EPackage with nsURI '%s'", typeName, nsURI));
+					System.err.println(String.format(
+						"Cannot find type '%s' in EPackage with nsURI '%s'",
+						typeName, nsURI));
 				}
 
 				if (eClassifier instanceof EClass newEClass) {
-					boolean isSuperTypeOfExisting = false;
-					for (Iterator<EClass> itEClass = eClasses.iterator(); itEClass.hasNext();) {
-						EClass existingEClass = itEClass.next();
-						if (existingEClass.isSuperTypeOf(newEClass)) {
-							/*
-							 * The new EClass is more specific than an existing one:
-							 * remove the existing one.
-							 */
-							itEClass.remove();
-						} else if (newEClass.isSuperTypeOf(existingEClass)) {
-							// The new EClass is a supertype of an existing one: skip
-							isSuperTypeOfExisting = true;
-						}
-					}
+					final boolean isSuperTypeOfExisting = eClasses.stream()
+						.filter(existing -> newEClass.isSuperTypeOf(existing))
+						.findFirst().isPresent();
+
 					if (!isSuperTypeOfExisting) {
-						// Not a supertype of any existing classes: add it
+						/*
+						 * New EClass is not a supertype of anything existing,
+						 * so it should be added after removing any eClasses
+						 * that are less concrete than this one.
+						 */
+						for (var itEClass = eClasses.iterator(); itEClass.hasNext(); ) {
+							EClass existingEClass = itEClass.next();
+							if (existingEClass.isSuperTypeOf(newEClass)) {
+								itEClass.remove();
+							}
+						}
 						eClasses.add(newEClass);
 					}
 				}
