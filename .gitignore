@@ -37,6 +37,7 @@ target-plain/
 *.polyglot*
 *.tycho
 *.META-INF_MANIFEST.MF
+org.eclipse.m2e.core.prefs
 
 # Eclipse IDE metadata in non-project folders
 /.project
