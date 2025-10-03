@@ -306,6 +306,7 @@ public class RDFDeserializer {
 				}
 
 				if (eClassifier instanceof EClass newEClass) {
+					boolean isSuperTypeOfExisting = false;
 					for (Iterator<EClass> itEClass = eClasses.iterator(); itEClass.hasNext();) {
 						EClass existingEClass = itEClass.next();
 						if (existingEClass.isSuperTypeOf(newEClass)) {
@@ -316,10 +317,13 @@ public class RDFDeserializer {
 							itEClass.remove();
 						} else if (newEClass.isSuperTypeOf(existingEClass)) {
 							// The new EClass is a supertype of an existing one: skip
-							continue;
+							isSuperTypeOfExisting = true;
 						}
 					}
-					eClasses.add(newEClass);
+					if (!isSuperTypeOfExisting) {
+						// Not a supertype of any existing classes: add it
+						eClasses.add(newEClass);
+					}
 				}
 			}
 		}
