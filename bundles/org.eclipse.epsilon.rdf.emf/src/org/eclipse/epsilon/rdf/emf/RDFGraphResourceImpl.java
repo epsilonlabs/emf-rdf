@@ -160,8 +160,16 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		if (dataset.containsNamedModel(namedModelURI))
 		{
 			Model modelToSave = dataset.getNamedModel(namedModelURI);
-			Lang lang = RDFDataMgr.determineLang(namedModelURI, namedModelURI, Lang.TTL);  // Hint becomes default
-			
+
+			/*
+			 * Note: in Jena 5.x, hint takes priority over guessing by file extension. Best
+			 * to try guessing by file extension and only fall back to Turtle if needed
+			 */
+			Lang lang = RDFDataMgr.determineLang(namedModelURI, null, null);
+			if (lang == null) {
+				lang = Lang.TTL;
+			}
+
 			try (OutputStream out = new BufferedOutputStream(new FileOutputStream(saveLocationURI))) {
 				RDFDataMgr.write(out, modelToSave, lang);
 				out.close();

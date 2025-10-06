@@ -16,12 +16,12 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.epsilon.rdf.emf.converter.jobs.XMI2TurtleJob;
+import org.eclipse.epsilon.rdf.emf.converter.jobs.XMI2RDFJob;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-public class XMI2RDFHandler extends AbstractHandler {
+public class XMI2TurtleHandler extends AbstractHandler {
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -30,7 +30,7 @@ public class XMI2RDFHandler extends AbstractHandler {
 			IStructuredSelection selection = (IStructuredSelection) selection0;
 			final IFile modelFile = (IFile) selection.getFirstElement();
 			if (modelFile != null) {
-				XMI2TurtleJob job = new XMI2TurtleJob(modelFile);
+				XMI2RDFJob job = new XMI2RDFJob(modelFile, "ttl", "Turtle");
 				job.setUser(true);
 				job.schedule();
 			}

@@ -42,23 +42,24 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 
 /**
- * Job which converts an XMI-based model to the Turtle format,
+ * Job which converts an XMI-based model to an RDF format,
  * producing a minimal .rdfres file in the process.
  */
-public class XMI2TurtleJob extends Job {
+public class XMI2RDFJob extends Job {
 
 	private final IFile modelFile;
+	private final String targetFileExtension;
 
-	public XMI2TurtleJob(IFile modelFile) {
-		super("Convert XMI to Turtle");
-
+	public XMI2RDFJob(IFile modelFile, String targetFileExtension, String targetFileType) {
+		super("Convert XMI to " + targetFileType);
 		this.modelFile = modelFile;
+		this.targetFileExtension = targetFileExtension;
 	}
 
 	@Override
 	protected IStatus run(IProgressMonitor monitor) {
 		var rdfresFilename = replaceFileExtension(modelFile.getName(), "rdfres");
-		var ttlFilename = replaceFileExtension(modelFile.getName(), "ttl");
+		var ttlFilename = replaceFileExtension(modelFile.getName(), targetFileExtension);
 		var config = new RDFResourceConfiguration();
 		config.getDataModels().add(ttlFilename);
 
