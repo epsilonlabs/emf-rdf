@@ -1,24 +1,15 @@
-# RDF driver for Epsilon
+# EMF resource for RDF graphs
 
-This is a prototype of an [Epsilon Model Connectivity](https://eclipse.dev/epsilon/doc/emc/) driver for RDF and related technologies, based on [Apache Jena](https://jena.apache.org/).
+This repository includes a prototype implementation of an EMF resource for RDF graphs, on top of [Apache Jena](https://jena.apache.org/).
 
-This document provides instructions for users.
-For instructions on how to set up a development environment, please see [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+It can be installed from the repository's update site: see [below](#installation) for details.
+It is also available as a Maven artifact.
 
-This project also includes a prototype of an EMF resource implementation for RDF graphs, on top of Apache Jena: see [`RESOURCE.md`](./RESOURCE.md) for details.
+This RDF-EMF resource produces an EMF model representation of an RDF model; this could be an EMF model saved as RDF, or an RDF model from another program.
+One or more RDF model files and schemas can be combined/reasoned before being deserialised against an EMF Ecore metamodel.
+An EMF model instance is composed of `EObject`s for the RDF model element that have `rdf:type` statements that match an `EClass` in the configured Ecore metamodel(s).
 
-## Features and limitations
-
-Currently, the driver can:
-
-* Read and query one or more RDF documents in the formats supported by Jena (Turtle and RDF/XML have been tested).
-* Trigger the OWL reasoner in Jena during loading.
-
-For now, the driver has these limitations:
-
-* Does *not* support modifying or saving RDF documents.
-
-The driver requires Epsilon 2.1 or newer: it will not work on Epsilon 1.x due to breaking API changes from 1.x to 2.x.
+The repository includes a read-only [Epsilon Model Connectivity driver](./EMC.md) as well.
 
 ## Installation
 
@@ -34,171 +25,123 @@ Example projects are available from the [`examples`](./examples) folder of this 
 
 ### Maven
 
-The RDF driver is available as a Maven dependency from [Github Packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry):
+The EMF resource is available as a Maven dependency from [Github Packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry):
 
 ```
 <dependency>
   <groupId>org.eclipse.epsilon</groupId>
-  <artifactId>org.eclipse.epsilon.emc.rdf</artifactId>
+  <artifactId>org.eclipse.epsilon.rdf.emf</artifactId>
   <version>1.0.0-SNAPSHOT</version>
 </dependency>
 ```
 
-## Features
+## Differences with emf-triple
 
-This is a high-level description of the features of the driver.
-The features are described using examples based on the [W3C RDF 1.2 Turtle](https://www.w3.org/TR/rdf12-turtle/#sec-intro) example:
+This implementation has some major differences with [emf-triple](https://github.com/ghillairet/emftriple):
 
-```
-BASE <http://example.org/>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX rel: <http://www.perceive.net/schemas/relationship/>
+* A single resource can combine information from multiple sources (e.g. Turtle or RDF/XML files).
+* OWL inference is supported.
 
-<#green-goblin>
-  rel:enemyOf <#spiderman> ;
-  a foaf:Person ;    # in the context of the Marvel universe
-  foaf:name "Green Goblin" .
+These differences are achieved by loading an intermediary `.rdfres` file with all the data and schema models to be combined, as well as any relevant options.
 
-<#spiderman>
-  rel:enemyOf <#green-goblin> ;
-  a foaf:Person ;
-  foaf:name "Spiderman", "Человек-паук"@ru .
-```
+## Current limitations
 
-### Accessing model elements
+Saving has only been tested against file-based locations. We have not tested saving into triple stores.
 
-To obtain a specific RDF resource by its URL:
+The resource assumes that the EPackage nsURI and the RDF nsURI used for `rdf:type` subjects and for property statements (e.g. `metamodel:featureName`) are a close match to each other.
+Specifically, we support two options:
 
-```
-var goblin = Model.getElementById('http://example.org/#green-goblin');
-```
+* RDF namespace IRI = EPackage nsURI (including any trailing separator, such as `#` or `/`).
+* RDF namespace IRI = EPackage nsURI + "#".
 
-To list all the resources that have an `rdf:type` predicate with a certain object acting as their type, use `Prefix::Type.all`:
+Namespaces for creating EMF models must be configured in the `.rdfres` (see  Default model namespace section below).
+At the moment, the same namespace URI is used for every EObject created by the resource.
 
-```
-foaf::Person.all.println('All people: ');
-```
+The contents of the resource must only be changed *after* it has been loaded.
+The resource assumes that a Jena graph is present to be synchronised whenever a change is made to the contents of the resource.
 
-You could also use `` `foaf:Person` `` to follow a more RDF-like style, but you would need backticks to escape the name.
+## .rdfres file format
 
-If there is no risk of ambiguity, you can just use the type name:
+Suppose you have a `model.ttl` Turtle file with some statements of interest, written against an ontology in `schema.ttl`.
 
-```
-Person.all.println('All people: ');
-```
+Suppose as well that the RDF resources in `model.ttl` follows certain conventions that relate them to an Ecore metamodel, in the [MOF2RDF](https://www.omg.org/spec/MOF2RDF/1.0/About-MOF2RDF) style:
 
-By default, the prefixes are read from the documents, but you can also specify custom prefixes while loading the model.
+* There are `rdf:type` predicates from the RDF resource to another RDF resource whose namespace URI is `ePackageNamespaceURI`, and local name is `eClassName`.
+* Statements use predicates whose namespace URIs are `ePackageNamespaceURI` and local names are `eStructuralFeatureName`:
+  * Predicate objects can be other RDF resources (in the case of `EReference`s), or literals (in the case of `EAttribute`s).
+  * RDF lists are supported for many-valued features.
 
-### Accessing predicates
+In that case, you could write an `.rdfres` file like this, and load it as an EMF resource where the relevant RDF resources would be deserialised into EMF `EObject`s:
 
-Using `resource.p`, you can access all the objects of the `p` predicate where `resource` is the subject.
-For example:
-
-```
-goblin.`rel:enemyOf`.println('Enemies of the Green Goblin: ');
+```yaml
+dataModels:
+  - model.ttl
+schemaModels:
+  - schema.ttl
 ```
 
-If we need to specify a prefix, we can use `` x.`prefix:localName` `` or `` x.`prefix::localName` `` (the EOL grammar requires backticks for colons inside property names, whether it's `:` or `::`).
-
-If there is no risk of ambiguity, you can also drop the prefix:
-
-```
-goblin.enemyOf.println('Enemies of the Green Goblin: ');
-```
-
-If there are predicates with the same local name but different namespace URIs in the graph formed by all the loaded documents in a model, a warning will be issued.
-In this case, you should be using a prefix to avoid the ambiguity.
-
-**Note:** currently `resource.p` will always return a collection, as we do not leverage yet the RDFS descriptions that could indicate the cardinality of `p`.
-
-### Values of predicates
-
-The values in `resource.p` will be either other resources, or the values of the associated literals (without filtering by language tags).
-
-It is possible to mention a language suffix, to limit the results to literals with that language.
-For instance:
-
-```
-var spider = Model.getElementById('http://example.org/#spiderman');
-spider.`name@ru`.println('Name of Spiderman in Russian: ');
-```
-
-### Accessing literal objects
-
-If you would like to access the `RDFLiteral` objects rather than just their values, use a `_literal` suffix as part of the local name (before any language tags).
-For instance, we could change the above example to:
-
-```
-var spider = Model.getElementById('http://example.org/#spiderman');
-spider.`name_literal@ru`.println('Name literal of Spiderman in Russian: ');
-```
-
-`RDFLiteral` objects have several properties:
-
-* `value`: the raw value of the literal (usually a String, but it can be different for typed literals - see [Apache Jena typed literals](https://jena.apache.org/documentation/notes/typed-literals.html)).
-* `language`: the language tag for the literal (if any).
-* `datatypeURI`: the datatype URI for the literal.
-
-### Limiting returned literals to preferred languages
-
-The "Language tag preference" section of the RDF model configuration dialog allows for specifying a comma-separated list of [BCP 47](https://www.ietf.org/rfc/bcp/bcp47.txt) language tags.
-If these preferences are set, `x.property` will filter literals, by only returning the values for the first tag with matches, or falling back to the untagged values if no matches are found for any of the mentioned tags.
-
-For instance, if we set the language preferences to `en-gb,en`, filtering `x.property` will work as follows:
-
-* If any `en-gb` literals exist, return only those.
-* If any `en` literals exist, return only those.
-* Otherwise, return the untagged literals (if any).
-
-Language preferences do not apply if an explicit language tag is used: `x.property@en` will always get the `en`-tagged literals, and `x.property@` will always get the untagged literals.
-
-### Platform URL support
-
-Data and schema models can be loaded using `platform:/` URLs when using the driver in an Eclipse enviroment. All `platform:/` URLs are converted to `file:/` URLs before being passed to Jena.
-
-### Data models, schema models and reasoners
-
-RDF data and schema models (configured URIs) are handled using Jena `Dataset`s.
-The models in the datasets are combined into *union models*: separate union models are used for the data and schema models.
-An *inference model* is created from the union models with Jena's default OWL reasoner, and presented as an *ontology model* in the EMC-REF driver.
-
-In order to support OWL inferencing, the `RDF Model` configuration dialog is divided into two sections:
-
-* "Data Model URLs to load": the elements are merged into a single RDF data model, as a union model.
-* "Schema Model URLs to load": the elements are merged into a single RDF schema model, as a union model.
-
-The resulting RDF data and schema models are then processed by Jena's reasoner using the default OWL settings.
-The inferred model is then wrapped as an ontology model which used by Epsilon for querying.
-
-### Storing RDF models
-
-The `store` method is available on the EMC-RDF driver to save RDF Models to the same or different URIs.
-When `store` is called, all the data models (not schema) are written to storage.
-A new URI location (folder) can be provided to the store method to save all data models to a new location.
-When saving data models to a new location, their original filenames are used with the new location URI prefixed.
-
-Jena's API attempts to detect the language of the RDF data loaded from the original URI: the same language is used, with Turtle as a fall-back.
-It is worth noting that when a data model file containing comments is loaded, the comments are lost when the data model is stored.
-
-### MOF2RDF models
-
-The [OMG MOF2RDF specification](https://www.omg.org/spec/MOF2RDF/) defines a standard mapping from MOF metamodels into OWL ontologies.
-These ontologies follow certain conventions that can be used to specialise the driver and support similar queries to the ones we would have done on models conforming to the original MOF metamodel.
-
-This project includes a `MOF2RDFModel` model class which implements some of these specialisations.
-At the moment, this includes:
-
-* When computing `resource.property`, if an OWL maximum cardinality restriction is defined for `property`, then the number of returned values will be limited to that maximum size.
-If there are multiple maximum cardinality restrictions, the most restrictive one will be used.
-
-  In the specific case that the maximum cardinality is 1, `resource.property` will directly return the value (if set) or `null`, instead of returning a collection.
+The `.rdfres` file can then be loaded and used by any EMF-compatible tool as usual.
+Note that the elements in `dataModels` and `schemaModels` can be arbitrary URIs understood by the [RIOT](https://jena.apache.org/documentation/io/) system in Jena, and not just relative paths from the folder of the `.rdfres` file.
 
 ### Model validation
 
-There is an option to enable model validation on an inferred model before it is used. The options for validation are:
+RDF model validation can be enabled by adding a line in the `.rdfres`, e.g. `validationMode: jena-clean`. The following validation modes are available :
 
-- None
-- Jena Valid: validation passes if the model has no internal inconsistencies, even though there may be some warnings.
-- Jena Clean: validation passes if the model has no internal inconsistencies *and* there are no warnings.
+- none
+- jena-valid: validation passes if the model has no internal inconsistencies, even though there may be some warnings.
+- jena-clean: validation passes if the model has no internal inconsistencies and there are no warnings.
+
+```yaml
+validationMode: jena-clean
+dataModels:
+  - model.ttl
+schemaModels:
+  - schema.ttl
+```
+
+### Multi-value attributes
+
+`EAttribute`s with cardinality > 1 ("multi-value attributes") are supported by the resource.
+This includes support for the `unique` and `ordered` flags.
+
+Note that unique values are not enforced by RDF: the resource leaves it to EMF `EList`s to ensure uniqueness of values.
+Duplicates in an RDF data model are persisted when handled as an EMF model.
+Removing a value from a unique where there are duplicates of a value will remove all instances of the duplicate value: this maintains an equivalence between EMF and RDF represenations of the model.
+
+The resource represents multi-value attributes in RDF using [Containers](https://www.w3.org/TR/rdf-schema/#ch_containervocab) or [Lists](https://www.w3.org/TR/rdf-schema/#ch_collectionvocab).
+The resource will opt to update the RDF representation of a multi-value attribute based on its current data structure (container/list) in the RDF data model.
+However, when there is no existing structure, by default a container will be used.
+If you would prefer to use lists for representing multi-value attributes, you can specify `multiValueAttributeMode: List` in the `.rdfres` file, as follows:
+
+```yaml
+validationMode: jena-clean
+dataModels:
+  - model.ttl
+schemaModels:
+  - schema.ttl
+multiValueAttributeMode: List
+```
+
+### Default model namespace
+
+A default model namespace URI is required when adding new resources to an RDF model.
+The namespace URI can be configured in the `.rdfres` file as shown below.
+
+```yaml
+defaultModelNamespace: http://foo/bar/example#
+```
+The URI must be absolute, e.g. by starting with `file://` (`/` will become file) or `http://`.
+If you provide an invalid URI, then Jena will revert to using the URI of the named model it loaded the RDF from as the name space. 
+
+The example above results in new RDF node with an IRI composed of the default name space and a UUID for the new EObject. E.g. `http://foo/bar/example#_6sDDMIgJEfC2g6UdYdL1hg`
+
+If a default model namespace is not provided in the `.rdfres` file, the resource will fall back to the blank prefix `PREFIX : <URI>` in the RDF model.
+The last resort is to let Jena decide, which will use the URI that the RDF model was loaded from.
+
+## Converting an XMI file to RDF formats
+
+The "Developer Tools for RDF binding for EMF" feature includes converters from XMI to the [Turtle](https://www.w3.org/TR/turtle/) and [N-Triples](https://www.w3.org/TR/n-triples/) serialisation formats for RDF.
+
+To use them, right-click on a file with the `.xmi` or `.model` extensions in the Eclipse "Project Explorer" or "Package Explorer" views, and select the appropriate option:
+
+![Screenshot showing the conversion options](./images/convert-to-rdf.png)
