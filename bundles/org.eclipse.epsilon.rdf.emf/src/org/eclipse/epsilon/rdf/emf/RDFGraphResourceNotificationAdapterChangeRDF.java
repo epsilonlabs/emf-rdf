@@ -32,7 +32,6 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 	private RDFGraphResourceImpl getGraphResourceForEObject(EObject eObject) {
 		RDFGraphResourceImpl graphResource = (RDFGraphResourceImpl) eObject.eResource();
 		if (null == graphResource) {
-			System.err.println("The Graph resource has been removed, using the initial graph resource instead");
 			graphResource = initialRDFGraphResource;
 		}
 		return graphResource;
@@ -49,11 +48,10 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 				Resource first = namedModelResources.get(0);
 				namedModelResources.clear();
 				namedModelResources.add(first);
-				System.out.println("using first named models: " + first);
 				return namedModelResources;
 			} else {
 				// This is a problem...
-				System.out.println("no model resource?");
+				System.err.println("no model resource?");
 				return null;
 			}
 		}

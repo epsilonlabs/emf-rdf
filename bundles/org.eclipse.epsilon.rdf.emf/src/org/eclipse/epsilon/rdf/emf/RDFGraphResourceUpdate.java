@@ -112,7 +112,6 @@ public class RDFGraphResourceUpdate {
 			return valueResource;
 		}
 		
-		System.err.println("getEObjectResource() - Returned null");
 		return null;
 	}
 	
@@ -149,8 +148,10 @@ public class RDFGraphResourceUpdate {
 			// TODO what happens when there are multiple statements? Are there any?
 			List<RDFNode> propertyObjects = model.listObjectsOfProperty(rdfNode, property).toList();
 			if (propertyObjects.size() > 1) {
-				System.err.println(String.format(
-					"getObjectRDFNode(): there is more than one object for property %s in node %s", property, rdfNode));
+				if (CONSOLE_OUTPUT_ACTIVE) {
+					System.err.println(String.format(
+						"getObjectRDFNode(): there is more than one object for property %s in node %s", property, rdfNode));
+				}
 			}
 			return propertyObjects.get(0);
 		} else {
@@ -715,16 +716,20 @@ public class RDFGraphResourceUpdate {
 	// Model resource operations (model root changes)
 
 	protected void addToResource(EObject eObject, Model model) {
-		System.out.println("ADD to Resource EObject: " + eObject.eClass().getName() + " #"
+		if (CONSOLE_OUTPUT_ACTIVE) {
+			System.out.println("ADD to Resource EObject: " + eObject.eClass().getName() + " #"
 				+ eObject.hashCode() + "\n Container: " + eObject.eContainer());
+		}
 		if (null == eObject.eContainer()) {
 			addAllEObjectStatements(model, eObject);
 		}
 	}
 
 	protected void removeFromResource(EObject eObject, Model model) {
-		System.out.println("Remove from Resource EObject: " + eObject.eClass().getName() + " #"
+		if (CONSOLE_OUTPUT_ACTIVE) {
+			System.out.println("Remove from Resource EObject: " + eObject.eClass().getName() + " #"
 				+ eObject.hashCode() + "\n Container: " + eObject.eContainer());
+		}
 		if (null == eObject.eContainer()) {
 			removeAllEObjectStatements(model, eObject);
 		}
@@ -974,7 +979,7 @@ public class RDFGraphResourceUpdate {
 	private static void reportContainer(String label, Container container) {
 		boolean hasType = container.hasProperty(RDF.type);
 		if (hasType) {
-			System.out.println(String.format("\n%s Containter: Type %s, Size %s", 
+			System.out.println(String.format("\n%s Container: Type %s, Size %s",
 					label, container.getProperty(RDF.type), container.size()));
 			container.iterator().forEach(i -> System.out.println("  * " + i));
 		}
