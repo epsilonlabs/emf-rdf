@@ -1,0 +1,117 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>org.eclipse.epsilon.examples.rdf.emf.maven</artifactId>
+    <groupId>org.eclipse.epsilon.rdf.emf</groupId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <properties>
+        <emfatic.version>1.1.0</emfatic.version>
+        <epsilon.version>2.8.0</epsilon.version>
+        <groovy.version>4.0.28</groovy.version>
+        <jena.version>5.1.0</jena.version>
+        <emf.rdf.version>1.0.0-SNAPSHOT</emf.rdf.version>
+    </properties>
+
+    <pluginRepositories>
+        <!-- See README for instructions. -->
+        <pluginRepository>
+            <id>github-emf-rdf</id>
+            <name>Github Packages for emf-rdf</name>
+            <url>https://maven.pkg.github.com/epsilonlabs/emf-rdf</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <configuration>
+                            <target>
+                                <!-- Set up the core Epsilon tasks -->
+                                <taskdef resource="org/eclipse/epsilon/workflow/tasks/tasks.xml" />
+
+                                <!-- Set up the Epsilon EMF tasks -->
+                                <taskdef resource="org/eclipse/epsilon/workflow/tasks/emf/tasks.xml" />
+
+                                <!-- Set up the .rdfres resource factory -->
+                                <taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy" />
+                                <groovy>
+                                    var registry =
+                                    org.eclipse.emf.ecore.resource.Resource.Factory.Registry.INSTANCE;
+                                    registry.getExtensionToFactoryMap().put("rdfres", new
+                                    org.eclipse.epsilon.rdf.emf.RDFGraphResourceFactory());
+                                </groovy>
+
+                                <!-- Load the model.flexmi EMF model: note that loading .emf files
+                                     instead of .ecore files can run into problems with mismatched
+                                     signatures in org.eclipse.core.runtime. -->
+                                <epsilon.emf.loadModel name="M" modelfile="models/myorg.rdfres"
+                                    metamodelfile="metamodels/orgchart.ecore" />
+
+                                <!-- Run program.eol against it -->
+                                <epsilon.eol src="program.eol">
+                                    <model ref="M" />
+                                </epsilon.eol>
+
+                                <!-- Dispose of the model -->
+                                <epsilon.disposeModel model="M" />
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.eclipse.epsilon</groupId>
+                        <artifactId>org.eclipse.epsilon.workflow</artifactId>
+                        <version>${epsilon.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.eclipse.epsilon</groupId>
+                        <artifactId>org.eclipse.epsilon.workflow.emf</artifactId>
+                        <version>${epsilon.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.eclipse.emfatic</groupId>
+                        <artifactId>org.eclipse.emfatic.core</artifactId>
+                        <version>${emfatic.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.groovy</groupId>
+                        <artifactId>groovy</artifactId>
+                        <version>${groovy.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.groovy</groupId>
+                        <artifactId>groovy-ant</artifactId>
+                        <version>${groovy.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.jena</groupId>
+                        <artifactId>apache-jena-libs</artifactId>
+                        <version>${jena.version}</version>
+                        <type>pom</type>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.eclipse.epsilon</groupId>
+                        <artifactId>org.eclipse.epsilon.rdf.emf</artifactId>
+                        <version>${emf.rdf.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
+  

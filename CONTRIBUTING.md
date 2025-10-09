@@ -12,6 +12,14 @@ cd jena-uberjar
 mvn install
 ```
 
+## Building locally the plain Maven artifacts
+
+To build and install locally the plain Maven artifacts, run:
+
+```shell
+mvn -f pom-plain.xml install
+```
+
 ## Setting up a development environment
 
 You will need to install a recent version of the "Eclipse IDE for Eclipse Committers" package from the [official Eclipse website](https://www.eclipse.org/downloads/packages/).
