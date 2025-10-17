@@ -49,9 +49,7 @@
                                     registry.getExtensionToFactoryMap().put("rdfres", new org.eclipse.epsilon.rdf.emf.RDFGraphResourceFactory());
                                 </groovy>
 
-                                <!-- Load the model.flexmi EMF model: note that loading .emf files
-                                     instead of .ecore files can run into problems with mismatched
-                                     signatures in org.eclipse.core.runtime. -->
+                                <!-- Load the model.flexmi EMF model -->
                                 <epsilon.emf.loadModel name="M" modelfile="models/myorg.rdfres"
                                     metamodelfile="metamodels/orgchart.emf" />
 
