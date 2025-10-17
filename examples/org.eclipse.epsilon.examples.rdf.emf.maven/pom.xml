@@ -45,17 +45,15 @@
                                 <!-- Set up the .rdfres resource factory -->
                                 <taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy" />
                                 <groovy>
-                                    var registry =
-                                    org.eclipse.emf.ecore.resource.Resource.Factory.Registry.INSTANCE;
-                                    registry.getExtensionToFactoryMap().put("rdfres", new
-                                    org.eclipse.epsilon.rdf.emf.RDFGraphResourceFactory());
+                                    var registry = org.eclipse.emf.ecore.resource.Resource.Factory.Registry.INSTANCE;
+                                    registry.getExtensionToFactoryMap().put("rdfres", new org.eclipse.epsilon.rdf.emf.RDFGraphResourceFactory());
                                 </groovy>
 
                                 <!-- Load the model.flexmi EMF model: note that loading .emf files
                                      instead of .ecore files can run into problems with mismatched
                                      signatures in org.eclipse.core.runtime. -->
                                 <epsilon.emf.loadModel name="M" modelfile="models/myorg.rdfres"
-                                    metamodelfile="metamodels/orgchart.ecore" />
+                                    metamodelfile="metamodels/orgchart.emf" />
 
                                 <!-- Run program.eol against it -->
                                 <epsilon.eol src="program.eol">

@@ -13,17 +13,22 @@
 package org.eclipse.epsilon.rdf.emf;
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.jena.ontology.OntModel;
@@ -36,7 +41,6 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
-import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
@@ -50,9 +54,27 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 
 public class RDFGraphResourceImpl extends ResourceImpl {
-	
+
+	private static final Optional<Method> GET_FILE_LOCATOR;
 	private static final boolean NOTIFICATION_TRACE = false;
-	
+
+	static {
+		/*
+		 * We use the Eclipse Core Resources FileLocator class through reflection, so
+		 * we can keep this as an optional dependency (to simplify reuse from plain Java).
+		 */
+		Optional<Method> result = Optional.empty();
+		try {
+			Class<?> fileLocatorKlazz = Class.forName("org.eclipse.core.runtime.FileLocator");
+			result = Optional.of(fileLocatorKlazz.getMethod("toFileURL", URL.class));
+		} catch (ClassNotFoundException | NoSuchMethodException | SecurityException e) {
+			if (NOTIFICATION_TRACE) {
+				System.err.println("FileLocator not found: only file URLs are supported for saving");
+			}
+		}
+		GET_FILE_LOCATOR = result;
+	}
+
 	private RDFResourceConfiguration config;
 	private RDFDeserializer deserializer;
 	private RDFGraphResourceUpdate rdfGraphUpdater;
@@ -155,7 +177,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	}
 	
 	// Save the Graph resource
-	private void storeDatasetNamedModels (Dataset dataset, String namedModelURI, String saveLocationURI) throws IOException {
+	private void storeDatasetNamedModels(Dataset dataset, String namedModelURI, URL targetURL) throws IOException {
 		// NamedModelURI is a model in the provided dataset and saveLocationURI is the file system path to save it too.
 		if (dataset.containsNamedModel(namedModelURI))
 		{
@@ -170,9 +192,15 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 				lang = Lang.TTL;
 			}
 
-			try (OutputStream out = new BufferedOutputStream(new FileOutputStream(saveLocationURI))) {
-				RDFDataMgr.write(out, modelToSave, lang);
-				out.close();
+			if ("file".equals(targetURL.getProtocol()) || targetURL.getProtocol() == null) {
+				try (OutputStream out = new BufferedOutputStream(new FileOutputStream(new File(targetURL.toURI())))) {
+					RDFDataMgr.write(out, modelToSave, lang);
+					out.close();
+				} catch (URISyntaxException e) {
+					throw new IOException(e);
+				}
+			} else {
+				throw new IOException("Protocol " + targetURL.getProtocol() + " is not supported");
 			}
 		}
 		else {
@@ -186,8 +214,12 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		for (Iterator<Resource> namedModels = dataModelSet.listModelNames(); namedModels.hasNext(); ) {
 			Resource m = namedModels.next();
 			URL url = new URL(m.getURI());
-			URL fileSystemPathUrl = FileLocator.toFileURL(url);
-			storeDatasetNamedModels(dataModelSet, m.getURI(), fileSystemPathUrl.getPath());
+
+			try {
+				storeDatasetNamedModels(dataModelSet, m.getURI(), convertToFileURL(url));
+			} catch (URISyntaxException e) {
+				throw new IOException(e);
+			}
 		}
 	}
 
@@ -235,9 +267,13 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 			 * the SLF4J bundled within Jena. It's simpler to just preprocess the platform
 			 * URI here.
 			 */
-			if ("platform".equals(uri.scheme())) {
-				String sFileURI = FileLocator.toFileURL(new URL(uri.toString())).toString();
-				namedModelSources.add(sFileURI);
+			if ("platform".equals(uri.scheme()) && GET_FILE_LOCATOR.isPresent()) {
+				try {
+					URL convertedURL = convertToFileURL(new URL(uri.toString()));
+					namedModelSources.add(convertedURL.toString());
+				} catch (URISyntaxException e) {
+					throw new IOException(e);
+				}
 			} else {
 				namedModelSources.add(uri.toString());
 			}
@@ -305,4 +341,17 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		return modelResourceList;
 	}
 
+	protected URL convertToFileURL(URL url) throws URISyntaxException {
+		if (GET_FILE_LOCATOR.isPresent()) {
+			try {
+				return (URL) GET_FILE_LOCATOR.get().invoke(null, url);
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				System.err.println("Failed to use FileLocator with exception below, using URL as is: ");
+				e.printStackTrace();
+			}
+		}
+
+		// Leave URL as is if we don't have access to the Eclipse FileLocator
+		return url;
+	}
 }
