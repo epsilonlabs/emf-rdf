@@ -141,9 +141,9 @@ The last resort is to let Jena decide, which will use the URI that the RDF model
 ### Working with RDF XML literals
 
 RDF supports defining [XML literals](https://www.w3.org/TR/rdf-syntax-grammar/#section-Syntax-XML-literals), whose content is an XML document fragment.
-These are parsed by the underlying Jena library as instances of [DocumentElement](https://docs.oracle.com/javase/8/docs/api/org/w3c/dom/DocumentFragment.html).
+These are parsed by the underlying Jena library as instances of [DocumentFragment](https://docs.oracle.com/javase/8/docs/api/org/w3c/dom/DocumentFragment.html).
 
-If you need to deserialise a property whose values will be XML literals, we recommend defining in your metamodel an EMF `EDataType` whose `instanceClassName` is DocumentFragment.
+If you need to deserialise a property whose values will be XML literals, we recommend defining in your metamodel an EMF `EDataType` whose `instanceClassName` is `DocumentFragment`.
 You can then use it as the data type of any relevant attribute.
 For example, in the [Eclipse Emfatic](https://eclipse.dev/emfatic/) notation, it would look like this:
 
