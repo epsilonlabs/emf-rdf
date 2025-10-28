@@ -155,7 +155,7 @@ class Requirement {
 }
 ```
 
-In modularised Java codebases, accessing this feature from Epsilon may cause an error message like this:
+In modularised Java codebases, accessing this feature via reflection (e.g. from an [Epsilon](https://eclipse.dev/epsilon/) program) may cause an error message like this:
 
 ```
 module java.xml does not "exports com.sun.org.apache.xerces.internal.dom" to unnamed module
