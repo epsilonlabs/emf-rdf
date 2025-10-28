@@ -138,6 +138,35 @@ The example above results in new RDF node with an IRI composed of the default na
 If a default model namespace is not provided in the `.rdfres` file, the resource will fall back to the blank prefix `PREFIX : <URI>` in the RDF model.
 The last resort is to let Jena decide, which will use the URI that the RDF model was loaded from.
 
+### Working with RDF XML literals
+
+RDF supports defining [XML literals](https://www.w3.org/TR/rdf-syntax-grammar/#section-Syntax-XML-literals), whose content is an XML document fragment.
+These are parsed by the underlying Jena library as instances of [DocumentElement](https://docs.oracle.com/javase/8/docs/api/org/w3c/dom/DocumentFragment.html).
+
+If you need to deserialise a property whose values will be XML literals, we recommend defining in your metamodel an EMF `EDataType` whose `instanceClassName` is DocumentFragment.
+You can then use it as the data type of any relevant attribute.
+For example, in the [Eclipse Emfatic](https://eclipse.dev/emfatic/) notation, it would look like this:
+
+```
+datatype EXMLLiteral : org.w3c.dom.DocumentFragment;
+
+class Requirement {
+  attr EXMLLiteral title;
+}
+```
+
+In modularised Java codebases, accessing this feature from Epsilon may cause an error message like this:
+
+```
+module java.xml does not "exports com.sun.org.apache.xerces.internal.dom" to unnamed module
+```
+
+In this case, you may need a flag like the following to your JVM options:
+
+```
+--add-opens=java.xml/com.sun.org.apache.xerces.internal.dom=ALL-UNNAMED
+```
+
 ## Converting an XMI file to RDF formats
 
 The "Developer Tools for RDF binding for EMF" feature includes converters from XMI to the [Turtle](https://www.w3.org/TR/turtle/) and [N-Triples](https://www.w3.org/TR/n-triples/) serialisation formats for RDF.
