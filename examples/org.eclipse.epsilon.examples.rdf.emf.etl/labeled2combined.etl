@@ -1,0 +1,14 @@
+rule Model2Model
+  transform s : Source!Model
+  to t : Target!Model
+{
+  t.nodes ::= s.nodes;
+}
+
+rule Labeled2Combined
+  transform l : Source!LabeledNode
+  to c : Target!CombinedNode
+{
+  c.label = l.label;
+  c.weight = 1.0;
+}
