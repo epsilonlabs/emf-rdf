@@ -110,6 +110,8 @@ location "http://download.eclipse.org/epsilon/updates/2.5/" {
      */
 	org.eclipse.epsilon.egl.engine lazy
 	org.eclipse.epsilon.egl.dt lazy
+	org.eclipse.epsilon.etl.engine lazy
+	org.eclipse.epsilon.etl.dt lazy
 	org.eclipse.epsilon.pinset.engine lazy
 	org.eclipse.epsilon.pinset.dt lazy
 	org.eclipse.epsilon.picto lazy

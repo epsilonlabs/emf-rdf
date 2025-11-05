@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?pde?>
 <!-- generated with https://github.com/eclipse-cbi/targetplatform-dsl -->
-<target name="EMC RDF Target Platform" sequenceNumber="1745957931">
+<target name="EMC RDF Target Platform" sequenceNumber="1762334925">
   <locations>
     <location includeMode="planner" includeAllPlatforms="false" includeSource="true" includeConfigurePhase="true" type="InstallableUnit">
       <unit id="org.eclipse.license.feature.group" version="0.0.0"/>
@@ -105,6 +105,8 @@
       <unit id="org.eclipse.epsilon.emc.emf.dt" version="0.0.0"/>
       <unit id="org.eclipse.epsilon.egl.engine" version="0.0.0"/>
       <unit id="org.eclipse.epsilon.egl.dt" version="0.0.0"/>
+      <unit id="org.eclipse.epsilon.etl.engine" version="0.0.0"/>
+      <unit id="org.eclipse.epsilon.etl.dt" version="0.0.0"/>
       <unit id="org.eclipse.epsilon.pinset.engine" version="0.0.0"/>
       <unit id="org.eclipse.epsilon.pinset.dt" version="0.0.0"/>
       <unit id="org.eclipse.epsilon.picto" version="0.0.0"/>
