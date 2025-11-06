@@ -71,7 +71,7 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 	
-	private Resource createNewEObjectResource (Model model, EObject eObject) {		
+	private Resource createNewEObjectResource(Model model, EObject eObject) {
 		Resource eobResource = model.createResource(createEObjectIRI(model, eObject));
 		if (CONSOLE_OUTPUT_ACTIVE) {
 			System.out.println("Created a new Resource node: " + eobResource);
@@ -91,9 +91,9 @@ public class RDFGraphResourceUpdate {
 			if (CONSOLE_OUTPUT_ACTIVE) {
 				System.out.println("getEObjectResource() - returned: " + getEObjectInstanceLabel(eObject));
 			}
-		return valueResource;
+			return valueResource;
 		}
-		
+
 		valueResource = deserializer.restoreEObjectResource(eObject);
 		if (null != valueResource) {
 			if (CONSOLE_OUTPUT_ACTIVE) {
@@ -102,7 +102,7 @@ public class RDFGraphResourceUpdate {
 			addAllEObjectStatements(model, eObject);
 			return valueResource;
 		}
-		
+
 		valueResource = createNewEObjectResource(model, eObject);
 		if (null != valueResource) {
 			if (CONSOLE_OUTPUT_ACTIVE) {	
@@ -111,7 +111,7 @@ public class RDFGraphResourceUpdate {
 			addAllEObjectStatements(model, eObject);
 			return valueResource;
 		}
-		
+
 		return null;
 	}
 	
@@ -267,24 +267,23 @@ public class RDFGraphResourceUpdate {
 	
 	private Statement createEObjectEClassStatement(Model model, EObject eObject) {
 		// TODO Add options here for creating EClassStatements with something other than RDF.type
-		
+
 		// Make a URI for the EObject's EClass
 		String eClassIRI = createEClassIRI(eObject);
-		
+
 		// Create the root statement for the eObject
 		Resource subject = getEObjectResource(model, eObject);
 		Property predicate = RDF.type;
 		Resource object = model.createResource(eClassIRI);
-				
+
 		// Add the statement to the model
-		Statement statement = model.createStatement(subject, predicate, object);		
+		Statement statement = model.createStatement(subject, predicate, object);
 		return statement;
 	}
-	
-	
+
 	//
 	// Containers statement operations
-	
+
 	private void checkAndRemoveEmptyContainers(Container container, EObject onEObject, EStructuralFeature eStructuralFeature) {
 		Model model = container.asResource().getModel();
 
