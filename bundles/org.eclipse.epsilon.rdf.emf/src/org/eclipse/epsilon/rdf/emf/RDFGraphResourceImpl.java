@@ -186,7 +186,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		super.doUnload();
 	}
 
-	public RDFGraphResourceUpdate getRDFGraphUpdater() {
+	protected RDFGraphResourceUpdate getRDFGraphUpdater() {
 		return rdfGraphUpdater;
 	}
 	
@@ -257,7 +257,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		}
 	}
 
-	public Dataset loadRDFModels(Collection<String> uris) throws IOException, MalformedURLException {
+	protected Dataset loadRDFModels(Collection<String> uris) throws IOException, MalformedURLException {
 		Dataset newDataset = null;
 		List<String> namedModelSources = new ArrayList<String>();
 
