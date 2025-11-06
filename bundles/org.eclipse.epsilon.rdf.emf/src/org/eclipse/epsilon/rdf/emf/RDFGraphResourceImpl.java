@@ -242,14 +242,6 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		return deserializer.getRDFResource(eob);
 	}
 
-	public Set<Resource> getRDFResources() {
-		return deserializer.getRDFResources();
-	}
-
-	public Collection<EObject> getEObjects(Resource res) {
-		return deserializer.getEObjects(res);
-	}
-
 	protected void loadRDFModels() throws IOException {
 		this.schemaModelSet = loadRDFModels(config.getSchemaModels());
 		this.rdfSchemaModel = schemaModelSet.getUnionModel();
