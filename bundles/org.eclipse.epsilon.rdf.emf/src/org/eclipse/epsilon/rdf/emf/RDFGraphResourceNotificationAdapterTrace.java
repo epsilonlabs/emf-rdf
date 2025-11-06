@@ -24,19 +24,30 @@ import org.eclipse.emf.ecore.util.EContentAdapter;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 
 // Try to keep the logic flow in here the same as the RDFGraphResourceNotificationAdapterChangeRDF
-public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter {
+public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter implements IDisableable {
 
-	StringBuilder processTrace;
-	int i = 0;
-	
+	private StringBuilder processTrace;
+	private boolean isDisabled = false;
 	private final RDFGraphResourceImpl initialRDFGraphResource;
 	
 	public RDFGraphResourceNotificationAdapterTrace(RDFGraphResourceImpl rdfGraphResource) {
 		this.initialRDFGraphResource = rdfGraphResource;
 	}
 
+	public boolean isDisabled() {
+		return isDisabled;
+	}
+
+	public void setDisabled(boolean isDisabled) {
+		this.isDisabled = isDisabled;
+	}
+
 	@Override
 	public void notifyChanged(Notification notification) {
+		if (isDisabled) {
+			return;
+		}
+
 		// Decode the notification
 		processTrace = new StringBuilder();
 		processTrace.append(String.format("\n[ Notification ]"));

@@ -227,7 +227,7 @@ public class RDFGraphResourceUpdate {
 
 	private String createEObjectIRI(Model model, EObject eObject) {
 		// If you configure a bad URI for the defaultModelNamespace then jena will revert to filename <File://path/file.ext>
-		
+
 		// TODO Add switch case here for different eObject names
 		String eObjectName = EcoreUtil.generateUUID();  // This UUID is generated using Date and Time (now).
 		
@@ -241,9 +241,8 @@ public class RDFGraphResourceUpdate {
 			if (null != prefix) {
 				eObjectNamespace = prefix;
 			} else {
-				// Fallback  to file nameswith a fragment for the eObject <file>#<eObjectname>
+				// Fallback  to file names with a fragment for the eObject <file>#<eObjectname>
 				eObjectNamespace = getEMFResourceURI(eObject) + "#";
-				System.err.println("Warning, fallback for eObject namespace used! (EMF Resource URI used)\n - eObject IRI: " + eObjectNamespace + eObjectName );
 			}
 		}
 
@@ -253,7 +252,7 @@ public class RDFGraphResourceUpdate {
 		}
 		return eObjectIRI;
 	}
-	
+
 	private String createEClassIRI(EObject eObject) {
 		//TODO We could check the name spaces on the named model, and only create the eClass IRI if the name space exists.
 		String eClassNamespacePrefix = deserializer.normaliseEPackageNSURI(eObject.eClass().getEPackage().getNsURI()); // Name space based on EPackage prefix
@@ -666,8 +665,6 @@ public class RDFGraphResourceUpdate {
 					}
 					removeSingleValueEStructuralFeatureStatements(model, eObject, eStructuralFeature, value);
 				}
-			} else {
-				System.err.println(String.format("removeAllEStructuralFeatureStatements() - value is null "));
 			}
 		}
 		
@@ -754,12 +751,8 @@ public class RDFGraphResourceUpdate {
 		Statement newStatement = createStatement(model, onEObject, eStructuralFeature, newValue);
 		Statement existingStatements = findEquivalentStatement(model, onEObject, eStructuralFeature, newValue);
 
-		if (null != newStatement) {
-			if (!model.contains(newStatement) && null == existingStatements) {
-				model.add(newStatement);
-			} else {
-				System.err.println(String.format("New statement already exists? : %s", newStatement));
-			}
+		if (null != newStatement && null == existingStatements && !model.contains(newStatement)) {
+			model.add(newStatement);
 		}
 	}
 	
@@ -844,28 +837,32 @@ public class RDFGraphResourceUpdate {
 		}
 	}
 	
-	public void removeMultiEStructuralFeature (Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object oldValue) {
+	public void removeMultiEStructuralFeature(Model model, EObject onEObject, EStructuralFeature eStructuralFeature, Object oldValue) {
 		Resource onEObjectNode = rdfGraphResource.getRDFResource(onEObject);
-		if (!onEObjectNode.hasProperty(createProperty(eStructuralFeature))) {
-			System.err.println("Trying to remove a none existing RDFnode for a multivalue attribute");
+		Property property = createProperty(eStructuralFeature);
+		if (!onEObjectNode.hasProperty(property)) {
+			System.err.printf("Trying to remove the non-existing property %s in resource %s%s",
+				property, onEObjectNode, System.lineSeparator());
 		} else {
-			// Exists on a model some where...
+			// Exists in a model somewhere...
 			RDFNode objectRDFNode = getObjectRDFNode(onEObject, eStructuralFeature, model);
-			
-			if (objectRDFNode.isLiteral()) {
+
+			if (objectRDFNode == null) {
+				// The node does not have a value in the current model - do nothing
+			} else if (objectRDFNode.isLiteral()) {
 				// A 1 multi-value exists as a statement with no container
 				removeSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, oldValue);
 			} else if (objectRDFNode.isResource()) {
 				Resource objectResource = objectRDFNode.asResource();
 				// Try and the container from each model to be updated
 				if ( (objectResource.hasProperty(RDF.rest) && objectResource.hasProperty(RDF.first)) 
-						|| objectResource.hasProperty(RDF.type, RDF.List) ) {				
+						|| objectResource.hasProperty(RDF.type, RDF.List) ) {
 					RDFList list = model.getList(objectResource);
 					list.setStrict(true);
 					removeFromList(oldValue, list, onEObject, eStructuralFeature, model);
 				} else if (objectResource.equals(RDF.nil)) {
 					// Empty list
-					System.err.println("Removing from Empty list");				
+					System.err.println("Removing from Empty list");
 				} else if (objectResource.hasProperty(RDF.type, RDF.Bag)) {
 					Bag bag = model.getBag(objectResource);
 					removeFromBag(model, oldValue, bag, onEObject, eStructuralFeature);

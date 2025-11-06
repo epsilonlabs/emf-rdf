@@ -142,6 +142,7 @@ public abstract class AbstractChangeEquivalenceTest {
 		// SAVE RDF resource, clear the resource set
 		backupRdfFiles();
 		rdfModelResource.save(null);
+		rdfModelResource.unload();
 		rsRDF.getResources().remove(0);
 		
 		// Reload RDF model resource
@@ -157,6 +158,9 @@ public abstract class AbstractChangeEquivalenceTest {
 		final IComparisonScope scope = new DefaultComparisonScope(rsXMI, rsRDF, null);
 		final Comparison cmp = compareEngine.compare(scope);
 		assertNoDifferences(eolTestFile, cmp);
+
+		rsXMI.getResources().forEach(Resource::unload);
+		rsRDF.getResources().forEach(Resource::unload);
 	}
 	
 	protected void backupRdfFiles() throws FileNotFoundException, IOException {

@@ -21,12 +21,21 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EContentAdapter;
 
-public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapter {	
-	
+public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapter implements IDisableable {
+
+	private boolean isDisabled = false;
 	private final RDFGraphResourceImpl initialRDFGraphResource;
 	
 	public RDFGraphResourceNotificationAdapterChangeRDF(RDFGraphResourceImpl rdfGraphResource) {
 		this.initialRDFGraphResource = rdfGraphResource;
+	}
+
+	public boolean isDisabled() {
+		return isDisabled;
+	}
+
+	public void setDisabled(boolean isDisabled) {
+		this.isDisabled = isDisabled;
 	}
 
 	private RDFGraphResourceImpl getGraphResourceForEObject(EObject eObject) {
@@ -59,6 +68,10 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 
 	@Override
 	public void notifyChanged(Notification notification) {
+		if (isDisabled) {
+			return;
+		}
+
 		Object feature = notification.getFeature();
 		if (null != feature) {
 			featureNotification(feature, notification);

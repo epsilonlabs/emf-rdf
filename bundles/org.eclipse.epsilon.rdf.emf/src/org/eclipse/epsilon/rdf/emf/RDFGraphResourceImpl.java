@@ -171,7 +171,22 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		this.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF(this));
 		rdfGraphUpdater = new RDFGraphResourceUpdate(deserializer, this, multiValueAttributeMode);
 	}
-	
+
+	@Override
+	protected void doUnload() {
+		/*
+		 * Disable adapters prior to unloading - no need to sync removal of EMF contents
+		 * into RDF graph.
+		 */
+		this.eAdapters().forEach(a -> {
+			if (a instanceof IDisableable d) {
+				d.setDisabled(true);
+			}
+		});
+
+		super.doUnload();
+	}
+
 	public RDFGraphResourceUpdate getRDFGraphUpdater() {
 		return rdfGraphUpdater;
 	}
@@ -241,7 +256,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 
 		this.dataModelSet = loadRDFModels(config.getDataModels());
 		this.rdfDataModel = dataModelSet.getUnionModel();
-				
+
 		InfModel infModel = ModelFactory.createRDFSModel(rdfSchemaModel, rdfDataModel);
 		this.rdfOntModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM_RULE_INF, infModel);
 

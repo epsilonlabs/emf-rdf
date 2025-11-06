@@ -98,6 +98,9 @@ public class LoadEquivalenceTest {
 		final IComparisonScope scope = new DefaultComparisonScope(rsXmi, rsRDF, null);
 		final Comparison cmp = compareEngine.compare(scope);
 		assertNoDifferences(testCaseFolder, cmp);
+
+		rsXmi.getResources().forEach(r -> r.unload());
+		rsRDF.getResources().forEach(r -> r.unload());
 	}
 
 	protected void assertNoDifferences(File testCaseFolder, Comparison cmp) {
