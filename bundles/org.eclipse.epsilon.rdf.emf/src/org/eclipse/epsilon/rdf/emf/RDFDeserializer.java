@@ -123,14 +123,6 @@ public class RDFDeserializer {
 		return eobToResource.get(eob);
 	}
 
-	public Set<Resource> getRDFResources() {
-		return Collections.unmodifiableSet(resourceToEob.keySet());
-	}
-
-	public Collection<EObject> getEObjects(Resource resource) {
-		return resourceToEob.get(resource);
-	}
-
 	public Map<EObject, Resource> getEObjectToResourceMap() {
 		return Collections.unmodifiableMap(eobToResource);
 	}
