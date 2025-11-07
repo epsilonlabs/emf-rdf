@@ -45,14 +45,14 @@ public class ConfigModelValidationTest {
 	@Test
 	public void ValidationBlank () throws IOException {
 		RDFGraphResourceImpl graph = getGraphResourceImpl(VALIDATION_BLANK);
-		ValidationMode mode = graph.getValidationMode();
+		ValidationMode mode = graph.getConfig().getRawValidationMode();
 		assertEquals("none", mode.getId());
 	}
 	
 	@Test
 	public void ValidationJenaClean () throws IOException {
 		RDFGraphResourceImpl graph = getGraphResourceImpl(VALIDATION_JENA_CLEAN);
-		ValidationMode mode = graph.getValidationMode();
+		ValidationMode mode = graph.getConfig().getRawValidationMode();
 		assertEquals("jena-clean", mode.getId());
 	}
 	

@@ -106,15 +106,6 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	private MultiValueAttributeMode multiValueAttributeMode = MultiValueAttributeMode.LIST;
 	
 	public static final ValidationMode VALIDATION_SELECTION_DEFAULT = ValidationMode.NONE;
-	protected ValidationMode validationMode = VALIDATION_SELECTION_DEFAULT;
-	
-	public ValidationMode getValidationMode() {
-		return validationMode;
-	}
-
-	public void setValidationMode(ValidationMode validationMode) {
-		this.validationMode = validationMode;
-	}
 
 	@Override
 	protected void doLoad(InputStream inputStream, Map<?, ?> options) throws IOException {
@@ -126,9 +117,6 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		CustomClassLoaderConstructor constructor = new CustomClassLoaderConstructor(this.getClass().getClassLoader(), new LoaderOptions());
 		this.config = new Yaml(constructor).loadAs(inputStream, RDFResourceConfiguration.class);
 		OntModel rdfOntModel = loadRDFModels();
-
-		validationMode = config.getRawValidationMode();
-		
 		multiValueAttributeMode = MultiValueAttributeMode.fromValue(this.config.getMultiValueAttributeMode());
 
 		deserializer = new RDFDeserializer(() -> {
@@ -251,7 +239,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		InfModel infModel = ModelFactory.createRDFSModel(rdfSchemaModel, rdfDataModel);
 		OntModel rdfOntModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM_RULE_INF, infModel);
 
-		RDFModelValidationReport result = validationMode.validate(rdfOntModel);
+		RDFModelValidationReport result = getConfig().getRawValidationMode().validate(rdfOntModel);
 		if (!result.isValid()) {
 			throw new RDFValidationException(result.getText());
 		}
