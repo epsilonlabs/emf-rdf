@@ -69,7 +69,8 @@ public class RDFGraphResourceUpdate {
 	}
 
 	public Resource createNewEObjectResource(Model model, EObject eObject) {
-		return createNewEObjectResource(model, eObject, createEObjectIRI(model, eObject));
+		String iri = createEObjectIRI(model, eObject);
+		return iri == null ? null : createNewEObjectResource(model, eObject, iri);
 	}
 
 	public Resource createNewEObjectResource(Model model, EObject eObject, String iri) {
@@ -125,15 +126,8 @@ public class RDFGraphResourceUpdate {
 		}
 
 		if (value instanceof EObject eob) {
-			if (eob.eResource() != null) {
-				// Turn the EObject into an RDF resource if needed
-				return getEObjectResource(model, (EObject) value);
-			} else {
-				// Not in a resource - we can't get a URI for it
-				return null;
-			}
+			return getEObjectResource(model, eob);
 		} else {
-			// Literal values
 			return createLiteral(value);
 		}
 	}
@@ -225,7 +219,11 @@ public class RDFGraphResourceUpdate {
 		// OBJECT
 		RDFNode object = createValueRDFNode(value, model);
 
-		return object != null ? ResourceFactory.createStatement(rdfNode, property, object) : null;
+		if (object == null) {
+			return null;
+		} else {
+			return ResourceFactory.createStatement(rdfNode, property, object);
+		}
 	}
 
 	private String getEMFResourceURI(EObject eObject) {
@@ -247,9 +245,13 @@ public class RDFGraphResourceUpdate {
 			String prefix = model.getNsPrefixMap().get("");
 			if (null != prefix) {
 				eObjectNamespace = prefix;
-			} else {
+			} else if (eObject.eResource() != null) {
 				// Fallback  to file names with a fragment for the eObject <file>#<eObjectname>
 				eObjectNamespace = getEMFResourceURI(eObject) + "#";
+			} else {
+				// No default prefix and the EObject does not belong to a resource: give up
+				System.err.println("Cannot generate IRI for object without resource and without default namespace: " + eObject);
+				return null;
 			}
 		}
 
