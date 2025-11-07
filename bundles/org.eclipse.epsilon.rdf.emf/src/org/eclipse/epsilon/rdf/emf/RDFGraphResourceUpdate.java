@@ -240,9 +240,9 @@ public class RDFGraphResourceUpdate {
 
 		// TODO Add switch case here for different eObject names
 		String eObjectName = EcoreUtil.generateUUID();  // This UUID is generated using Date and Time (now).
-		
-		String eObjectNamespace = rdfGraphResource.getDefaultModelNamespace();
-		if(null != eObjectNamespace && !"".equals(eObjectNamespace.strip())) {
+
+		String eObjectNamespace = rdfGraphResource.getConfig().getDefaultModelNamespace();
+		if (null != eObjectNamespace && !"".equals(eObjectNamespace.strip())) {
 			// Clean the user input from the rdfres config file; must end # or /
 			eObjectNamespace = deserializer.normaliseEPackageNSURI(eObjectNamespace);
 		} else {
