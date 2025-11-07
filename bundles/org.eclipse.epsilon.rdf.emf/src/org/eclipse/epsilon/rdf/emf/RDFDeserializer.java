@@ -24,10 +24,10 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import org.apache.jena.datatypes.xsd.XSDDateTime;
-import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.AnonId;
 import org.apache.jena.rdf.model.Bag;
 import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.RDFVisitor;
@@ -102,11 +102,11 @@ public class RDFDeserializer {
 	
 	/**
 	 * Populates the {@link #getEObjectToResourceMap()} from the contents of
-	 * the {@code ontModel}.
+	 * the {@code model}.
 	 */
-	public void deserialize(OntModel ontologyModel) {
+	public void deserialize(Model model) {
 		// Phase 1: find all sources of an rdf:type edge
-		for (ResIterator it = ontologyModel.listResourcesWithProperty(RDF.type); it.hasNext(); ) {
+		for (ResIterator it = model.listResourcesWithProperty(RDF.type); it.hasNext(); ) {
 			Resource res = it.next();
 			if (!res.isAnon()) {
 				deserializeObjectAttributes(res);

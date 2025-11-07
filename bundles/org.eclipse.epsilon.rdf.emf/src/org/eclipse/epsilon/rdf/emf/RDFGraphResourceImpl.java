@@ -15,6 +15,7 @@ package org.eclipse.epsilon.rdf.emf;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,6 +39,7 @@ import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.eclipse.emf.common.util.URI;
@@ -46,11 +48,9 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.epsilon.rdf.emf.config.RDFResourceConfiguration;
+import org.eclipse.epsilon.rdf.emf.config.RDFResourceConfigurationIO;
 import org.eclipse.epsilon.rdf.validation.RDFValidation.ValidationMode.RDFModelValidationReport;
 import org.eclipse.epsilon.rdf.validation.RDFValidationException;
-import org.yaml.snakeyaml.LoaderOptions;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 
 public class RDFGraphResourceImpl extends ResourceImpl {
 
@@ -74,10 +74,39 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		GET_FILE_LOCATOR = result;
 	}
 
-	private RDFResourceConfiguration config;
+	private RDFResourceConfiguration config = new RDFResourceConfiguration();
+	private boolean isConfigSaved = false;
+
 	private RDFDeserializer deserializer;
 	private RDFGraphResourceUpdate rdfGraphUpdater;
 	private Dataset dataModelSet;
+
+	public RDFGraphResourceImpl() {
+		// Apply eAdapters for notifications of changes, and setup the Graph Resource updater
+		if (NOTIFICATION_TRACE) {
+			// Produce a console trace for debugging and development
+			this.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace(this));
+		}
+		this.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF(this));
+	}
+
+	/**
+	 * Returns whether the {@code .rdfres} configuration will also be saved.
+	 * It is false by default, but it will automatically be set to true after
+	 * the first change on a resource that has not been loaded.
+	 */
+	public boolean isConfigSaved() {
+		return isConfigSaved;
+	}
+
+	/**
+	 * Changes whether the {@code .rdfres} configuration will also be saved.
+	 *
+	 * @see #isConfigSaved()
+	 */
+	public void setConfigSaved(boolean isConfigSaved) {
+		this.isConfigSaved = isConfigSaved;
+	}
 
 	@Override
 	protected void doLoad(InputStream inputStream, Map<?, ?> options) throws IOException {
@@ -85,33 +114,33 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 			throw new IllegalArgumentException("URI must be absolute");
 		}
 
-		// The custom classloader constructor is needed for OSGi compatibility
-		CustomClassLoaderConstructor constructor = new CustomClassLoaderConstructor(this.getClass().getClassLoader(), new LoaderOptions());
-		this.config = new Yaml(constructor).loadAs(inputStream, RDFResourceConfiguration.class);
+		this.config = RDFResourceConfigurationIO.load(inputStream);
 		OntModel rdfOntModel = loadRDFModels();
+		initializeFromRDFModel(rdfOntModel);
+	}
 
-		deserializer = new RDFDeserializer(() -> {
-			if (this.getResourceSet() != null) {
-				// Prefer the resource set's package registry
-				return this.getResourceSet().getPackageRegistry();
-			} else {
-				// Fall back to the global package registry
-				return EPackage.Registry.INSTANCE;
+	protected void initializeFromRDFModel(Model rdfOntModel) {
+		try {
+			setDisabledForAdapters(true);
+			deserializer = new RDFDeserializer(() -> {
+				if (this.getResourceSet() != null) {
+					// Prefer the resource set's package registry
+					return this.getResourceSet().getPackageRegistry();
+				} else {
+					// Fall back to the global package registry
+					return EPackage.Registry.INSTANCE;
+				}
+			});
+			deserializer.deserialize(rdfOntModel);
+			for (EObject eob : deserializer.getEObjectToResourceMap().keySet()) {
+				if (eob.eContainer() == null) {
+					getContents().add(eob);
+				}
 			}
-		});
-		deserializer.deserialize(rdfOntModel);
-		for (EObject eob : deserializer.getEObjectToResourceMap().keySet()) {
-			if (eob.eContainer() == null) {
-				getContents().add(eob);
-			}
+		} finally {
+			setDisabledForAdapters(false);
 		}
 
-		// Apply eAdapters for notifications of changes, and setup the Graph Resource updater
-		if (NOTIFICATION_TRACE) {
-			// Produce a console trace for debugging and development
-			this.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace(this));
-		}
-		this.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF(this));
 		rdfGraphUpdater = new RDFGraphResourceUpdate(deserializer, this);
 	}
 
@@ -121,17 +150,21 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		 * Disable adapters prior to unloading - no need to sync removal of EMF contents
 		 * into RDF graph.
 		 */
-		this.eAdapters().forEach(a -> {
-			if (a instanceof IDisableable d) {
-				d.setDisabled(true);
-			}
-		});
+		setDisabledForAdapters(true);
 
 		this.deserializer = null;
 		this.rdfGraphUpdater = null;
 		this.dataModelSet = null;
 
 		super.doUnload();
+	}
+
+	protected void setDisabledForAdapters(boolean isDisabled) {
+		this.eAdapters().forEach(a -> {
+			if (a instanceof IDisableable d) {
+				d.setDisabled(isDisabled);
+			}
+		});
 	}
 
 	protected RDFGraphResourceUpdate getRDFGraphUpdater() {
@@ -172,6 +205,17 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	
 	@Override
 	public void save(Map<?, ?> options) throws IOException {
+		if (isConfigSaved) {
+			String pathRdfRes = getFilePathForURI();
+			if (pathRdfRes == null) {
+				throw new IllegalStateException("Cannot save configuration to a non-file URI");
+			}
+			File fRdfRes = new File(pathRdfRes);
+			try (FileWriter w = new FileWriter(fRdfRes)) {
+				RDFResourceConfigurationIO.save(config, w);
+			}
+		}
+
 		// TODO need some way to work out which of the Named models we want to write out, for now dump them all.
 		for (Iterator<Resource> namedModels = dataModelSet.listModelNames(); namedModels.hasNext(); ) {
 			Resource m = namedModels.next();
@@ -191,6 +235,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 
 	public EObject createInstanceAt(EClass eClass, String iri) {
 		EObject eob = eClass.getEPackage().getEFactoryInstance().create(eClass);
+		ensureGraphExists();
 
 		List<Resource> resNamedModels = this.getResourcesForAllNamedModels();
 		if (resNamedModels.isEmpty()) {
@@ -223,7 +268,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 
 	protected Dataset loadRDFModels(Collection<String> uris) throws IOException, MalformedURLException {
 		Dataset newDataset = null;
-		List<String> namedModelSources = new ArrayList<String>();
+		List<String> namedModelSources = new ArrayList<>();
 
 		for (String sURI : uris) {
 			URI uri = URI.createURI(sURI);
@@ -323,5 +368,62 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 
 		// Leave URL as is if we don't have access to the Eclipse FileLocator
 		return url;
+	}
+
+	public void ensureGraphExists() {
+		if (dataModelSet != null) {
+			// There is an RDF graph set up: good to go
+			return;
+		}
+
+		// RDF graph is not available: user wants to change the resource without loading it
+		setConfigSaved(true);
+
+		// Ensure there is at least one data model in the configuration
+		if (config.getDataModels().isEmpty()) {
+			if (getURI() == null) {
+				throw new IllegalStateException("Cannot create in-memory .ttl on the fly for a resource with a null URI");
+			}
+
+			String rdfResPath = getFilePathForURI();
+			if (rdfResPath == null) {
+				throw new IllegalStateException("Cannot create in-memory .ttl on the fly for a resource in a non-file URI");
+			}
+
+			try {
+				File fRdfRes = new File(rdfResPath).getCanonicalFile();
+				File fTurtle = new File(fRdfRes.getParentFile(), fRdfRes.getName().replaceAll("[.]rdfres", ".ttl"));
+				config.getDataModels().add(fTurtle.getName());
+			} catch (IOException ex) {
+				throw new RuntimeException("Could not compute path to .ttl on the fly", ex);
+			}
+		}
+
+		// Create an in-memory graph based on the data models
+		this.dataModelSet = DatasetFactory.createGeneral();
+		for (String sURI : config.getDataModels()) {
+			URI uri = URI.createURI(sURI);
+			if (uri.isRelative()) {
+				uri = uri.resolve(this.getURI());
+			}
+			dataModelSet = dataModelSet.addNamedModel(ResourceFactory.createResource(uri.toString()), ModelFactory.createDefaultModel());
+		}
+		initializeFromRDFModel(this.dataModelSet.getUnionModel());
+	}
+
+	protected String getFilePathForURI() {
+		String rdfResPath = getURI().toFileString();
+		if ("platform".equals(uri.scheme()) && GET_FILE_LOCATOR.isPresent()) {
+			try {
+				URL fileURL = convertToFileURL(new URL(uri.toString()));
+				if (!"file".equals(fileURL.getProtocol())) {
+					throw new IllegalStateException("Cannot convert the platform: URL to a file: URL - " + uri);
+				}
+				rdfResPath = URI.createURI(fileURL.toString()).toFileString();
+			} catch (URISyntaxException | MalformedURLException ex) {
+				throw new RuntimeException("Invalid URI syntax: " + uri);
+			}
+		}
+		return rdfResPath;
 	}
 }

@@ -12,11 +12,12 @@
  ********************************************************************************/
 package org.eclipse.epsilon.rdf.emf.test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.eclipse.emf.common.notify.Adapter;
 import org.eclipse.emf.common.util.URI;
@@ -77,8 +78,10 @@ public class AdapterPropagationTest {
 	}
 
 	@Test
-	public void traceAdapterPropagates() {
+	public void traceAdapterPropagates() throws IOException {
 		var r = new RDFGraphResourceImpl();
+		r.setURI(URI.createFileURI(File.createTempFile("tmp", ".rdfres").toString()));
+
 		var adapter = new RDFGraphResourceNotificationAdapterTrace(r);
 		assertEAdaptersPropagate(r, adapter);
 	}
@@ -88,11 +91,10 @@ public class AdapterPropagationTest {
 
 		var ePackage = EcorePackage.eINSTANCE.getEcoreFactory().createEPackage();
 		r.getContents().add(ePackage);
-		assertEquals("Adapter is added to EPackage when added to resource", 1, ePackage.eAdapters().size());
-		assertSame("Adapter is the same instance as in the resource", adapter, ePackage.eAdapters().get(0));
+		assertTrue("Adapter is added to EPackage when added to resource", ePackage.eAdapters().contains(adapter));
 
 		r.getContents().remove(ePackage);
-		assertTrue("Adapter is removed from EPackage when removed from resource", ePackage.eAdapters().isEmpty());
+		assertFalse("Adapter is removed from EPackage when removed from resource", ePackage.eAdapters().contains(adapter));
 	}
 
 }
