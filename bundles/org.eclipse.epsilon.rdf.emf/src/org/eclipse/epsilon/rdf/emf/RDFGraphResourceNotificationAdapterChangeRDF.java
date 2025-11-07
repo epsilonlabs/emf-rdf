@@ -68,17 +68,15 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 
 	@Override
 	public void notifyChanged(Notification notification) {
-		if (isDisabled) {
-			return;
-		}
-
-		Object feature = notification.getFeature();
-		if (null != feature) {
-			featureNotification(feature, notification);
-		} else {
-			// Check for adding and removing of an EObject to the resource (model root)
-			handleNonFeatureNotification(notification.getNewValue(), notification);
-			handleNonFeatureNotification(notification.getOldValue(), notification);
+		if (!isDisabled) {
+			Object feature = notification.getFeature();
+			if (null != feature) {
+				featureNotification(feature, notification);
+			} else {
+				// Check for adding and removing of an EObject to the resource (model root)
+				handleNonFeatureNotification(notification.getNewValue(), notification);
+				handleNonFeatureNotification(notification.getOldValue(), notification);
+			}
 		}
 		super.notifyChanged(notification);
 	}
@@ -98,21 +96,26 @@ public class RDFGraphResourceNotificationAdapterChangeRDF extends EContentAdapte
 
 	protected void handleEObjectAttachOrDetach(Notification notification, EObject eObjectValue) {
 		RDFGraphResourceImpl graphResource = getGraphResourceForEObject(eObjectValue);
-		RDFGraphResourceUpdate rdfUpdater = graphResource.getRDFGraphUpdater();
 
 		switch (notification.getEventType()) {
 		case Notification.ADD:
-		case Notification.ADD_MANY:
+		case Notification.ADD_MANY: {
+			graphResource.ensureGraphExists();
+			RDFGraphResourceUpdate rdfUpdater = graphResource.getRDFGraphUpdater();
 			for (Resource namedModelResource : getNamedModelsToUpdate(eObjectValue, graphResource)) {
 				rdfUpdater.addToResource(eObjectValue, graphResource.getNamedModel(namedModelResource));
 			}
-		break;
+			break;
+		}
 		case Notification.REMOVE:
-		case Notification.REMOVE_MANY:
+		case Notification.REMOVE_MANY: {
+			graphResource.ensureGraphExists();
+			RDFGraphResourceUpdate rdfUpdater = graphResource.getRDFGraphUpdater();
 			for (Resource namedModelResource : getNamedModelsToUpdate(eObjectValue, graphResource)) {
 				rdfUpdater.removeFromResource(eObjectValue, graphResource.getNamedModel(namedModelResource));
 			}
-		break;
+			break;
+		}
 		}
 	}
 

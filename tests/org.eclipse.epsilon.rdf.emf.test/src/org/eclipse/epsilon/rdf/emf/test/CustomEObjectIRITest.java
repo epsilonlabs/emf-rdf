@@ -65,4 +65,19 @@ public class CustomEObjectIRITest {
 			List.of(RDF.type), preds);
 	}
 
+	@Test
+	public void createAtFromNotLoadedModel() {
+		ResourceSet rs = new ResourceSetImpl();
+
+		// Do not load the graph: we will work from an in-memory model
+		Path rdfResPath = Paths.get("resources", "emptyGraph", "empty.rdfres");
+		URI rdfResURI = URI.createFileURI(rdfResPath.toAbsolutePath().toString());
+		RDFGraphResourceImpl r = (RDFGraphResourceImpl) rs.createResource(rdfResURI);
+
+		assertTrue("The resource is initially empty", r.getContents().isEmpty());
+		String expectedIRI = "http://eclipse.org/epsilon/test/#example";
+		EPackage ePkg = (EPackage) r.createInstanceAt(EcorePackage.eINSTANCE.getEPackage(), expectedIRI);
+		assertEquals("The object should have been added to the resource", List.of(ePkg), r.getContents());
+	}
+
 }

@@ -45,6 +45,7 @@ public class RDFGraphResourceNotificationAdapterTrace extends EContentAdapter im
 	@Override
 	public void notifyChanged(Notification notification) {
 		if (isDisabled) {
+			super.notifyChanged(notification);
 			return;
 		}
 

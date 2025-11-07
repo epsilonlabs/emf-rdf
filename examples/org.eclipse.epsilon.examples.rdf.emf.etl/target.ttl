@@ -1,4 +1,11 @@
-PREFIX f:   <file:///Volumes/Sources/emc-rdf/tests/org.eclipse.epsilon.rdf.emf.test/resources/loadEquivalence/08-multi-inherit/etl/source.rdfres#>
-PREFIX mm:  <http://york.ac.uk/emf-rdf/examples/multi-inherit/base#>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+<http://custom/url#model>
+        a       <http://york.ac.uk/emf-rdf/examples/multi-inherit/base#Model>;
+        <http://york.ac.uk/emf-rdf/examples/multi-inherit/base#nodes>
+                <http://custom/url#combined-abc> .
+
+<http://custom/url#combined-abc>
+        a       <http://york.ac.uk/emf-rdf/examples/multi-inherit/extend#CombinedNode>;
+        <http://york.ac.uk/emf-rdf/examples/multi-inherit/base#label>
+                "abc";
+        <http://york.ac.uk/emf-rdf/examples/multi-inherit/base#weight>
+                "1.0"^^<http://www.w3.org/2001/XMLSchema#float> .
