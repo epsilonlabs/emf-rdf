@@ -54,11 +54,15 @@ Specifically, we support two options:
 * RDF namespace IRI = EPackage nsURI (including any trailing separator, such as `#` or `/`).
 * RDF namespace IRI = EPackage nsURI + "#".
 
-Namespaces for creating EMF models must be configured in the `.rdfres` (see  Default model namespace section below).
-At the moment, the same namespace URI is used for every EObject created by the resource.
+Namespaces for creating EMF models must be configured in the `.rdfres` (see [below](#default-model-namespace)).
+At the moment, the same namespace URI is used for every EObject added to the resource through standard EMF APIs.
+It is however possible to specify custom RDF IRIs when creating instances (see [this section](#specifying-custom-rdf-iris-during-instance-creation)).
 
-The contents of the resource must only be changed *after* it has been loaded.
-The resource assumes that a Jena graph is present to be synchronised whenever a change is made to the contents of the resource.
+If the contents of the resource are changed without having loaded the resource, the resource will set up in-memory data models based on the in-memory configuration (as returned by `getConfig()`):
+* If no data models have been specified, the resource will add a `.ttl` data model based on the URI of the resource (i.e. `file://path/to/file.rdfres` will result in `file://path/to/file.ttl` being created upon save). `platform:` URLs are supported in this way as well when running from the Eclipse IDE.
+* No schema models will be used in this scenario (the expectation is that modifying an resource without loading it is for creating brand new graphs, rather than for performing reasoning on existing graphs).
+* Saving the resource in this scenario will also write the configuration to the URI of the resource. If this is undesirable, call `resource.setConfigSaved(false)` before saving.
+  * For resources that were loaded before any changes were made, configurations are *not* saved by default. This can be changed by calling `resource.setConfigSaved(true)` before saving.
 
 ## .rdfres file format
 
