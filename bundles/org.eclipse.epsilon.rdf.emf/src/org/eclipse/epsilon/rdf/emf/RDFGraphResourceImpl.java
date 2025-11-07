@@ -105,7 +105,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 				getContents().add(eob);
 			}
 		}
-		
+
 		// Apply eAdapters for notifications of changes, and setup the Graph Resource updater
 		if (NOTIFICATION_TRACE) {
 			// Produce a console trace for debugging and development
@@ -126,6 +126,10 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 				d.setDisabled(true);
 			}
 		});
+
+		this.deserializer = null;
+		this.rdfGraphUpdater = null;
+		this.dataModelSet = null;
 
 		super.doUnload();
 	}
