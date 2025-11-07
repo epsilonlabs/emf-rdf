@@ -80,12 +80,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	private RDFGraphResourceUpdate rdfGraphUpdater;
 	
 	private Dataset dataModelSet;
-	private Dataset schemaModelSet;
 
-	private Model rdfSchemaModel;
-	private Model rdfDataModel;
-	private OntModel rdfOntModel;
-	
 	private String defaultModelNamespace;
 
 	public String getDefaultModelNamespace() {
@@ -140,7 +135,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		// The custom classloader constructor is needed for OSGi compatibility
 		CustomClassLoaderConstructor constructor = new CustomClassLoaderConstructor(this.getClass().getClassLoader(), new LoaderOptions());
 		this.config = new Yaml(constructor).loadAs(inputStream, RDFResourceConfiguration.class);
-		loadRDFModels();
+		OntModel rdfOntModel = loadRDFModels();
 		setDefaultModelNamespace(config.getDefaultModelNamespace());
 
 		validationMode = config.getRawValidationMode();
@@ -257,20 +252,21 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		return eob;
 	}
 
-	protected void loadRDFModels() throws IOException {
-		this.schemaModelSet = loadRDFModels(config.getSchemaModels());
-		this.rdfSchemaModel = schemaModelSet.getUnionModel();
+	protected OntModel loadRDFModels() throws IOException {
+		Dataset schemaModelSet = loadRDFModels(config.getSchemaModels());
+		Model rdfSchemaModel = schemaModelSet.getUnionModel();
 
 		this.dataModelSet = loadRDFModels(config.getDataModels());
-		this.rdfDataModel = dataModelSet.getUnionModel();
+		Model rdfDataModel = dataModelSet.getUnionModel();
 
 		InfModel infModel = ModelFactory.createRDFSModel(rdfSchemaModel, rdfDataModel);
-		this.rdfOntModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM_RULE_INF, infModel);
+		OntModel rdfOntModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM_RULE_INF, infModel);
 
 		RDFModelValidationReport result = validationMode.validate(rdfOntModel);
 		if (!result.isValid()) {
 			throw new RDFValidationException(result.getText());
 		}
+		return rdfOntModel;
 	}
 
 	protected Dataset loadRDFModels(Collection<String> uris) throws IOException, MalformedURLException {
