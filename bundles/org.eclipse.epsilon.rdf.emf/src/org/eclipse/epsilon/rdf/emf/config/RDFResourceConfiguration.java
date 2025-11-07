@@ -15,16 +15,16 @@ package org.eclipse.epsilon.rdf.emf.config;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl.MultiValueAttributeMode;
 import org.eclipse.epsilon.rdf.validation.RDFValidation.ValidationMode;
 
 public class RDFResourceConfiguration {
 
 	private List<String> dataModels = new ArrayList<>();
 	private List<String> schemaModels = new ArrayList<>();
+
 	private String validationMode = ValidationMode.NONE.getId();
 	private String multiValueAttributeMode = MultiValueAttributeMode.CONTAINER.getId();
-	private String defaultModelNamespace = ""; 
+	private String defaultModelNamespace;
 
 	public String getDefaultModelNamespace() {
 		return defaultModelNamespace;
@@ -40,6 +40,10 @@ public class RDFResourceConfiguration {
 
 	public void setMultiValueAttributeMode(String multiValueAttributeMode) {
 		this.multiValueAttributeMode = multiValueAttributeMode;
+	}
+
+	public MultiValueAttributeMode getRawMultiValueAttributeMode() {
+		return MultiValueAttributeMode.fromValue(multiValueAttributeMode);
 	}
 
 	public List<String> getDataModels() {

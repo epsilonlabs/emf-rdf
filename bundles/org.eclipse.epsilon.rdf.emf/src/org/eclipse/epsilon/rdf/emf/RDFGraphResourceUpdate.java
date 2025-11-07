@@ -40,23 +40,20 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.eclipse.epsilon.rdf.emf.RDFGraphResourceImpl.MultiValueAttributeMode;
 
 public class RDFGraphResourceUpdate {
 	
 	private static final boolean CONSOLE_OUTPUT_ACTIVE = false;
 	private static final boolean SINGLE_MULTIVALUES_AS_STATEMENT = true;
 	
-	private boolean preferListsForMultiValues = false;
 	private RDFDeserializer deserializer;
 	private RDFGraphResourceImpl rdfGraphResource;
 	
-	public RDFGraphResourceUpdate(RDFDeserializer deserializer, RDFGraphResourceImpl rdfGraphResource, MultiValueAttributeMode multiValueMode) {
+	public RDFGraphResourceUpdate(RDFDeserializer deserializer, RDFGraphResourceImpl rdfGraphResource) {
 		this.deserializer = deserializer;
 		this.rdfGraphResource = rdfGraphResource;
-		this.preferListsForMultiValues = multiValueMode.equals(MultiValueAttributeMode.LIST);
 	}
-	
+
 	//
 	// Generic Statement methods for EStructural Features
 	
@@ -950,7 +947,7 @@ public class RDFGraphResourceUpdate {
 			removeSingleValueEStructuralFeatureStatements(model, onEObject, eStructuralFeature, firstValue);
 		}
 		
-		if (preferListsForMultiValues) {
+		if (rdfGraphResource.getConfig().getRawMultiValueAttributeMode().useLists()) {
 			// List
 			RDFList list = null;
 			if (null != firstValue) {

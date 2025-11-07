@@ -46,7 +46,6 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.epsilon.rdf.emf.config.RDFResourceConfiguration;
-import org.eclipse.epsilon.rdf.validation.RDFValidation.ValidationMode;
 import org.eclipse.epsilon.rdf.validation.RDFValidation.ValidationMode.RDFModelValidationReport;
 import org.eclipse.epsilon.rdf.validation.RDFValidationException;
 import org.yaml.snakeyaml.LoaderOptions;
@@ -78,34 +77,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	private RDFResourceConfiguration config;
 	private RDFDeserializer deserializer;
 	private RDFGraphResourceUpdate rdfGraphUpdater;
-	
 	private Dataset dataModelSet;
-
-	public static enum MultiValueAttributeMode {
-		LIST("List"), CONTAINER("Container");
-
-		private final String id;
-
-		public String getId() {
-			return id;
-		}
-
-		MultiValueAttributeMode(String value) {
-			this.id = value;
-		}
-
-		public static MultiValueAttributeMode fromValue(String value) {
-			for (MultiValueAttributeMode mode : values()) {
-				if (mode.id.equalsIgnoreCase(value)) {
-					return mode;
-				}
-			}
-			return null; // or throw an exception if not found
-		}
-	};
-	private MultiValueAttributeMode multiValueAttributeMode = MultiValueAttributeMode.LIST;
-	
-	public static final ValidationMode VALIDATION_SELECTION_DEFAULT = ValidationMode.NONE;
 
 	@Override
 	protected void doLoad(InputStream inputStream, Map<?, ?> options) throws IOException {
@@ -117,7 +89,6 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 		CustomClassLoaderConstructor constructor = new CustomClassLoaderConstructor(this.getClass().getClassLoader(), new LoaderOptions());
 		this.config = new Yaml(constructor).loadAs(inputStream, RDFResourceConfiguration.class);
 		OntModel rdfOntModel = loadRDFModels();
-		multiValueAttributeMode = MultiValueAttributeMode.fromValue(this.config.getMultiValueAttributeMode());
 
 		deserializer = new RDFDeserializer(() -> {
 			if (this.getResourceSet() != null) {
@@ -141,7 +112,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 			this.eAdapters().add(new RDFGraphResourceNotificationAdapterTrace(this));
 		}
 		this.eAdapters().add(new RDFGraphResourceNotificationAdapterChangeRDF(this));
-		rdfGraphUpdater = new RDFGraphResourceUpdate(deserializer, this, multiValueAttributeMode);
+		rdfGraphUpdater = new RDFGraphResourceUpdate(deserializer, this);
 	}
 
 	@Override
@@ -321,7 +292,7 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 	public Resource getFirstNamedModelResource() {
 		return getResourcesForAllNamedModels().get(0);
 	}
-	
+
 	public List<Model> getNamedModels(List<Resource> namedModelURIs) {
 		List<Model> namedModels = new ArrayList<Model>();
 		for (Resource model : namedModelURIs) {
