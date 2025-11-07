@@ -102,7 +102,7 @@ public abstract class AbstractChangeEquivalenceTest {
 			.getExtensionToFactoryMap()
 			.put("emf", new EmfaticResourceFactory());
 	}
-	
+
 	@Test 
 	public void loadModelsAndRunEolTest() throws Exception {
 		if(isConsoleOutputActive) {

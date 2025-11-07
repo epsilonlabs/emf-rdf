@@ -124,12 +124,13 @@ multiValueAttributeMode: List
 
 ### Default model namespace
 
-A default model namespace URI is required when adding new resources to an RDF model.
+A default model namespace URI is required when adding new resources to an RDF model through standard EMF APIs.
 The namespace URI can be configured in the `.rdfres` file as shown below.
 
 ```yaml
 defaultModelNamespace: http://foo/bar/example#
 ```
+
 The URI must be absolute, e.g. by starting with `file://` (`/` will become file) or `http://`.
 If you provide an invalid URI, then Jena will revert to using the URI of the named model it loaded the RDF from as the name space. 
 
@@ -137,6 +138,12 @@ The example above results in new RDF node with an IRI composed of the default na
 
 If a default model namespace is not provided in the `.rdfres` file, the resource will fall back to the blank prefix `PREFIX : <URI>` in the RDF model.
 The last resort is to let Jena decide, which will use the URI that the RDF model was loaded from.
+
+### Specifying custom RDF IRIs during instance creation
+
+The resource supports creating `EObject`s with arbitrary IRIs through its `createInstanceAt(EClass eClass, String iri)` method.
+
+The [ETL example](./examples/org.eclipse.epsilon.examples.rdf.emf.etl/) shows how it can be used in combination with [ETL "to" initializers](https://github.com/eclipse-epsilon/epsilon/issues/125).
 
 ### Working with RDF XML literals
 

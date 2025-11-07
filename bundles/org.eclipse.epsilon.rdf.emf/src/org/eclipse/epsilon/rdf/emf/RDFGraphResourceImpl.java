@@ -41,6 +41,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
@@ -239,6 +240,21 @@ public class RDFGraphResourceImpl extends ResourceImpl {
 
 	public Resource getRDFResource(EObject eob) {
 		return deserializer.getRDFResource(eob);
+	}
+
+	public EObject createInstanceAt(EClass eClass, String iri) {
+		EObject eob = eClass.getEPackage().getEFactoryInstance().create(eClass);
+
+		List<Resource> resNamedModels = this.getResourcesForAllNamedModels();
+		if (resNamedModels.isEmpty()) {
+			throw new IllegalStateException("No named model in which to create the RDF resource");
+		}
+
+		for (Resource resNamedModel : resNamedModels) {
+			rdfGraphUpdater.createNewEObjectResource(getNamedModel(resNamedModel), eob, iri);
+		}
+		getContents().add(eob);
+		return eob;
 	}
 
 	protected void loadRDFModels() throws IOException {

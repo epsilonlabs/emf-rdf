@@ -70,9 +70,13 @@ public class RDFGraphResourceUpdate {
 			return ResourceFactory.createTypedLiteral(value);
 		}
 	}
-	
-	private Resource createNewEObjectResource(Model model, EObject eObject) {
-		Resource eobResource = model.createResource(createEObjectIRI(model, eObject));
+
+	public Resource createNewEObjectResource(Model model, EObject eObject) {
+		return createNewEObjectResource(model, eObject, createEObjectIRI(model, eObject));
+	}
+
+	public Resource createNewEObjectResource(Model model, EObject eObject, String iri) {
+		Resource eobResource = model.createResource(iri);
 		if (CONSOLE_OUTPUT_ACTIVE) {
 			System.out.println("Created a new Resource node: " + eobResource);
 		}
@@ -81,7 +85,7 @@ public class RDFGraphResourceUpdate {
 		deserializer.registerNewEObject(eObject, eobResource);
 		return eobResource;
 	}
-	
+
 	private Resource getEObjectResource(Model model, EObject eObject) {
 		// get Resource for EObject from the model or make one
 		Resource valueResource = null;
@@ -122,10 +126,15 @@ public class RDFGraphResourceUpdate {
 		if (value instanceof Literal) {
 			return (Literal) value;
 		}
-		
-		if (value instanceof EObject) {
-			// get Resource for EObject from the model or make one
-			return getEObjectResource(model, (EObject) value);
+
+		if (value instanceof EObject eob) {
+			if (eob.eResource() != null) {
+				// Turn the EObject into an RDF resource if needed
+				return getEObjectResource(model, (EObject) value);
+			} else {
+				// Not in a resource - we can't get a URI for it
+				return null;
+			}
 		} else {
 			// Literal values
 			return createLiteral(value);
@@ -218,7 +227,8 @@ public class RDFGraphResourceUpdate {
 		Property property = createProperty(eStructuralFeature);
 		// OBJECT
 		RDFNode object = createValueRDFNode(value, model);
-		return ResourceFactory.createStatement(rdfNode, property, object);
+
+		return object != null ? ResourceFactory.createStatement(rdfNode, property, object) : null;
 	}
 
 	private String getEMFResourceURI(EObject eObject) {
@@ -246,7 +256,7 @@ public class RDFGraphResourceUpdate {
 			}
 		}
 
-		String eObjectIRI = eObjectNamespace+eObjectName;
+		String eObjectIRI = eObjectNamespace + eObjectName;
 		if (CONSOLE_OUTPUT_ACTIVE) {
 			System.out.println("Created eObject node IRI: " + eObjectIRI);
 		}

@@ -90,13 +90,15 @@ location "https://download.eclipse.org/lsp4e/releases/0.26.3/" {
 
 // Needed by LSP4E from 0.26.1
 location "https://download.eclipse.org/mylyn/updates/release/4.3.0/" {
-	org.eclipse.mylyn.wikitext lazy
-	org.eclipse.mylyn.wikitext.markdown lazy
-	org.eclipse.mylyn.wikitext.markdown.ui lazy
+	org.eclipse.mylyn.wikitext [4.0.0, 4.4.0)
+	org.eclipse.mylyn.wikitext.osgi [4.0.0, 4.4.0)
+	org.eclipse.mylyn.wikitext.markdown [4.0.0, 4.4.0)
+	org.eclipse.mylyn.wikitext.markdown.ui [4.0.0, 4.4.0)
+	org.eclipse.mylyn.wikitext.ui [4.0.0, 4.4.0)
 }
 
-// This driver targets the 2.5.0 stable release of Epsilon
-location "http://download.eclipse.org/epsilon/updates/2.5/" {
+// We use the 2.9.0 interim to demonstrate ETL 'to' initialisers
+location "http://download.eclipse.org/epsilon/interim/" {
 	org.eclipse.epsilon.eol.engine lazy
 	org.eclipse.epsilon.eol.dt lazy
 	org.eclipse.epsilon.core.feature.feature.group lazy
@@ -115,6 +117,16 @@ location "http://download.eclipse.org/epsilon/updates/2.5/" {
 	org.eclipse.epsilon.pinset.engine lazy
 	org.eclipse.epsilon.pinset.dt lazy
 	org.eclipse.epsilon.picto lazy
+}
+
+// Needed by Picto
+location "https://download.eclipse.org/tools/orbit/simrel/orbit-aggregation/2024-12" {
+        org.commonmark lazy
+        org.commonmark-gfm-strikethrough lazy
+        org.commonmark-gfm-tables lazy
+        org.commonmark-ins lazy
+        org.commonmark-yaml-front-matter lazy
+        org.commonmark-image-attributes lazy
 }
 
 maven MavenDependencies scope=compile,test,runtime dependencyDepth=infinite missingManifest=generate includeSources {
