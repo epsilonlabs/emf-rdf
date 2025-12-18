@@ -1,7 +1,6 @@
-# EMF resource for RDF graphs
-
 **NOTE:** this repository is now archived, as the RDF support has been promoted to the [main Epsilon project](https://github.com/eclipse-epsilon/epsilon).
 
+# EMF resource for RDF graphs
 
 This repository includes a prototype implementation of an EMF resource for RDF graphs, on top of [Apache Jena](https://jena.apache.org/).
 
